@@ -46,7 +46,7 @@
                 <div class="mb-4">
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" name="isDefault"
-                               value="true" id="isDefault" ${rule.isDefault() ? "checked" : ""}>
+                               value="true" id="isDefault" checked="${rule.isDefault()}">
                         <label class="form-check-label" for="isDefault">Règle par défaut</label>
                     </div>
                 </div>
