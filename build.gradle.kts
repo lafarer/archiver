@@ -35,6 +35,9 @@ dependencies {
     implementation("org.xerial:sqlite-jdbc:3.47.0.0")
     implementation("org.hibernate.orm:hibernate-community-dialects")
 
+    // Flyway
+    implementation("org.flywaydb:flyway-core")
+
     // Anthropic Java SDK
     implementation("com.anthropic:anthropic-java:1.4.0")
 
