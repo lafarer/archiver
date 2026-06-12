@@ -23,6 +23,21 @@ Outil personnel de classification et d'archivage de documents.
 | `ARCHIVER_HOST` | Non | `127.0.0.1` | Bind address |
 | `ARCHIVER_PORT` | Non | `8080` | Port HTTP |
 
+## Git
+
+Conventional Commits obligatoires :
+
+| Préfixe | Usage |
+|---|---|
+| `feat:` | Nouvelle fonctionnalité |
+| `fix:` | Correction de bug |
+| `docs:` | Documentation uniquement |
+| `refactor:` | Refactoring sans changement de comportement |
+| `test:` | Ajout ou modification de tests |
+| `chore:` | Maintenance (deps, build, config) |
+
+Exemples : `feat: add watchdog inbox monitoring`, `fix: handle partial date in path template`
+
 ## Démarrage
 
 ```bash
