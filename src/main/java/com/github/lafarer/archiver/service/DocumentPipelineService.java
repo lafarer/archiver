@@ -41,6 +41,8 @@ public class DocumentPipelineService {
     private final SidecarService sidecarService;
     private final ArchiveService archiveService;
     private final SettingService settingService;
+    private final DocumentTypeService documentTypeService;
+    private final TagService tagService;
     private final DocumentRepository documentRepository;
     private final CustomFieldDefRepository customFieldDefRepository;
     private final StoragePathRuleRepository storagePathRuleRepository;
@@ -71,6 +73,14 @@ public class DocumentPipelineService {
             .map(cf -> new CustomFieldHint(cf.getName(), cf.getLabel(), cf.getDescription()))
             .collect(Collectors.toList());
 
+        List<DocumentTypeHint> typeHints = documentTypeService.findEnabled().stream()
+            .map(dt -> new DocumentTypeHint(dt.getSlug(), dt.getLabel(), dt.getDescription()))
+            .collect(Collectors.toList());
+
+        List<TagHint> tagHints = tagService.findEnabled().stream()
+            .map(t -> new TagHint(t.getSlug(), t.getLabel(), t.getDescription()))
+            .collect(Collectors.toList());
+
         List<RuleHint> ruleHints = storagePathRuleRepository.findByActiveTrueOrderByPriorityAsc().stream()
             .map(r -> new RuleHint(r.getId(), r.getLabel(), r.getConditionNl()))
             .collect(Collectors.toList());
@@ -82,8 +92,22 @@ public class DocumentPipelineService {
             extraction.pdfMetadata(),
             extraction.filenameDateHint(),
             cfHints,
+            typeHints,
+            tagHints,
             ruleHints
         );
+
+        if (analysis.documentType() != null) {
+            documentTypeService.autoRegister(
+                analysis.documentType().slug(),
+                analysis.documentType().label(),
+                analysis.documentType().description()
+            );
+        }
+
+        if (analysis.tags() != null) {
+            analysis.tags().forEach(t -> tagService.autoRegister(t.slug(), t.label(), t.description()));
+        }
 
         // Step 3 — build document entity
         Document doc = new Document();
@@ -133,9 +157,12 @@ public class DocumentPipelineService {
         doc.setResolvedPath(resolved.relativePath());
         doc.setAppliedRule(resolved.appliedRule());
 
+        DocumentTypeResult dummyType = doc.getDocumentType() != null
+            ? new DocumentTypeResult(doc.getDocumentType(), null, null) : null;
+        List<TagResult> dummyTags = doc.getTags().stream().map(s -> new TagResult(s, null, null)).toList();
         AnalysisResult dummyAnalysis = new AnalysisResult(
-            null, doc.getDocumentType(), null, null, null, null, null,
-            doc.getTags(), Map.of(), doc.getAppliedRule() != null ? doc.getAppliedRule().getId() : null
+            null, dummyType, null, null, null, null, null,
+            dummyTags, Map.of(), doc.getAppliedRule() != null ? doc.getAppliedRule().getId() : null
         );
 
         return archiveAndFinalize(doc, sourceFile, resolved, dummyAnalysis, ArchiveService.SourceType.MANUAL);
@@ -167,7 +194,7 @@ public class DocumentPipelineService {
     }
 
     private void applyAnalysis(Document doc, AnalysisResult a) {
-        doc.setDocumentType(a.documentType());
+        if (a.documentType() != null) doc.setDocumentType(a.documentType().slug());
 
         if (a.title() != null) {
             doc.setTitle(a.title().value());
@@ -189,7 +216,7 @@ public class DocumentPipelineService {
             doc.setDescription(a.description().value());
         }
         if (a.tags() != null) {
-            doc.setTags(a.tags());
+            doc.setTags(a.tags().stream().map(TagResult::slug).toList());
         }
         if (a.customFields() != null) {
             a.customFields().forEach((k, v) -> doc.getCustomFields().put(k, v.value()));
@@ -197,6 +224,7 @@ public class DocumentPipelineService {
     }
 
     private boolean isAboveThreshold(AnalysisResult analysis) {
+        if (!settingService.getBoolean("auto_archive_enabled")) return false;
         double threshold = settingService.getDouble("confidence_threshold");
         if (analysis.title() == null || analysis.documentDate() == null || analysis.issuer() == null)
             return false;

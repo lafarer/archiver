@@ -9,19 +9,27 @@ public interface AiAnalysisService {
 
     record CustomFieldHint(String name, String label, String description) {}
 
+    record DocumentTypeHint(String slug, String label, String description) {}
+
+    record DocumentTypeResult(String slug, String label, String description) {}
+
+    record TagHint(String slug, String label, String description) {}
+
+    record TagResult(String slug, String label, String description) {}
+
     record RuleHint(Long id, String label, String conditionNl) {}
 
     record FieldValue(String value, String source, Double confidence) {}
 
     record AnalysisResult(
         String reasoning,
-        String documentType,
+        DocumentTypeResult documentType,
         FieldValue title,
         FieldValue documentDate,
         String documentDatePrecision,
         FieldValue issuer,
         FieldValue description,
-        List<String> tags,
+        List<TagResult> tags,
         java.util.Map<String, FieldValue> customFields,
         Long appliedRuleId
     ) {}
@@ -29,10 +37,12 @@ public interface AiAnalysisService {
     AnalysisResult analyze(
         Path file,
         DocumentFileType fileType,
-        String extractedText,       // null for scanned/image
+        String extractedText,
         java.util.Map<String, String> pdfMetadata,
         String filenameDateHint,
         List<CustomFieldHint> customFields,
+        List<DocumentTypeHint> documentTypes,
+        List<TagHint> tags,
         List<RuleHint> rules
     );
 }

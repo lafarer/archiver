@@ -52,6 +52,8 @@ public class AnthropicAiAnalysisService implements AiAnalysisService {
         Map<String, String> pdfMetadata,
         String filenameDateHint,
         List<CustomFieldHint> customFields,
+        List<DocumentTypeHint> documentTypes,
+        List<TagHint> tags,
         List<RuleHint> rules
     ) {
         String model = settingService.get("ai_model");
@@ -63,7 +65,7 @@ public class AnthropicAiAnalysisService implements AiAnalysisService {
         MessageCreateParams params = MessageCreateParams.builder()
             .model(model)
             .maxTokens(2048)
-            .system(buildSystemPrompt(customFields))
+            .system(buildSystemPrompt(customFields, documentTypes, tags))
             .messages(List.of(
                 MessageParam.builder()
                     .role(MessageParam.Role.USER)
@@ -78,18 +80,42 @@ public class AnthropicAiAnalysisService implements AiAnalysisService {
         return parseResponse(json);
     }
 
-    private String buildSystemPrompt(List<CustomFieldHint> customFields) {
+    private String buildSystemPrompt(List<CustomFieldHint> customFields, List<DocumentTypeHint> documentTypes, List<TagHint> tags) {
         StringBuilder sb = new StringBuilder();
         sb.append("""
             You are a document analysis assistant. Analyze the provided document and return a JSON object.
 
-            KNOWN DOCUMENT TYPES (non-exhaustive, suggest a better one if needed):
-            facture, contrat, courrier, diplome, identite, bulletin, fiche-de-paie, acte, notice,
-            attestation, releve, devis, bon-de-commande, garantie, quittance, ordonnance
+            """);
 
-            KNOWN TAGS (non-exhaustive, add relevant ones):
-            eau, energie, internet, telephone, entretien, juridique, electromenager, electronique,
-            mobilier, outillage, sinistre, travaux, assurance, sante, banque, impots, famille
+        if (documentTypes != null && !documentTypes.isEmpty()) {
+            sb.append("KNOWN DOCUMENT TYPES (non-exhaustive — suggest a better slug if none fits):\n");
+            documentTypes.forEach(dt -> sb.append(String.format(
+                "  - %s (%s): %s%n", dt.slug(), dt.label(), dt.description()
+            )));
+        } else {
+            sb.append("""
+                KNOWN DOCUMENT TYPES (non-exhaustive, suggest a better one if needed):
+                facture, contrat, courrier, diplome, identite, fiche-de-paie, attestation,
+                releve, devis, garantie, quittance, ordonnance
+                """);
+        }
+
+        sb.append("\n");
+        if (tags != null && !tags.isEmpty()) {
+            sb.append("KNOWN TAGS (non-exhaustive — add new ones if needed):\n");
+            tags.forEach(t -> sb.append(String.format(
+                "  - %s (%s): %s%n", t.slug(), t.label(), t.description()
+            )));
+        } else {
+            sb.append("""
+                KNOWN TAGS (non-exhaustive, add relevant ones):
+                eau, electricite, gaz, internet, telephone, logement, travaux, entretien,
+                electromenager, electronique, vehicule, banque, impots, assurance, sante,
+                mutuelle, famille, juridique, sinistre, voyage, abonnement
+                """);
+        }
+
+        sb.append("""
 
             CUSTOM FIELDS — evaluate applicability for this document:
             """);
@@ -103,19 +129,31 @@ public class AnthropicAiAnalysisService implements AiAnalysisService {
             RESPONSE FORMAT (strict JSON, no markdown):
             {
               "reasoning": "Brief explanation of your analysis",
-              "document_type": "string",
+              "document_type": {
+                "slug": "kebab-case-slug",
+                "label": "Libellé lisible en français",
+                "description": "Description courte aidant à identifier ce type (uniquement si slug absent de la liste)"
+              },
               "title": { "value": "string", "source": "ai", "confidence": 0.0 },
               "document_date": { "value": "YYYY or YYYY-MM or YYYY-MM-DD", "source": "ai|pdf_metadata|filename", "confidence": 0.0 },
               "document_date_precision": "year|month|day",
               "issuer": { "value": "string", "source": "ai", "confidence": 0.0 },
               "description": { "value": "string", "source": "ai", "confidence": 0.0 },
-              "tags": ["string"],
+              "tags": [
+                { "slug": "assurance" },
+                { "slug": "nouveau-tag", "label": "Nouveau tag", "description": "Description en français" }
+              ],
               "custom_fields": {
                 "field_name": { "applicable": true, "value": "string", "confidence": 0.0 }
               },
               "applied_rule_id": null
             }
 
+            For tags: each tag is an object with at minimum a slug. Known tags need only the slug.
+            For new tags not in the list, add label (in French) and description.
+            For document_type: always use a slug from the known list when it fits.
+            If none fits, invent a new kebab-case slug and provide label + description.
+            If the slug is from the known list, label and description can be omitted.
             For custom fields, only include applicable ones with a non-null value.
             Set applied_rule_id to the ID of the matching rule, or null if none match (default will be used).
             """);
@@ -210,16 +248,17 @@ public class AnthropicAiAnalysisService implements AiAnalysisService {
         try {
             Map<String, Object> map = objectMapper.readValue(json, new TypeReference<>() {});
 
-            String reasoning       = str(map, "reasoning");
-            String documentType    = str(map, "document_type");
-            String datePrecision   = str(map, "document_date_precision");
+            String reasoning              = str(map, "reasoning");
+            DocumentTypeResult documentType = documentTypeResult(map);
+            String datePrecision          = str(map, "document_date_precision");
             FieldValue title       = fieldValue(map, "title");
             FieldValue date        = fieldValue(map, "document_date");
             FieldValue issuer      = fieldValue(map, "issuer");
             FieldValue description = fieldValue(map, "description");
 
             @SuppressWarnings("unchecked")
-            List<String> tags = (List<String>) map.getOrDefault("tags", List.of());
+            List<Object> rawTags = (List<Object>) map.getOrDefault("tags", List.of());
+            List<TagResult> tags = rawTags.stream().map(this::parseTagResult).filter(t -> t != null).toList();
 
             @SuppressWarnings("unchecked")
             Map<String, Object> cfRaw = (Map<String, Object>) map.getOrDefault("custom_fields", Map.of());
@@ -245,8 +284,30 @@ public class AnthropicAiAnalysisService implements AiAnalysisService {
         } catch (Exception e) {
             log.error("Failed to parse AI response: {}", e.getMessage());
             return new AnalysisResult("Parse error", null, null, null, null,
-                null, null, List.of(), Map.of(), null);
+                null, null, List.<TagResult>of(), Map.of(), null);
         }
+    }
+
+    private TagResult parseTagResult(Object raw) {
+        if (raw instanceof Map<?, ?> rawMap) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> m = (Map<String, Object>) rawMap;
+            String slug = str(m, "slug");
+            return slug != null ? new TagResult(slug, str(m, "label"), str(m, "description")) : null;
+        }
+        return raw != null ? new TagResult(String.valueOf(raw), null, null) : null;
+    }
+
+    private DocumentTypeResult documentTypeResult(Map<String, Object> map) {
+        Object raw = map.get("document_type");
+        if (raw instanceof Map<?, ?> rawMap) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> m = (Map<String, Object>) rawMap;
+            String slug = str(m, "slug");
+            return slug != null ? new DocumentTypeResult(slug, str(m, "label"), str(m, "description")) : null;
+        }
+        // Fallback: AI returned a plain string
+        return raw != null ? new DocumentTypeResult(String.valueOf(raw), null, null) : null;
     }
 
     private String str(Map<String, Object> map, String key) {

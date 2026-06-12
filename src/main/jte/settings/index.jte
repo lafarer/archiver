@@ -21,9 +21,9 @@
         <div class="card-body">
             <dl class="row mb-0">
                 <dt class="col-sm-4">Dossier d'archivage</dt>
-                <dd class="col-sm-8"><code>${props.getRoot()}</code></dd>
+                <dd class="col-sm-8"><code>${props.getRoot().toString()}</code></dd>
                 <dt class="col-sm-4">Dossier inbox</dt>
-                <dd class="col-sm-8 mb-0"><code>${props.getInboxPath()}</code></dd>
+                <dd class="col-sm-8 mb-0"><code>${props.getInboxPath().toString()}</code></dd>
             </dl>
         </div>
     </div>
@@ -34,7 +34,7 @@
             <div class="form-check form-switch">
                 <input class="form-check-input" type="checkbox" name="watchdog_enabled"
                        value="true" id="watchdog"
-                       ${settings.getBoolean("watchdog_enabled") ? "checked" : ""}>
+                       checked="${settings.getBoolean("watchdog_enabled")}">
                 <label class="form-check-label" for="watchdog">
                     Watchdog inbox
                     <span class="badge ${watchdogRunning ? "bg-success" : "bg-secondary"} ms-1">
@@ -53,13 +53,13 @@
                 <div class="form-check form-check-inline">
                     <input class="form-check-input" type="radio" name="import_mode"
                            value="copy" id="modeCopy"
-                           ${"copy".equals(settings.get("import_mode")) ? "checked" : ""}>
+                           checked="${"copy".equals(settings.get("import_mode"))}">
                     <label class="form-check-label" for="modeCopy">Copier</label>
                 </div>
                 <div class="form-check form-check-inline">
                     <input class="form-check-input" type="radio" name="import_mode"
                            value="move" id="modeMove"
-                           ${"move".equals(settings.get("import_mode")) ? "checked" : ""}>
+                           checked="${"move".equals(settings.get("import_mode"))}">
                     <label class="form-check-label" for="modeMove">Déplacer</label>
                 </div>
             </div>
@@ -72,14 +72,22 @@
             <div>
                 <label class="form-label" for="aiModel">Modèle</label>
                 <select name="ai_model" id="aiModel" class="form-select">
-                    <option value="claude-sonnet-4-6" ${"claude-sonnet-4-6".equals(settings.get("ai_model")) ? "selected" : ""}>claude-sonnet-4-6</option>
-                    <option value="claude-opus-4-7"   ${"claude-opus-4-7".equals(settings.get("ai_model")) ? "selected" : ""}>claude-opus-4-7</option>
-                    <option value="claude-haiku-4-5-20251001" ${"claude-haiku-4-5-20251001".equals(settings.get("ai_model")) ? "selected" : ""}>claude-haiku-4-5</option>
+                    <option value="claude-sonnet-4-6" selected="${"claude-sonnet-4-6".equals(settings.get("ai_model"))}">claude-sonnet-4-6</option>
+                    <option value="claude-opus-4-7"   selected="${"claude-opus-4-7".equals(settings.get("ai_model"))}">claude-opus-4-7</option>
+                    <option value="claude-haiku-4-5-20251001" selected="${"claude-haiku-4-5-20251001".equals(settings.get("ai_model"))}">claude-haiku-4-5</option>
                 </select>
             </div>
-            <div>
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" name="auto_archive_enabled"
+                       value="true" id="autoArchive"
+                       checked="${settings.getBoolean("auto_archive_enabled")}"
+                       onchange="document.getElementById('thresholdSection').style.display = this.checked ? '' : 'none'">
+                <label class="form-check-label" for="autoArchive">Archivage automatique</label>
+                <div class="form-text">Si activé, les documents dont la confiance dépasse le seuil sont archivés sans validation manuelle.</div>
+            </div>
+            <div id="thresholdSection" style="${settings.getBoolean("auto_archive_enabled") ? "" : "display:none"}">
                 <label class="form-label" for="confThreshold">
-                    Seuil de confiance — archivage automatique
+                    Seuil de confiance minimum
                     <strong id="thresholdVal">${settings.get("confidence_threshold")}</strong>
                 </label>
                 <input type="range" class="form-range" id="confThreshold"

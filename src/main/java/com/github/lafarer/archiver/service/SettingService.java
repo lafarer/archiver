@@ -17,10 +17,11 @@ public class SettingService {
     private final SettingRepository repository;
 
     private static final Map<String, String> DEFAULTS = Map.of(
-        "watchdog_enabled",     "false",
-        "ai_model",             "claude-sonnet-4-6",
-        "confidence_threshold", "0.75",
-        "import_mode",          "copy"  // "copy" | "move"
+        "watchdog_enabled",      "false",
+        "ai_model",              "claude-sonnet-4-6",
+        "auto_archive_enabled",  "false",
+        "confidence_threshold",  "0.75",
+        "import_mode",           "copy"  // "copy" | "move"
     );
 
     @EventListener(ApplicationReadyEvent.class)

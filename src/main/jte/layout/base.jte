@@ -37,6 +37,12 @@
         <li class="nav-item">
             <a class="nav-link ${page.equals("fields") ? "active" : ""}" href="/fields">Champs</a>
         </li>
+        <li class="nav-item">
+            <a class="nav-link ${page.equals("doctypes") ? "active" : ""}" href="/doctypes">Types</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link ${page.equals("tags") ? "active" : ""}" href="/tags">Tags</a>
+        </li>
         <li class="nav-item mt-auto">
             <a class="nav-link ${page.equals("settings") ? "active" : ""}" href="/settings">Réglages</a>
         </li>
