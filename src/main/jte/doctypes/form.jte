@@ -3,10 +3,11 @@
 @param DocumentTypeDef type
 @param String page
 
-@template.layout.base(page = page, title = "${type.getId() == null ? "Nouveau type" : "Éditer " + type.getLabel()}", content = @`
+!{String pageTitle = type.getId() == null ? "Nouveau type de document" : "Éditer " + type.getLabel();}
+@template.layout.base(page = page, title = pageTitle, content = @`
 
 <div class="page-header">
-    <h1>${type.getId() == null ? "Nouveau type de document" : "Éditer " + type.getLabel()}</h1>
+    <h1>${pageTitle}</h1>
 </div>
 
 <div class="page-body" style="max-width: 600px">

@@ -3,10 +3,11 @@
 @param TagDef tag
 @param String page
 
-@template.layout.base(page = page, title = "${tag.getId() == null ? "Nouveau tag" : "Éditer " + tag.getLabel()}", content = @`
+!{String pageTitle = tag.getId() == null ? "Nouveau tag" : "Éditer " + tag.getLabel();}
+@template.layout.base(page = page, title = pageTitle, content = @`
 
 <div class="page-header">
-    <h1>${tag.getId() == null ? "Nouveau tag" : "Éditer " + tag.getLabel()}</h1>
+    <h1>${pageTitle}</h1>
 </div>
 
 <div class="page-body" style="max-width: 600px">
