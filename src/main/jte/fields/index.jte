@@ -21,7 +21,7 @@
                     <div>
                         <div class="fw-semibold">
                             ${field.getLabel()}
-                            <code class="ms-2 text-muted small">${field.getName()}</code>
+                            <code class="ms-2 text-muted small">${field.getSlug()}</code>
                             <span class="badge bg-light text-dark ms-1">${field.getFieldType().name().toLowerCase()}</span>
                         </div>
                         <div class="text-muted small mt-1">${field.getDescription()}</div>

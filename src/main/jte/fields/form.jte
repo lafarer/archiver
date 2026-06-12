@@ -16,9 +16,9 @@
         <div class="d-flex flex-column gap-3">
 
             <div>
-                <label class="form-label" for="name">Nom <span class="text-muted small">(identifiant unique, ex: numero_contrat)</span></label>
-                <input type="text" id="name" name="name" class="form-control"
-                       value="${field.getName() != null ? field.getName() : ""}"
+                <label class="form-label" for="slug">Slug <span class="text-muted small">(identifiant unique, ex: numero_contrat)</span></label>
+                <input type="text" id="slug" name="slug" class="form-control"
+                       value="${field.getSlug() != null ? field.getSlug() : ""}"
                        pattern="[a-z0-9_]+" readonly="${field.getId() != null}" required>
             </div>
 

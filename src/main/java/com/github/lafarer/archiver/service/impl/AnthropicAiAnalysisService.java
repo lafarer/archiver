@@ -121,7 +121,7 @@ public class AnthropicAiAnalysisService implements AiAnalysisService {
             """);
 
         customFields.forEach(cf -> sb.append(String.format(
-            "  - %s (%s): %s%n", cf.name(), cf.label(), cf.description()
+            "  - %s (%s): %s%n", cf.slug(), cf.label(), cf.description()
         )));
 
         sb.append("""

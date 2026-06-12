@@ -15,7 +15,7 @@ public class CustomFieldDef {
     private Long id;
 
     @Column(unique = true, nullable = false, length = 80)
-    private String name; // slug used in path templates, e.g. "numero_contrat"
+    private String slug; // used in path templates, e.g. "numero_contrat"
 
     @Column(nullable = false)
     private String label;

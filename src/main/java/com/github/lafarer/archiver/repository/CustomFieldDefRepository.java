@@ -7,7 +7,7 @@ import java.util.Optional;
 
 public interface CustomFieldDefRepository extends JpaRepository<CustomFieldDef, Long> {
 
-    Optional<CustomFieldDef> findByName(String name);
+    Optional<CustomFieldDef> findBySlug(String slug);
 
-    boolean existsByName(String name);
+    boolean existsBySlug(String slug);
 }

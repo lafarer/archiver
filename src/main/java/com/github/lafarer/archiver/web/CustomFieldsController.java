@@ -39,8 +39,8 @@ public class CustomFieldsController {
 
     @PostMapping
     public String create(@ModelAttribute CustomFieldDef field, RedirectAttributes ra) {
-        if (repository.existsByName(field.getName())) {
-            ra.addFlashAttribute("error", "Un champ avec ce nom existe déjà.");
+        if (repository.existsBySlug(field.getSlug())) {
+            ra.addFlashAttribute("error", "Un champ avec ce slug existe déjà.");
             return "redirect:/fields/new";
         }
         repository.save(field);

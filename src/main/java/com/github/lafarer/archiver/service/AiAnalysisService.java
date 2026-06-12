@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface AiAnalysisService {
 
-    record CustomFieldHint(String name, String label, String description) {}
+    record CustomFieldHint(String slug, String label, String description) {}
 
     record DocumentTypeHint(String slug, String label, String description) {}
 

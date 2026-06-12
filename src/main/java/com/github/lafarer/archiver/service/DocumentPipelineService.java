@@ -70,7 +70,7 @@ public class DocumentPipelineService {
 
         // Step 2 — AI analysis (always called)
         List<CustomFieldHint> cfHints = customFieldDefRepository.findAll().stream()
-            .map(cf -> new CustomFieldHint(cf.getName(), cf.getLabel(), cf.getDescription()))
+            .map(cf -> new CustomFieldHint(cf.getSlug(), cf.getLabel(), cf.getDescription()))
             .collect(Collectors.toList());
 
         List<DocumentTypeHint> typeHints = documentTypeService.findEnabled().stream()
