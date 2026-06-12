@@ -5,7 +5,7 @@ Outil personnel de classification et d'archivage de documents.
 ## Stack technique
 
 - **Backend** : Java 21, Spring Boot 3.x, Gradle (Kotlin DSL)
-- **Frontend** : jte (Java Template Engine) + HTMX + Bootstrap CSS (servi par Spring Boot)
+- **Frontend** : jte (Java Template Engine) + HTMX + Bootstrap SCSS (servi par Spring Boot)
 - **Base de données** : SQLite via Spring Data JPA + Hibernate
 - **IA** : Anthropic Java SDK (`claude-sonnet-4-6`, multimodal)
 - **PDF natif** : Apache PDFBox (extraction texte + métadonnées)
@@ -41,7 +41,8 @@ Exemples : `feat: add watchdog inbox monitoring`, `fix: handle partial date in p
 ## Démarrage
 
 ```bash
-./gradlew bootRun
+./gradlew bootRun        # compile le SCSS puis démarre Spring Boot
+./gradlew scss           # compile le SCSS seul
 ```
 
 L'application crée automatiquement au premier démarrage :
@@ -51,36 +52,71 @@ L'application crée automatiquement au premier démarrage :
 ## Structure du projet
 
 ```
-src/main/java/be/amarris/archiver/
-  ArchiverApplication.java
-  config/
-    AppConfig.java          # ArchiverProperties (@ConfigurationProperties)
-    DatabaseConfig.java     # init SQLite + création DB
-  model/                    # entités JPA
-    Document.java
-    CustomFieldDef.java
-    StoragePathRule.java
-    ClassificationHistory.java
-    Setting.java
-  repository/               # Spring Data JPA repositories
-  service/
-    ExtractionService.java  # détection type, PDFBox, parsing filename
-    AiAnalysisService.java  # appel Anthropic SDK, prompt building
-    PathResolverService.java# évaluation règles, rendu template
-    SidecarService.java     # lecture/écriture JSON sidecar
-    ArchiveService.java     # déplacement/copie fichier
-    WatchdogService.java    # Java WatchService
-  web/
-    InboxController.java
-    ArchiveController.java
-    RulesController.java
-    CustomFieldsController.java
-    SettingsController.java
-src/main/resources/
-  application.properties
-  templates/                # jte
-  static/                   # CSS, JS
+src/main/
+  java/be/amarris/archiver/
+    ArchiverApplication.java
+    config/
+      AppConfig.java          # ArchiverProperties (@ConfigurationProperties)
+      DatabaseConfig.java     # init SQLite + création DB
+    model/                    # entités JPA
+      Document.java
+      CustomFieldDef.java
+      StoragePathRule.java
+      ClassificationHistory.java
+      Setting.java
+    repository/               # Spring Data JPA repositories
+    service/
+      ExtractionService.java  # détection type, PDFBox, parsing filename
+      AiAnalysisService.java  # appel Anthropic SDK, prompt building
+      PathResolverService.java# évaluation règles, rendu template
+      SidecarService.java     # lecture/écriture JSON sidecar
+      ArchiveService.java     # déplacement/copie fichier
+      WatchdogService.java    # Java WatchService
+    web/
+      InboxController.java
+      ArchiveController.java
+      RulesController.java
+      CustomFieldsController.java
+      SettingsController.java
+  resources/
+    application.properties
+    templates/                # jte
+    static/
+      css/
+        app.css               # compilé depuis SCSS — gitignored
+      js/
+  scss/
+    app.scss                  # point d'entrée : variables puis bootstrap
+    _variables.scss           # overrides Bootstrap (couleurs, spacing…)
 ```
+
+## Bootstrap SCSS
+
+Bootstrap est installé via npm et compilé avec `sass` CLI vers `static/css/app.css`.
+
+```
+package.json                  # dépendances npm : bootstrap, sass
+```
+
+`src/main/scss/app.scss` :
+```scss
+// 1. Overrides avant import Bootstrap
+@import "variables";
+
+// 2. Bootstrap complet
+@import "bootstrap/scss/bootstrap";
+
+// 3. Styles applicatifs
+```
+
+`src/main/scss/_variables.scss` :
+```scss
+// Exemple de customisation
+$primary:   #3d6b8e;
+$font-size-base: 0.9rem;
+```
+
+La compilation SCSS est déclenchée automatiquement par Gradle avant `bootRun` via le plugin `com.github.node-gradle.node`. Le fichier compilé `app.css` est gitignored — seuls les sources SCSS sont versionnés.
 
 ## Schéma de données
 
@@ -119,7 +155,7 @@ Fichier caché co-localisé avec le document archivé :
 
 Contient : raisonnement IA, toutes les valeurs extraites avec source/confiance, chemin résolu, règle appliquée. Permet de reconstruire la DB complètement.
 
-## Interface (jte + HTMX + Bootstrap)
+## Interface (jte + HTMX + Bootstrap SCSS)
 
 - **Inbox** : liste documents pending, drag & drop import, validation en ligne
 - **Archive** : liste filtrée (type, tags, période, recherche)
