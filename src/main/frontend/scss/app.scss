@@ -1,0 +1,208 @@
+// 1. Variable overrides (must come before Bootstrap)
+@import "variables";
+
+// 2. Bootstrap
+@import "bootstrap/scss/bootstrap";
+
+// 3. Application styles
+
+body {
+    display: flex;
+    min-height: 100vh;
+    background-color: $gray-100;
+}
+
+// Sidebar
+.sidebar {
+    width: $sidebar-width;
+    min-height: 100vh;
+    background-color: $gray-900;
+    color: $gray-300;
+    flex-shrink: 0;
+
+    .sidebar-brand {
+        padding: 1.25rem 1rem;
+        font-weight: 600;
+        font-size: 1rem;
+        color: $white;
+        border-bottom: 1px solid $gray-700;
+    }
+
+    .nav-link {
+        color: $gray-400;
+        padding: 0.6rem 1rem;
+        border-radius: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+
+        &:hover {
+            color: $white;
+            background-color: $gray-800;
+        }
+
+        &.active {
+            color: $white;
+            background-color: $primary;
+        }
+    }
+
+    .badge {
+        margin-left: auto;
+    }
+}
+
+// Main content
+.main-content {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.page-header {
+    padding: 1.25rem 1.5rem;
+    background: $white;
+    border-bottom: 1px solid $gray-200;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    h1 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 0;
+    }
+}
+
+.page-body {
+    padding: 1.5rem;
+}
+
+// Document cards (inbox)
+.document-card {
+    background: $white;
+    border: 1px solid $gray-200;
+    border-radius: $border-radius;
+    margin-bottom: 0.75rem;
+    padding: 1rem;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+
+    &.has-warnings {
+        border-left: 3px solid $warning;
+    }
+
+    .doc-meta {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .doc-type {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: $primary;
+    }
+
+    .doc-title {
+        font-weight: 600;
+        margin: 0.15rem 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .doc-subtitle {
+        font-size: 0.82rem;
+        color: $gray-600;
+    }
+
+    .doc-path {
+        font-size: 0.78rem;
+        color: $gray-500;
+        font-family: $font-family-monospace;
+        margin-top: 0.4rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
+// Confidence badges
+.badge-source {
+    font-size: 0.7rem;
+    font-weight: 500;
+    padding: 0.2em 0.5em;
+
+    &.source-pdf-meta  { background-color: #dbeafe; color: #1e40af; }
+    &.source-filename  { background-color: $gray-200; color: $gray-700; }
+    &.source-ai-high   { background-color: #dcfce7; color: #166534; }
+    &.source-ai-medium { background-color: #fef9c3; color: #854d0e; }
+    &.source-ai-low    { background-color: #fee2e2; color: #991b1b; }
+    &.source-manual    { background-color: #ede9fe; color: #5b21b6; }
+}
+
+// Tags
+.tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.15em 0.6em;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    background-color: $gray-100;
+    border: 1px solid $gray-300;
+    color: $gray-700;
+
+    .tag-remove {
+        cursor: pointer;
+        opacity: 0.6;
+        &:hover { opacity: 1; }
+    }
+}
+
+// Rules list
+.rule-item {
+    background: $white;
+    border: 1px solid $gray-200;
+    border-radius: $border-radius;
+    padding: 0.85rem 1rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    .rule-handle {
+        cursor: grab;
+        color: $gray-400;
+    }
+
+    .rule-priority {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: $gray-500;
+        width: 1.5rem;
+        text-align: center;
+    }
+
+    .rule-body {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .rule-label {
+        font-weight: 600;
+    }
+
+    .rule-condition {
+        font-size: 0.8rem;
+        color: $gray-600;
+        font-style: italic;
+    }
+
+    .rule-template {
+        font-size: 0.78rem;
+        font-family: $font-family-monospace;
+        color: $gray-500;
+    }
+}

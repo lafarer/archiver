@@ -1,0 +1,24 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IntelliJ
+.idea/
+*.iml
+*.iws
+out/
+
+# Compiled SCSS output
+src/main/resources/static/css/app.css
+
+# Node
+node_modules/
+node/
+
+# Environment
+.env
+*.db
+
+# OS
+.DS_Store

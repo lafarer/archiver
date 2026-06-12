@@ -53,7 +53,7 @@ L'application crée automatiquement au premier démarrage :
 
 ```
 src/main/
-  java/be/amarris/archiver/
+  java/com/github/lafarer/archiver/
     ArchiverApplication.java
     config/
       AppConfig.java          # ArchiverProperties (@ConfigurationProperties)

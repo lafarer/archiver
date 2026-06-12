@@ -1,0 +1,15 @@
+{
+  "name": "archiver-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build:css": "sass scss/app.scss ../resources/static/css/app.css --style=compressed --no-source-map",
+    "watch:css": "sass scss/app.scss ../resources/static/css/app.css --watch"
+  },
+  "dependencies": {
+    "bootstrap": "^5.3.3"
+  },
+  "devDependencies": {
+    "sass": "^1.80.0"
+  }
+}

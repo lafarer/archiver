@@ -1,0 +1,18 @@
+// Bootstrap variable overrides — must be set before importing Bootstrap
+
+// Colors
+$primary:   #3d6b8e;
+$secondary: #6c757d;
+
+// Typography
+$font-family-sans-serif: "Inter", system-ui, -apple-system, sans-serif;
+$font-size-base:         0.9rem;
+
+// Spacing
+$spacer: 1rem;
+
+// Border radius
+$border-radius: 0.375rem;
+
+// Sidebar width (custom, not Bootstrap)
+$sidebar-width: 220px;
