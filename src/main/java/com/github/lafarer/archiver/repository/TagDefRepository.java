@@ -8,6 +8,7 @@ import java.util.Optional;
 
 public interface TagDefRepository extends JpaRepository<TagDef, Long> {
     Optional<TagDef> findBySlug(String slug);
+    boolean existsBySlug(String slug);
     List<TagDef> findAllByOrderByLabelAsc();
     List<TagDef> findByEnabledTrueOrderByLabelAsc();
 }

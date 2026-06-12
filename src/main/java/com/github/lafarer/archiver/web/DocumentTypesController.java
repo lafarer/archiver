@@ -42,8 +42,11 @@ public class DocumentTypesController {
 
     @PostMapping
     public String create(@ModelAttribute DocumentTypeForm form, RedirectAttributes ra) {
-        DocumentTypeDef type = new DocumentTypeDef(form.slug(), form.label(), form.description());
-        repository.save(type);
+        if (repository.existsBySlug(form.slug())) {
+            ra.addFlashAttribute("error", "Un type avec ce slug existe déjà.");
+            return "redirect:/doctypes/new";
+        }
+        repository.save(new DocumentTypeDef(form.slug(), form.label(), form.description()));
         ra.addFlashAttribute("message", "Type créé.");
         return "redirect:/doctypes";
     }
@@ -52,7 +55,6 @@ public class DocumentTypesController {
     public String update(@PathVariable Long id, @ModelAttribute DocumentTypeForm form, RedirectAttributes ra) {
         DocumentTypeDef type = repository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Type not found: " + id));
-        type.setSlug(form.slug());
         type.setLabel(form.label());
         type.setDescription(form.description());
         repository.save(type);

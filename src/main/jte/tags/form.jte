@@ -18,7 +18,7 @@
                 <label class="form-label" for="slug">Slug <span class="text-muted small">(identifiant unique, ex: assurance)</span></label>
                 <input type="text" id="slug" name="slug" class="form-control"
                        value="${tag.getSlug() != null ? tag.getSlug() : ""}"
-                       pattern="[a-z0-9\-]+" required>
+                       pattern="[a-z0-9\-]+" readonly="${tag.getId() != null}" required>
             </div>
 
             <div>

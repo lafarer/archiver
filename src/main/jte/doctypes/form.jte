@@ -18,7 +18,7 @@
                 <label class="form-label" for="slug">Slug <span class="text-muted small">(identifiant unique, ex: fiche-de-paie)</span></label>
                 <input type="text" id="slug" name="slug" class="form-control"
                        value="${type.getSlug() != null ? type.getSlug() : ""}"
-                       pattern="[a-z0-9\-]+" required>
+                       pattern="[a-z0-9\-]+" readonly="${type.getId() != null}" required>
             </div>
 
             <div>

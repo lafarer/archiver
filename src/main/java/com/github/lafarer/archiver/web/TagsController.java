@@ -42,6 +42,10 @@ public class TagsController {
 
     @PostMapping
     public String create(@ModelAttribute TagForm form, RedirectAttributes ra) {
+        if (repository.existsBySlug(form.slug())) {
+            ra.addFlashAttribute("error", "Un tag avec ce slug existe déjà.");
+            return "redirect:/tags/new";
+        }
         repository.save(new TagDef(form.slug(), form.label(), form.description()));
         ra.addFlashAttribute("message", "Tag créé.");
         return "redirect:/tags";
@@ -51,7 +55,6 @@ public class TagsController {
     public String update(@PathVariable Long id, @ModelAttribute TagForm form, RedirectAttributes ra) {
         TagDef tag = repository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Tag not found: " + id));
-        tag.setSlug(form.slug());
         tag.setLabel(form.label());
         tag.setDescription(form.description());
         repository.save(tag);
