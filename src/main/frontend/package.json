@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build:css": "sass scss/app.scss ../resources/static/css/app.css --style=compressed --no-source-map",
-    "watch:css": "sass scss/app.scss ../resources/static/css/app.css --watch"
+    "build:css": "sass scss/app.scss ../resources/static/css/app.css --style=compressed --no-source-map --load-path=node_modules",
+    "watch:css": "sass scss/app.scss ../resources/static/css/app.css --watch --load-path=node_modules"
   },
   "dependencies": {
     "bootstrap": "^5.3.3"

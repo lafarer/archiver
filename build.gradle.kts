@@ -2,7 +2,7 @@ import com.github.gradle.node.npm.task.NpmTask
 
 plugins {
     java
-    id("org.springframework.boot") version "3.4.5"
+    id("org.springframework.boot") version "3.5.0"
     id("io.spring.dependency-management") version "1.1.7"
     id("com.github.node-gradle.node") version "7.0.2"
 }
@@ -11,7 +11,7 @@ group = "com.github.lafarer"
 version = "0.1.0-SNAPSHOT"
 
 java {
-    toolchain { languageVersion = JavaLanguageVersion.of(21) }
+    toolchain { languageVersion = JavaLanguageVersion.of(25) }
 }
 
 configurations {
@@ -29,14 +29,14 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
 
     // jte template engine
-    implementation("gg.jte:jte-spring-boot-starter-3:3.1.12")
+    implementation("gg.jte:jte-spring-boot-starter-3:3.1.16")
 
     // SQLite
     implementation("org.xerial:sqlite-jdbc:3.47.0.0")
     implementation("org.hibernate.orm:hibernate-community-dialects")
 
     // Anthropic Java SDK
-    implementation("com.anthropic:anthropic-java:1.1.0")
+    implementation("com.anthropic:anthropic-java:1.4.0")
 
     // PDF processing
     implementation("org.apache.pdfbox:pdfbox:3.0.3")
@@ -73,6 +73,11 @@ tasks.processResources {
     dependsOn(compileSass)
 }
 
+tasks.bootRun {
+    jvmArgs("--enable-native-access=ALL-UNNAMED")
+}
+
 tasks.test {
     useJUnitPlatform()
+    jvmArgs("--enable-native-access=ALL-UNNAMED")
 }

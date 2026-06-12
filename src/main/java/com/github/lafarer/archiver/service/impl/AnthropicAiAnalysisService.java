@@ -11,6 +11,7 @@ import com.github.lafarer.archiver.service.SettingService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.springframework.beans.factory.annotation.Value;
@@ -55,7 +56,7 @@ public class AnthropicAiAnalysisService implements AiAnalysisService {
     ) {
         String model = settingService.get("ai_model");
 
-        List<ContentBlock> userContent = buildUserContent(
+        List<ContentBlockParam> userContent = buildUserContent(
             file, fileType, extractedText, pdfMetadata, filenameDateHint, rules
         );
 
@@ -122,12 +123,12 @@ public class AnthropicAiAnalysisService implements AiAnalysisService {
         return sb.toString();
     }
 
-    private List<ContentBlock> buildUserContent(
+    private List<ContentBlockParam> buildUserContent(
         Path file, DocumentFileType fileType,
         String extractedText, Map<String, String> pdfMetadata,
         String filenameDateHint, List<RuleHint> rules
     ) {
-        List<ContentBlock> blocks = new ArrayList<>();
+        List<ContentBlockParam> blocks = new ArrayList<>();
 
         // Pre-extracted context
         StringBuilder context = new StringBuilder("PRE-EXTRACTED INFORMATION:\n");
@@ -148,14 +149,14 @@ public class AnthropicAiAnalysisService implements AiAnalysisService {
             context.append("\n");
         }
 
-        blocks.add(ContentBlock.ofRequestTextBlock(
-            RequestTextBlock.builder().text(context.toString()).build()
+        blocks.add(ContentBlockParam.ofText(
+            TextBlockParam.builder().text(context.toString()).build()
         ));
 
         // Document content
         if (extractedText != null && !extractedText.isBlank()) {
-            blocks.add(ContentBlock.ofRequestTextBlock(
-                RequestTextBlock.builder()
+            blocks.add(ContentBlockParam.ofText(
+                TextBlockParam.builder()
                     .text("DOCUMENT TEXT:\n" + truncate(extractedText, 8000))
                     .build()
             ));
@@ -164,12 +165,12 @@ public class AnthropicAiAnalysisService implements AiAnalysisService {
             try {
                 String base64 = encodeFirstPage(file, fileType);
                 if (base64 != null) {
-                    blocks.add(ContentBlock.ofRequestImageBlock(
-                        RequestImageBlock.builder()
-                            .source(Base64ImageSource.builder()
+                    blocks.add(ContentBlockParam.ofImage(
+                        ImageBlockParam.builder()
+                            .source(ImageBlockParam.Source.ofBase64Image(Base64ImageSource.builder()
                                 .mediaType(Base64ImageSource.MediaType.IMAGE_JPEG)
                                 .data(base64)
-                                .build())
+                                .build()))
                             .build()
                     ));
                 }
@@ -184,7 +185,7 @@ public class AnthropicAiAnalysisService implements AiAnalysisService {
     private String encodeFirstPage(Path file, DocumentFileType fileType) throws Exception {
         BufferedImage image;
         if (fileType == DocumentFileType.SCANNED_PDF) {
-            try (PDDocument doc = PDDocument.load(file.toFile())) {
+            try (PDDocument doc = Loader.loadPDF(file.toFile())) {
                 image = new PDFRenderer(doc).renderImageWithDPI(0, 150);
             }
         } else {
@@ -199,8 +200,8 @@ public class AnthropicAiAnalysisService implements AiAnalysisService {
 
     private String extractText(Message response) {
         return response.content().stream()
-            .filter(b -> b instanceof TextBlock)
-            .map(b -> ((TextBlock) b).text())
+            .filter(ContentBlock::isText)
+            .map(b -> b.asText().text())
             .findFirst()
             .orElse("{}");
     }
@@ -256,7 +257,9 @@ public class AnthropicAiAnalysisService implements AiAnalysisService {
     @SuppressWarnings("unchecked")
     private FieldValue fieldValue(Map<String, Object> map, String key) {
         Object raw = map.get(key);
-        if (!(raw instanceof Map<?, ?> m)) return null;
+        if (!(raw instanceof Map<?, ?> rawMap)) return null;
+        @SuppressWarnings("unchecked")
+        Map<String, Object> m = (Map<String, Object>) rawMap;
         Object value = m.get("value");
         if (value == null) return null;
         return new FieldValue(
