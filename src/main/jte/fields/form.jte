@@ -19,7 +19,7 @@
                 <label class="form-label" for="name">Nom <span class="text-muted small">(identifiant unique, ex: numero_contrat)</span></label>
                 <input type="text" id="name" name="name" class="form-control"
                        value="${field.getName() != null ? field.getName() : ""}"
-                       pattern="[a-z0-9_]+" ${ field.getId() != null ? "readonly" : ""} required>
+                       pattern="[a-z0-9_]+" readonly="${field.getId() != null}" required>
             </div>
 
             <div>
