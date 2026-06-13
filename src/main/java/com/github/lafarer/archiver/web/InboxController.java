@@ -2,6 +2,7 @@ package com.github.lafarer.archiver.web;
 
 import com.github.lafarer.archiver.config.ArchiverProperties;
 import com.github.lafarer.archiver.model.Document;
+import com.github.lafarer.archiver.repository.CustomFieldDefRepository;
 import com.github.lafarer.archiver.repository.DocumentRepository;
 import com.github.lafarer.archiver.service.ArchiveService;
 import com.github.lafarer.archiver.service.DocumentPipelineService;
@@ -16,6 +17,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/inbox")
@@ -25,6 +27,7 @@ public class InboxController {
     private final DocumentRepository documentRepository;
     private final DocumentPipelineService pipelineService;
     private final ArchiverProperties props;
+    private final CustomFieldDefRepository customFieldDefRepository;
 
     @GetMapping
     public String index(Model model) {
@@ -49,6 +52,7 @@ public class InboxController {
         Document doc = documentRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Document not found: " + id));
         model.addAttribute("document", doc);
+        model.addAttribute("customFieldDefs", customFieldDefRepository.findAll());
         model.addAttribute("page", "inbox");
         return "inbox/edit";
     }
@@ -56,10 +60,21 @@ public class InboxController {
     @PostMapping("/{id}")
     public String update(@PathVariable Long id,
                          @ModelAttribute DocumentForm form,
+                         @RequestParam Map<String, String> allParams,
                          RedirectAttributes redirectAttributes) {
         Document doc = documentRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Document not found: " + id));
         form.applyTo(doc);
+        allParams.forEach((key, value) -> {
+            if (key.startsWith("cf_")) {
+                String slug = key.substring(3);
+                if (value != null && !value.isBlank()) {
+                    doc.getCustomFields().put(slug, value.trim());
+                } else {
+                    doc.getCustomFields().remove(slug);
+                }
+            }
+        });
         documentRepository.save(doc);
         redirectAttributes.addFlashAttribute("message", "Document mis à jour.");
         return "redirect:/inbox/" + id + "/edit";

@@ -1,6 +1,9 @@
 @import com.github.lafarer.archiver.model.Document
+@import com.github.lafarer.archiver.model.CustomFieldDef
+@import java.util.List
 
 @param Document document
+@param List<CustomFieldDef> customFieldDefs
 @param String page
 
 !{String pageTitle = "Éditer — " + (document.getTitle() != null ? document.getTitle() : document.getOriginalFilename());}
@@ -104,6 +107,20 @@
                        value="${tagsValue}"
                        placeholder="ex: assurance, logement">
             </div>
+
+            @if(!customFieldDefs.isEmpty())
+                <hr class="my-1">
+                <div class="text-muted small fw-semibold mb-1">Champs personnalisés</div>
+                @for(CustomFieldDef cf : customFieldDefs)
+                    !{String cfValue = document.getCustomFields().getOrDefault(cf.getSlug(), "");}
+                    <div>
+                        <label class="form-label" for="cf_${cf.getSlug()}">${cf.getLabel()}</label>
+                        <input type="text" id="cf_${cf.getSlug()}" name="cf_${cf.getSlug()}"
+                               class="form-control" value="${cfValue}"
+                               placeholder="${cf.getDescription() != null ? cf.getDescription() : ""}">
+                    </div>
+                @endfor
+            @endif
 
             <div class="d-flex gap-2 mt-2">
                 <button type="submit" class="btn btn-outline-secondary">Enregistrer</button>
