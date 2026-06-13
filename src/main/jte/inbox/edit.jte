@@ -4,6 +4,7 @@
 
 @param Document document
 @param List<CustomFieldDef> customFieldDefs
+@param String proposedPath
 @param String page
 
 !{String pageTitle = "Éditer — " + (document.getTitle() != null ? document.getTitle() : document.getOriginalFilename());}
@@ -40,9 +41,7 @@
 
     <div class="mb-3 text-muted small">
         Fichier : <strong>${document.getOriginalFilename()}</strong>
-        @if(document.getResolvedPath() != null)
-            &nbsp;·&nbsp; → <code>${document.getResolvedPath()}</code>
-        @endif
+        &nbsp;·&nbsp; → <code>${proposedPath}</code>
     </div>
 
     <form method="post" action="/inbox/${document.getId()}">

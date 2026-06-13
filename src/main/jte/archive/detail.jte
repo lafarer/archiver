@@ -4,6 +4,7 @@
 
 @param Document document
 @param List<CustomFieldDef> customFieldDefs
+@param String proposedPath
 @param String page
 
 !{String pageTitle = document.getTitle() != null ? document.getTitle() : document.getOriginalFilename();}
@@ -26,10 +27,17 @@
 
 <div class="page-body">
 
+    !{boolean pathChanged = document.getResolvedPath() != null && !document.getResolvedPath().equals(proposedPath);}
     <div class="mb-3 text-muted small">
         Fichier : <strong>${document.getOriginalFilename()}</strong>
-        @if(document.getResolvedPath() != null)
-            &nbsp;·&nbsp; → <code>${document.getResolvedPath()}</code>
+        &nbsp;·&nbsp; <code>${document.getResolvedPath() != null ? document.getResolvedPath() : proposedPath}</code>
+        @if(pathChanged)
+            <div class="mt-1 text-warning">
+                ⚠ La règle a changé. Nouveau chemin proposé : <code>${proposedPath}</code>
+                <form method="post" action="/archive/${document.getId()}/reclassify" class="d-inline ms-2">
+                    <button type="submit" class="btn btn-warning btn-sm">Reclassifier et déplacer</button>
+                </form>
+            </div>
         @endif
     </div>
 

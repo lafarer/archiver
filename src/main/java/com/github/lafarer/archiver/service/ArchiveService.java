@@ -38,6 +38,16 @@ public class ArchiveService {
         return target;
     }
 
+    public Path reclassify(Path source, String relativeTargetPath) throws IOException {
+        Path target = props.getRoot().resolve(relativeTargetPath);
+        if (source.toAbsolutePath().equals(target.toAbsolutePath())) return source;
+        Files.createDirectories(target.getParent());
+        target = resolveConflict(target);
+        Files.move(source, target, StandardCopyOption.ATOMIC_MOVE);
+        log.info("Reclassified {} → {}", source.getFileName(), target);
+        return target;
+    }
+
     private Path resolveConflict(Path target) {
         if (!Files.exists(target)) return target;
         String name = target.getFileName().toString();

@@ -53,6 +53,7 @@ public class InboxController {
             .orElseThrow(() -> new IllegalArgumentException("Document not found: " + id));
         model.addAttribute("document", doc);
         model.addAttribute("customFieldDefs", customFieldDefRepository.findAll());
+        model.addAttribute("proposedPath", pipelineService.proposedPath(doc));
         model.addAttribute("page", "inbox");
         return "inbox/edit";
     }

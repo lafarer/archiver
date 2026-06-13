@@ -3,6 +3,7 @@ package com.github.lafarer.archiver.web;
 import com.github.lafarer.archiver.model.Document;
 import com.github.lafarer.archiver.repository.CustomFieldDefRepository;
 import com.github.lafarer.archiver.repository.DocumentRepository;
+import com.github.lafarer.archiver.service.DocumentPipelineService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -12,6 +13,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -22,6 +24,7 @@ public class ArchiveController {
 
     private final DocumentRepository documentRepository;
     private final CustomFieldDefRepository customFieldDefRepository;
+    private final DocumentPipelineService pipelineService;
 
     private static final int PAGE_SIZE = 25;
 
@@ -45,8 +48,16 @@ public class ArchiveController {
             .orElseThrow(() -> new IllegalArgumentException("Document not found: " + id));
         model.addAttribute("document", doc);
         model.addAttribute("customFieldDefs", customFieldDefRepository.findAll());
+        model.addAttribute("proposedPath", pipelineService.proposedPath(doc));
         model.addAttribute("page", "archive");
         return "archive/detail";
+    }
+
+    @PostMapping("/{id}/reclassify")
+    public String reclassify(@PathVariable Long id, RedirectAttributes redirectAttributes) throws IOException {
+        pipelineService.reclassify(id);
+        redirectAttributes.addFlashAttribute("message", "Document reclassifié et déplacé.");
+        return "redirect:/archive/" + id;
     }
 
     @PostMapping("/{id}")

@@ -1,5 +1,6 @@
 package com.github.lafarer.archiver.service;
 
+import com.github.lafarer.archiver.config.ArchiverProperties;
 import com.github.lafarer.archiver.model.ClassificationHistory;
 import com.github.lafarer.archiver.model.CustomFieldDef;
 import com.github.lafarer.archiver.model.Document;
@@ -35,6 +36,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class DocumentPipelineService {
 
+    private final ArchiverProperties props;
     private final ExtractionService extractionService;
     private final AiAnalysisService aiAnalysisService;
     private final PathResolverService pathResolverService;
@@ -201,6 +203,62 @@ public class DocumentPipelineService {
 
         log.info("Archived: {} → {}", doc.getOriginalFilename(), relPath);
         return doc;
+    }
+
+    @Transactional
+    public void reclassify(Long documentId) throws IOException {
+        Document doc = documentRepository.findById(documentId)
+            .orElseThrow(() -> new IllegalArgumentException("Document not found: " + documentId));
+
+        String oldRelPath = doc.getResolvedPath();
+        Path oldFile = props.getRoot().resolve(oldRelPath);
+
+        ResolvedPath resolved = pathResolverService.resolve(
+            doc.getAppliedRule() != null ? doc.getAppliedRule().getId() : null,
+            doc.getDocumentType(), doc.getDocumentDate(),
+            doc.getTitle(), doc.getIssuer(), doc.getCustomFields()
+        );
+        String newRelPath = resolved.relativePath() + extension(oldFile);
+
+        if (newRelPath.equals(oldRelPath)) {
+            log.info("Document {} already at correct path, skipping reclassification", documentId);
+            return;
+        }
+
+        Path newFile = archiveService.reclassify(oldFile, newRelPath);
+        String actualNewRelPath = props.getRoot().relativize(newFile).toString();
+
+        Path oldSidecar = sidecarService.sidecarPathFor(oldFile);
+        if (Files.exists(oldSidecar)) {
+            Path newSidecar = sidecarService.sidecarPathFor(newFile);
+            Files.createDirectories(newSidecar.getParent());
+            Files.move(oldSidecar, newSidecar, java.nio.file.StandardCopyOption.ATOMIC_MOVE);
+            doc.setSidecarPath(newSidecar.toString());
+        }
+
+        ClassificationHistory history = new ClassificationHistory();
+        history.setDocument(doc);
+        history.setOldPath(oldRelPath);
+        history.setOldRule(doc.getAppliedRule());
+        history.setNewPath(actualNewRelPath);
+        history.setNewRule(resolved.appliedRule());
+        history.setTrigger(ClassificationTrigger.RULE_CHANGE);
+        historyRepository.save(history);
+
+        doc.setResolvedPath(actualNewRelPath);
+        doc.setAppliedRule(resolved.appliedRule());
+        documentRepository.save(doc);
+
+        log.info("Reclassified document {}: {} → {}", documentId, oldRelPath, actualNewRelPath);
+    }
+
+    public String proposedPath(Document doc) {
+        ResolvedPath resolved = pathResolverService.resolve(
+            doc.getAppliedRule() != null ? doc.getAppliedRule().getId() : null,
+            doc.getDocumentType(), doc.getDocumentDate(),
+            doc.getTitle(), doc.getIssuer(), doc.getCustomFields()
+        );
+        return resolved.relativePath() + extension(Path.of(doc.getOriginalFilename()));
     }
 
     private void applyAnalysis(Document doc, AnalysisResult a) {
