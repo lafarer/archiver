@@ -50,9 +50,82 @@
     </ul>
 </nav>
 
-<div class="main-content">
+<div class="main-content" id="mainContent">
     ${content}
 </div>
+
+<!-- Document preview drawer -->
+<div id="previewDrawer" class="preview-drawer">
+    <div class="preview-drawer-header">
+        <span class="preview-drawer-title text-truncate flex-grow-1 small fw-semibold" id="drawerTitle"></span>
+        <button type="button" class="btn-close" onclick="closePreviewDrawer()"></button>
+    </div>
+    <div class="preview-drawer-body">
+        <iframe id="drawerFrame" src="" style="flex: 1; border: none; width: 100%; height: 100%; display: none"></iframe>
+        <div id="drawerImgWrap" style="flex: 1; overflow: auto; display: none; background: #f0f0f0; align-items: center; justify-content: center">
+            <img id="drawerImg" src="" alt="" style="max-width: 100%; object-fit: contain; display: block; margin: auto">
+        </div>
+    </div>
+</div>
+
+<style>
+    .preview-drawer {
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: 45%;
+        height: 100vh;
+        background: #fff;
+        box-shadow: -4px 0 24px rgba(0,0,0,0.12);
+        transform: translateX(100%);
+        transition: transform 0.25s ease;
+        z-index: 1040;
+        display: flex;
+        flex-direction: column;
+    }
+    .preview-drawer.open { transform: translateX(0); }
+    .preview-drawer-header {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        border-bottom: 1px solid #dee2e6;
+        gap: 0.75rem;
+        min-height: 48px;
+    }
+    .preview-drawer-body {
+        flex: 1;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+    #mainContent.drawer-open { margin-right: 45%; }
+</style>
+
+<script>
+    function openPreviewDrawer(url, mime, title) {
+        const frame = document.getElementById('drawerFrame');
+        const imgWrap = document.getElementById('drawerImgWrap');
+        const img = document.getElementById('drawerImg');
+        document.getElementById('drawerTitle').textContent = title || '';
+        if (mime && mime.startsWith('image/')) {
+            frame.style.display = 'none';
+            imgWrap.style.display = 'flex';
+            img.src = url;
+        } else {
+            imgWrap.style.display = 'none';
+            frame.style.display = '';
+            frame.src = url;
+        }
+        document.getElementById('previewDrawer').classList.add('open');
+        document.getElementById('mainContent').classList.add('drawer-open');
+    }
+    function closePreviewDrawer() {
+        document.getElementById('previewDrawer').classList.remove('open');
+        document.getElementById('mainContent').classList.remove('drawer-open');
+        document.getElementById('drawerFrame').src = '';
+        document.getElementById('drawerImg').src = '';
+    }
+</script>
 
 <!-- Document preview modal -->
 <div class="modal fade" id="previewModal" tabindex="-1">

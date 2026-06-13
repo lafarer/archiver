@@ -6,12 +6,32 @@
 !{String pageTitle = "Éditer — " + (document.getTitle() != null ? document.getTitle() : document.getOriginalFilename());}
 @template.layout.base(page = page, title = pageTitle, content = @`
 
+!{boolean previewable = document.getMimeType() != null && (document.getMimeType().startsWith("image/") || document.getMimeType().equals("application/pdf"));}
+!{String previewTitle = document.getTitle() != null ? document.getTitle() : document.getOriginalFilename();}
 <div class="page-header">
     <h1>
         <a href="/inbox" class="text-decoration-none text-muted me-2">←</a>
         Vérification du document
     </h1>
+    @if(previewable)
+        <button type="button" class="btn btn-outline-primary btn-sm"
+                onclick="openPreviewDrawer('/documents/${document.getId()}/file', '${document.getMimeType()}', '${previewTitle}')">
+            Aperçu
+        </button>
+    @endif
 </div>
+
+@if(previewable)
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            openPreviewDrawer(
+                '/documents/${document.getId()}/file',
+                '${document.getMimeType()}',
+                '${previewTitle}'
+            );
+        });
+    </script>
+@endif
 
 <div class="page-body">
 
