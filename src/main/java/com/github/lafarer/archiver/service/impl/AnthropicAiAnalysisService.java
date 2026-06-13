@@ -126,7 +126,9 @@ public class AnthropicAiAnalysisService implements AiAnalysisService {
 
         sb.append("""
 
-            RESPONSE FORMAT (strict JSON, no markdown):
+            CRITICAL: respond with raw JSON only. No markdown, no code fences, no explanation before or after. The very first character of your response must be '{' and the last must be '}'.
+
+            RESPONSE FORMAT:
             {
               "reasoning": "Brief explanation of your analysis",
               "document_type": {
