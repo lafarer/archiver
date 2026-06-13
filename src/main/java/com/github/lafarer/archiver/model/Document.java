@@ -76,6 +76,9 @@ public class Document {
     @Column(name = "original_filename", nullable = false)
     private String originalFilename;
 
+    @Column(name = "source_path")
+    private String sourcePath;
+
     @Column(name = "sha256_hash", unique = true, nullable = false)
     private String sha256Hash;
 

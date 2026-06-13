@@ -68,7 +68,7 @@ public class InboxController {
                            RedirectAttributes redirectAttributes) throws IOException {
         Document doc = documentRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Document not found: " + id));
-        pipelineService.validateAndArchive(id, Path.of(doc.getOriginalFilename()));
+        pipelineService.validateAndArchive(id, Path.of(doc.getSourcePath()));
         redirectAttributes.addFlashAttribute("message", "Document archivé.");
         return "redirect:/inbox";
     }

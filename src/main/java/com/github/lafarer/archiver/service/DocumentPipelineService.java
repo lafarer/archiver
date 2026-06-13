@@ -112,6 +112,7 @@ public class DocumentPipelineService {
         // Step 3 — build document entity
         Document doc = new Document();
         doc.setOriginalFilename(file.getFileName().toString());
+        doc.setSourcePath(file.toAbsolutePath().toString());
         doc.setSha256Hash(hash);
         doc.setMimeType(Files.probeContentType(file));
         doc.setFileSizeBytes(Files.size(file));
