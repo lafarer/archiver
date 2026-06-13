@@ -62,6 +62,14 @@ public class DocumentPipelineService {
         String hash = sha256(file);
         if (documentRepository.findBySha256Hash(hash).isPresent()) {
             log.info("Duplicate detected, skipping: {}", file.getFileName());
+            if (sourceType == ArchiveService.SourceType.INBOX) {
+                try {
+                    Files.deleteIfExists(file);
+                    log.info("Removed duplicate from inbox: {}", file.getFileName());
+                } catch (IOException e) {
+                    log.warn("Could not remove duplicate from inbox: {}", e.getMessage());
+                }
+            }
             return null;
         }
 
