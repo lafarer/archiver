@@ -173,9 +173,10 @@ public class DocumentPipelineService {
         Document doc, Path sourceFile, ResolvedPath resolved,
         AnalysisResult analysis, ArchiveService.SourceType sourceType
     ) throws IOException {
-        String relPath = resolved.relativePath();
+        String relPath = resolved.relativePath() + extension(sourceFile);
         Path archivedFile = archiveService.archive(sourceFile, relPath, sourceType);
 
+        doc.setResolvedPath(relPath);
         sidecarService.write(archivedFile, doc, analysis);
         doc.setSidecarPath(sidecarService.sidecarPathFor(archivedFile).toString());
         doc.setClassified(true);
@@ -255,6 +256,12 @@ public class DocumentPipelineService {
             case "month" -> DatePrecision.MONTH;
             default      -> DatePrecision.DAY;
         };
+    }
+
+    private String extension(Path file) {
+        String name = file.getFileName().toString();
+        int dot = name.lastIndexOf('.');
+        return dot > 0 ? name.substring(dot) : "";
     }
 
     private String sha256(Path file) throws IOException {
