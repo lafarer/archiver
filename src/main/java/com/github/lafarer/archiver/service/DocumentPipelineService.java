@@ -252,13 +252,37 @@ public class DocumentPipelineService {
         log.info("Reclassified document {}: {} → {}", documentId, oldRelPath, actualNewRelPath);
     }
 
-    public String proposedPath(Document doc) {
+    public record ProposedPathParts(String full, String existing, String newPart) {}
+
+    public ProposedPathParts proposedPath(Document doc) {
         ResolvedPath resolved = pathResolverService.resolve(
             doc.getAppliedRule() != null ? doc.getAppliedRule().getId() : null,
             doc.getDocumentType(), doc.getDocumentDate(),
             doc.getTitle(), doc.getIssuer(), doc.getCustomFields()
         );
-        return resolved.relativePath() + extension(Path.of(doc.getOriginalFilename()));
+        String full = resolved.relativePath() + extension(Path.of(doc.getOriginalFilename()));
+        return splitProposedPath(full);
+    }
+
+    private ProposedPathParts splitProposedPath(String relPath) {
+        String[] segments = relPath.split("/");
+        Path current = props.getRoot();
+        int existingCount = 0;
+        // Walk directory segments (all but the last, which is the filename)
+        for (int i = 0; i < segments.length - 1; i++) {
+            Path next = current.resolve(segments[i]);
+            if (Files.isDirectory(next)) {
+                current = next;
+                existingCount = i + 1;
+            } else {
+                break;
+            }
+        }
+        String existing = existingCount > 0
+            ? String.join("/", java.util.Arrays.copyOfRange(segments, 0, existingCount)) + "/"
+            : "";
+        String newPart = relPath.substring(existing.length());
+        return new ProposedPathParts(relPath, existing, newPart);
     }
 
     private void applyAnalysis(Document doc, AnalysisResult a) {

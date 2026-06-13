@@ -1,10 +1,11 @@
 @import com.github.lafarer.archiver.model.Document
 @import com.github.lafarer.archiver.model.CustomFieldDef
+@import com.github.lafarer.archiver.service.DocumentPipelineService.ProposedPathParts
 @import java.util.List
 
 @param Document document
 @param List<CustomFieldDef> customFieldDefs
-@param String proposedPath
+@param ProposedPathParts proposedPath
 @param String page
 
 !{String pageTitle = document.getTitle() != null ? document.getTitle() : document.getOriginalFilename();}
@@ -27,13 +28,15 @@
 
 <div class="page-body">
 
-    !{boolean pathChanged = document.getResolvedPath() != null && !document.getResolvedPath().equals(proposedPath);}
+    !{boolean pathChanged = document.getResolvedPath() != null && !document.getResolvedPath().equals(proposedPath.full());}
     <div class="mb-3 text-muted small">
         Fichier : <strong>${document.getOriginalFilename()}</strong>
-        &nbsp;·&nbsp; <code>${document.getResolvedPath() != null ? document.getResolvedPath() : proposedPath}</code>
+        &nbsp;·&nbsp;
+        <code>${document.getResolvedPath() != null ? document.getResolvedPath() : proposedPath.full()}</code>
         @if(pathChanged)
             <div class="mt-1 text-warning">
-                ⚠ La règle a changé. Nouveau chemin proposé : <code>${proposedPath}</code>
+                ⚠ La règle a changé. Nouveau chemin :
+                <code><span class="opacity-50">${proposedPath.existing()}</span><strong>${proposedPath.newPart()}</strong></code>
                 <form method="post" action="/archive/${document.getId()}/reclassify" class="d-inline ms-2">
                     <button type="submit" class="btn btn-warning btn-sm">Reclassifier et déplacer</button>
                 </form>

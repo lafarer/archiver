@@ -1,10 +1,11 @@
 @import com.github.lafarer.archiver.model.Document
 @import com.github.lafarer.archiver.model.CustomFieldDef
+@import com.github.lafarer.archiver.service.DocumentPipelineService.ProposedPathParts
 @import java.util.List
 
 @param Document document
 @param List<CustomFieldDef> customFieldDefs
-@param String proposedPath
+@param ProposedPathParts proposedPath
 @param String page
 
 !{String pageTitle = "Éditer — " + (document.getTitle() != null ? document.getTitle() : document.getOriginalFilename());}
@@ -41,7 +42,8 @@
 
     <div class="mb-3 text-muted small">
         Fichier : <strong>${document.getOriginalFilename()}</strong>
-        &nbsp;·&nbsp; → <code>${proposedPath}</code>
+        &nbsp;·&nbsp; →
+        <code><span class="opacity-50">${proposedPath.existing()}</span><strong>${proposedPath.newPart()}</strong></code>
     </div>
 
     <form method="post" action="/inbox/${document.getId()}">
