@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="/css/app.css">
     <script src="https://unpkg.com/htmx.org@2.0.3" defer></script>
     <script src="https://unpkg.com/sortablejs@1.15.3/Sortable.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
 </head>
 <body>
 
