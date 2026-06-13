@@ -18,7 +18,10 @@ public class PathResolverService {
 
     private final StoragePathRuleRepository ruleRepository;
     private static final Slugify SLUGIFY = Slugify.builder().build();
-    private static final Pattern VARIABLE = Pattern.compile("\\[([\\w]+)\\]");
+    // [var?]sep — optional variable: if absent, var and following separator are omitted
+    private static final Pattern OPT_VARIABLE = Pattern.compile("\\[(\\w+)\\?]([-/._]?)");
+    // [var] — required variable: if absent, replaced by '_inconnu'
+    private static final Pattern REQ_VARIABLE = Pattern.compile("\\[(\\w+)]");
 
     public record ResolvedPath(String relativePath, StoragePathRule appliedRule) {}
 
@@ -71,19 +74,35 @@ public class PathResolverService {
         vars.put("mm",            mm);
         vars.put("dd",            dd);
 
-        Matcher m = VARIABLE.matcher(template);
-        StringBuilder sb = new StringBuilder();
-        while (m.find()) {
-            String key = m.group(1);
+        // Pass 1 — optional variables: [var?]sep → "value+sep" or "" when absent
+        Matcher optM = OPT_VARIABLE.matcher(template);
+        StringBuffer pass1 = new StringBuffer();
+        while (optM.find()) {
+            String key = optM.group(1);
+            String sep = optM.group(2);
+            String value = vars.get(key);
+            if (value != null && !value.isBlank()) {
+                optM.appendReplacement(pass1, Matcher.quoteReplacement(slug(value, "") + sep));
+            } else {
+                optM.appendReplacement(pass1, "");
+            }
+        }
+        optM.appendTail(pass1);
+
+        // Pass 2 — required variables: [var] → value or "_inconnu"
+        Matcher reqM = REQ_VARIABLE.matcher(pass1);
+        StringBuilder pass2 = new StringBuilder();
+        while (reqM.find()) {
+            String key = reqM.group(1);
             String value = vars.getOrDefault(key, null);
             if (value == null) {
                 log.warn("Path template variable [{}] not resolved — using '_inconnu'", key);
                 value = "_inconnu";
             }
-            m.appendReplacement(sb, Matcher.quoteReplacement(slug(value, "_inconnu")));
+            reqM.appendReplacement(pass2, Matcher.quoteReplacement(slug(value, "_inconnu")));
         }
-        m.appendTail(sb);
-        return sb.toString();
+        reqM.appendTail(pass2);
+        return pass2.toString();
     }
 
     private String slug(String value, String fallback) {
