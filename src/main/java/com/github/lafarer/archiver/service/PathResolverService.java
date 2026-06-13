@@ -25,6 +25,8 @@ public class PathResolverService {
 
     public record ResolvedPath(String relativePath, StoragePathRule appliedRule) {}
 
+    private static final String FALLBACK_TEMPLATE = "Documents/[yyyy]/[mm]/[document_type]-[title]";
+
     public ResolvedPath resolve(
         Long aiSelectedRuleId,
         String documentType,
@@ -34,8 +36,9 @@ public class PathResolverService {
         Map<String, String> customFields
     ) {
         StoragePathRule rule = selectRule(aiSelectedRuleId);
-        String path = renderTemplate(rule.getPathTemplate(), documentType, documentDate, title, issuer, customFields);
-        return new ResolvedPath(path, rule);
+        String template = rule != null ? rule.getPathTemplate() : FALLBACK_TEMPLATE;
+        String path = renderTemplate(template, documentType, documentDate, title, issuer, customFields);
+        return new ResolvedPath(path, rule);  // rule may be null — Document.appliedRule is nullable
     }
 
     private StoragePathRule selectRule(Long aiSelectedRuleId) {
@@ -46,12 +49,7 @@ public class PathResolverService {
     }
 
     private StoragePathRule defaultRule() {
-        return ruleRepository.findByIsDefaultTrue()
-            .orElseGet(() -> {
-                StoragePathRule fallback = new StoragePathRule();
-                fallback.setPathTemplate("Documents/[yyyy]/[mm]/[document_type]-[title]");
-                return fallback;
-            });
+        return ruleRepository.findByIsDefaultTrue().orElse(null);
     }
 
     private String renderTemplate(

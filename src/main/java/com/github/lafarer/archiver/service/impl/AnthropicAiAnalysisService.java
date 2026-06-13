@@ -75,7 +75,7 @@ public class AnthropicAiAnalysisService implements AiAnalysisService {
             .build();
 
         Message response = client.messages().create(params);
-        String json = extractText(response);
+        String json = stripMarkdown(extractText(response));
 
         return parseResponse(json);
     }
@@ -242,6 +242,18 @@ public class AnthropicAiAnalysisService implements AiAnalysisService {
             .map(b -> b.asText().text())
             .findFirst()
             .orElse("{}");
+    }
+
+    private String stripMarkdown(String text) {
+        String t = text.trim();
+        if (t.startsWith("```")) {
+            int newline = t.indexOf('\n');
+            int closing = t.lastIndexOf("```");
+            if (newline > 0 && closing > newline) {
+                return t.substring(newline + 1, closing).trim();
+            }
+        }
+        return t;
     }
 
     private AnalysisResult parseResponse(String json) {
