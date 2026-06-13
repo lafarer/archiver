@@ -42,7 +42,15 @@
                                     <span class="tag">${tag}</span>
                                 @endfor
                             </td>
-                            <td class="text-end">
+                            <td class="text-end d-flex gap-1 justify-content-end">
+                                @if(doc.getMimeType() != null && (doc.getMimeType().startsWith("image/") || doc.getMimeType().equals("application/pdf")))
+                                    !{String docTitle = doc.getTitle() != null ? doc.getTitle() : doc.getOriginalFilename();}
+                                    <button class="btn btn-sm btn-outline-primary"
+                                            data-bs-toggle="modal" data-bs-target="#previewModal"
+                                            data-preview-url="/documents/${doc.getId()}/file"
+                                            data-mime-type="${doc.getMimeType()}"
+                                            data-title="${docTitle}">Aperçu</button>
+                                @endif
                                 <a href="/inbox/${doc.getId()}/edit" class="btn btn-sm btn-outline-secondary">Détail</a>
                             </td>
                         </tr>

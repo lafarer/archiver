@@ -48,6 +48,14 @@
                     @endif
                 </div>
                 <div class="d-flex flex-column gap-1">
+                    @if(doc.getMimeType() != null && (doc.getMimeType().startsWith("image/") || doc.getMimeType().equals("application/pdf")))
+                        !{String docTitle = doc.getTitle() != null ? doc.getTitle() : doc.getOriginalFilename();}
+                        <button class="btn btn-outline-primary btn-sm"
+                                data-bs-toggle="modal" data-bs-target="#previewModal"
+                                data-preview-url="/documents/${doc.getId()}/file"
+                                data-mime-type="${doc.getMimeType()}"
+                                data-title="${docTitle}">Aperçu</button>
+                    @endif
                     <a href="/inbox/${doc.getId()}/edit" class="btn btn-outline-secondary btn-sm">Éditer</a>
                     <form method="post" action="/inbox/${doc.getId()}/validate">
                         <button type="submit" class="btn btn-success btn-sm w-100">Valider ✓</button>
