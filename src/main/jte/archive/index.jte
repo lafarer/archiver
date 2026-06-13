@@ -51,7 +51,7 @@
                                             data-mime-type="${doc.getMimeType()}"
                                             data-title="${docTitle}">Aperçu</button>
                                 @endif
-                                <a href="/inbox/${doc.getId()}/edit" class="btn btn-sm btn-outline-secondary">Détail</a>
+                                <a href="/archive/${doc.getId()}" class="btn btn-sm btn-outline-secondary">Détail</a>
                             </td>
                         </tr>
                     @endfor
