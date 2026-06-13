@@ -3,6 +3,9 @@ package com.github.lafarer.archiver.web;
 import com.github.lafarer.archiver.model.Document;
 import com.github.lafarer.archiver.repository.DocumentRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -17,12 +20,17 @@ public class ArchiveController {
 
     private final DocumentRepository documentRepository;
 
+    private static final int PAGE_SIZE = 25;
+
     @GetMapping
     public String index(@RequestParam(required = false) String type,
                         @RequestParam(required = false) String tag,
                         @RequestParam(required = false) String q,
+                        @RequestParam(defaultValue = "0") int page,
                         Model model) {
-        List<Document> documents = documentRepository.findByClassifiedTrueOrderByDocumentDateDescCreatedAtDesc();
+        PageRequest pageable = PageRequest.of(page, PAGE_SIZE,
+            Sort.by(Sort.Direction.DESC, "documentDate", "createdAt"));
+        Page<Document> documents = documentRepository.findByClassifiedTrue(pageable);
         model.addAttribute("documents", documents);
         model.addAttribute("page", "archive");
         return "archive/index";

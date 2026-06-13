@@ -1,13 +1,13 @@
 @import com.github.lafarer.archiver.model.Document
-@import java.util.List
+@import org.springframework.data.domain.Page
 
-@param List<Document> documents
+@param Page<Document> documents
 @param String page
 
 @template.layout.base(page = page, title = "Archive", content = @`
 
 <div class="page-header">
-    <h1>Archive</h1>
+    <h1>Archive <span class="badge bg-secondary">${documents.getTotalElements()}</span></h1>
     <input type="search" class="form-control form-control-sm w-25"
            placeholder="Rechercher…"
            hx-get="/archive" hx-trigger="keyup changed delay:300ms"
@@ -31,7 +31,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @for(Document doc : documents)
+                    @for(Document doc : documents.getContent())
                         <tr>
                             <td class="text-nowrap">${doc.getDocumentDate() != null ? doc.getDocumentDate() : "—"}</td>
                             <td><span class="badge bg-light text-dark">${doc.getDocumentType() != null ? doc.getDocumentType() : "—"}</span></td>
@@ -57,6 +57,31 @@
                     @endfor
                 </tbody>
             </table>
+
+            @if(documents.getTotalPages() > 1)
+                <nav class="d-flex justify-content-between align-items-center mt-3">
+                    <span class="text-muted small">
+                        Page ${documents.getNumber() + 1} / ${documents.getTotalPages()}
+                        &nbsp;·&nbsp; ${documents.getTotalElements()} documents
+                    </span>
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item ${documents.isFirst() ? "disabled" : ""}">
+                            <a class="page-link" href="/archive?page=${documents.getNumber() - 1}">‹</a>
+                        </li>
+                        @for(int p = 0; p < documents.getTotalPages(); p++)
+                            @if(Math.abs(p - documents.getNumber()) <= 2)
+                                <li class="page-item ${p == documents.getNumber() ? "active" : ""}">
+                                    <a class="page-link" href="/archive?page=${p}">${p + 1}</a>
+                                </li>
+                            @endif
+                        @endfor
+                        <li class="page-item ${documents.isLast() ? "disabled" : ""}">
+                            <a class="page-link" href="/archive?page=${documents.getNumber() + 1}">›</a>
+                        </li>
+                    </ul>
+                </nav>
+            @endif
+
         @endif
     </div>
 </div>

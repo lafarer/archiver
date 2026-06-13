@@ -1,6 +1,8 @@
 package com.github.lafarer.archiver.repository;
 
 import com.github.lafarer.archiver.model.Document;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -13,7 +15,7 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
 
     List<Document> findByClassifiedFalseOrderByCreatedAtDesc();
 
-    List<Document> findByClassifiedTrueOrderByDocumentDateDescCreatedAtDesc();
+    Page<Document> findByClassifiedTrue(Pageable pageable);
 
     @Query("SELECT d FROM Document d WHERE d.appliedRule.id = :ruleId AND d.classified = true")
     List<Document> findByAppliedRuleId(Long ruleId);
