@@ -1,5 +1,6 @@
 package com.github.lafarer.archiver.web;
 
+import com.github.lafarer.archiver.config.ArchiverProperties;
 import com.github.lafarer.archiver.model.Document;
 import com.github.lafarer.archiver.repository.DocumentRepository;
 import com.github.lafarer.archiver.service.ArchiveService;
@@ -23,6 +24,7 @@ public class InboxController {
 
     private final DocumentRepository documentRepository;
     private final DocumentPipelineService pipelineService;
+    private final ArchiverProperties props;
 
     @GetMapping
     public String index(Model model) {
@@ -68,7 +70,10 @@ public class InboxController {
                            RedirectAttributes redirectAttributes) throws IOException {
         Document doc = documentRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Document not found: " + id));
-        pipelineService.validateAndArchive(id, Path.of(doc.getSourcePath()));
+        Path sourcePath = doc.getSourcePath() != null
+            ? Path.of(doc.getSourcePath())
+            : props.getInboxPath().resolve(doc.getOriginalFilename());
+        pipelineService.validateAndArchive(id, sourcePath);
         redirectAttributes.addFlashAttribute("message", "Document archivé.");
         return "redirect:/inbox";
     }
