@@ -59,8 +59,22 @@ public class WatchdogService {
         return running.get();
     }
 
+    private void scanExisting() {
+        try (var stream = Files.list(props.getInboxPath())) {
+            stream.filter(f -> Files.isRegularFile(f) && !f.getFileName().toString().startsWith("."))
+                  .forEach(f -> {
+                      log.info("Scanning existing inbox file: {}", f.getFileName());
+                      pipelineService.processAsync(f, ArchiveService.SourceType.INBOX);
+                  });
+        } catch (IOException e) {
+            log.warn("Could not scan inbox for existing files: {}", e.getMessage());
+        }
+    }
+
     private void watch() {
         try {
+            scanExisting();
+
             watchService = FileSystems.getDefault().newWatchService();
             props.getInboxPath().register(watchService,
                 StandardWatchEventKinds.ENTRY_CREATE,
