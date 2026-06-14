@@ -1,10 +1,10 @@
 -- Settings
 INSERT INTO setting (key, value) VALUES
-    ('watchdog_enabled',     'false'),
+    ('watchdog_enabled',     'true'),
     ('ai_model',             'claude-sonnet-4-6'),
     ('auto_archive_enabled', 'false'),
     ('confidence_threshold', '0.75'),
-    ('import_mode',          'copy');
+    ('import_mode',          'move');
 
 -- Document types
 INSERT INTO document_type_def (slug, label, description) VALUES
