@@ -6,11 +6,14 @@ import com.github.lafarer.archiver.repository.CustomFieldDefRepository;
 import com.github.lafarer.archiver.repository.DocumentRepository;
 import com.github.lafarer.archiver.service.ArchiveService;
 import com.github.lafarer.archiver.service.DocumentPipelineService;
+import com.github.lafarer.archiver.service.InboxEventService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
@@ -29,6 +32,7 @@ public class InboxController {
     private final DocumentPipelineService pipelineService;
     private final ArchiverProperties props;
     private final CustomFieldDefRepository customFieldDefRepository;
+    private final InboxEventService inboxEventService;
 
     @GetMapping
     public String index(Model model) {
@@ -36,6 +40,17 @@ public class InboxController {
         model.addAttribute("documents", pending);
         model.addAttribute("page", "inbox");
         return "inbox/index";
+    }
+
+    @GetMapping(value = "/events", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter events() {
+        return inboxEventService.subscribe();
+    }
+
+    @GetMapping("/fragment")
+    public String fragment(Model model) {
+        model.addAttribute("documents", documentRepository.findByClassifiedFalseOrderByCreatedAtDesc());
+        return "inbox/fragment";
     }
 
     @PostMapping("/upload")
@@ -107,6 +122,7 @@ public class InboxController {
             ? Path.of(doc.getSourcePath())
             : props.getInboxPath().resolve(doc.getOriginalFilename());
         pipelineService.validateAndArchive(id, sourcePath);
+        inboxEventService.notifyInboxChanged();
         redirectAttributes.addFlashAttribute("message", "Document archivé.");
         return "redirect:/inbox";
     }
@@ -114,6 +130,7 @@ public class InboxController {
     @DeleteMapping("/{id}")
     public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         documentRepository.deleteById(id);
+        inboxEventService.notifyInboxChanged();
         redirectAttributes.addFlashAttribute("message", "Document supprimé.");
         return "redirect:/inbox";
     }

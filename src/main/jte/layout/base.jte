@@ -24,9 +24,11 @@
         <li class="nav-item">
             <a class="nav-link ${page.equals("inbox") ? "active" : ""}" href="/inbox">
                 Inbox
-                @if(inboxCount > 0)
-                    <span class="badge bg-warning text-dark">${inboxCount}</span>
-                @endif
+                <span id="inbox-sidebar-badge">
+                    @if(inboxCount > 0)
+                        <span class="badge bg-warning text-dark">${inboxCount}</span>
+                    @endif
+                </span>
             </a>
         </li>
         <li class="nav-item">

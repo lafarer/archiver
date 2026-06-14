@@ -49,11 +49,15 @@ public class DocumentPipelineService {
     private final CustomFieldDefRepository customFieldDefRepository;
     private final StoragePathRuleRepository storagePathRuleRepository;
     private final ClassificationHistoryRepository historyRepository;
+    private final InboxEventService inboxEventService;
 
     @Async
     public void processAsync(Path file, ArchiveService.SourceType sourceType) {
         try {
-            process(file, sourceType);
+            Document doc = process(file, sourceType);
+            if (doc != null && !doc.isClassified()) {
+                inboxEventService.notifyInboxChanged();
+            }
         } catch (Exception e) {
             log.error("Pipeline failed for {}: {}", file.getFileName(), e.getMessage(), e);
         }
