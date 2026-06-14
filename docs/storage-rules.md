@@ -7,14 +7,32 @@ La source de vérité reste les migrations Flyway (`src/main/resources/db/migrat
 
 ```
 Root/
-├── Notices/
 ├── Vehicules/
 ├── Logements/
 ├── Famille/
 ├── Finances/
+├── Notices/
 ├── Achats/
 └── Administratif/
 ```
+
+---
+
+## Principe d'ordonnancement des priorités
+
+Les règles sont évaluées du numéro le plus bas (priorité la plus haute) au plus élevé.
+**Ordre : plus contraint → moins contraint.**
+
+| Plage | Domaine | Justification |
+|---|---|---|
+| 10–17 | Véhicules | Contrainte forte : `immatriculation` est un identifiant unique |
+| 20–28 | Logements | Contrainte forte : `adresse_bien` identifie le bien |
+| 30–42 | Famille / membre | Contrainte personne : `membre_famille` + type de document |
+| 45–46 | Famille / Commun | Moins contraint que par membre |
+| 50–55 | Finances | Documents très distinctifs par nature |
+| 60 | Notices | Type de document transversal, après les domaines |
+| 70–71 | Achats | Règles générales sur les preuves d'achat |
+| 80 | Administratif | Filet, toujours en dernier |
 
 ---
 
@@ -33,115 +51,105 @@ Root/
 | `nom_banque` | Identifiant de la banque | `boursorama`, `bnp`, `credit-agricole`, `lcl` |
 | `type_compte` | Type de compte ou produit financier | `courant`, `livret-a`, `ldds`, `lep`, `pel`, `pea`, `compte-titres`, `credit-immo`, `credit-conso` |
 | `numero_compte` | Derniers chiffres du numéro de compte | `1234` |
-| `categorie_achat` | _(inutilisé — remplacé par `categorie_produit`)_ | — |
 
 ---
 
 ## Règles de classement
 
-Les règles sont évaluées par ordre de priorité croissante. La première règle dont la condition correspond au document est appliquée. Une règle par défaut (catch-all) s'applique si aucune autre ne correspond.
-
-### Notices (priorité 10)
-
-| Priorité | Règle | Path template |
-|---|---|---|
-| 10 | Notices d'utilisation | `Notices/[categorie_produit]/[issuer]/[modele?]-[title]` |
-
-**Contenu :** notices, manuels d'installation, guides de démarrage rapide.
-
----
-
-### Véhicules (priorités 20–27)
+### Véhicules (10–17)
 
 Structure : `Vehicules/[modele]-[immatriculation]/`
 
 | Priorité | Règle | Path template |
 |---|---|---|
-| 20 | Assurances — Contrats et polices | `Vehicules/[modele]-[immatriculation]/Assurances/[type_assurance?]-[numero_contrat]/Contrats/[title]` |
-| 21 | Assurances — Courriers | `Vehicules/[modele]-[immatriculation]/Assurances/[type_assurance?]-[numero_contrat]/Courriers/[title]` |
-| 22 | Documents officiels (carte grise, CT) | `Vehicules/[modele]-[immatriculation]/Documents/[document_type]-[title]` |
-| 23 | Entretiens et réparations | `Vehicules/[modele]-[immatriculation]/Entretien/[yyyy]/[issuer]-[title]` |
-| 24 | Garanties | `Vehicules/[modele]-[immatriculation]/Garanties/[issuer?]-[title]` |
-| 25 | Sinistres | `Vehicules/[modele]-[immatriculation]/Sinistres/[yyyy]/[title]` |
-| 26 | Contrats (achat, leasing, LOA, LLD) | `Vehicules/[modele]-[immatriculation]/Contrats/[yyyy]-[title]` |
-| 27 | Taxes (malus, amendes, vignette) | `Vehicules/[modele]-[immatriculation]/Taxes/[yyyy]/[document_type]-[title]` |
+| 10 | Assurances — Contrats et polices | `Vehicules/[modele]-[immatriculation]/Assurances/[type_assurance?]-[numero_contrat]/Contrats/[title]` |
+| 11 | Assurances — Courriers | `Vehicules/[modele]-[immatriculation]/Assurances/[type_assurance?]-[numero_contrat]/Courriers/[title]` |
+| 12 | Documents officiels (carte grise, CT) | `Vehicules/[modele]-[immatriculation]/Documents/[document_type]-[title]` |
+| 13 | Entretiens et réparations | `Vehicules/[modele]-[immatriculation]/Entretien/[yyyy]/[issuer]-[title]` |
+| 14 | Garanties | `Vehicules/[modele]-[immatriculation]/Garanties/[issuer?]-[title]` |
+| 15 | Sinistres | `Vehicules/[modele]-[immatriculation]/Sinistres/[yyyy]/[title]` |
+| 16 | Contrats (achat, leasing, LOA, LLD) | `Vehicules/[modele]-[immatriculation]/Contrats/[yyyy]-[title]` |
+| 17 | Taxes (malus, amendes, vignette) | `Vehicules/[modele]-[immatriculation]/Taxes/[yyyy]/[document_type]-[title]` |
 
 ---
 
-### Logements (priorités 30–38)
+### Logements (20–28)
 
-Structure : `Logements/[adresse_bien]/` — `adresse_bien` normalisé en `ville-nom-de-rue` (sans numéro ni code postal).
+Structure : `Logements/[adresse_bien]/` — normalisé en `ville-nom-de-rue` (sans numéro ni code postal).
 
 | Priorité | Règle | Path template |
 |---|---|---|
-| 30 | Actes notariés | `Logements/[adresse_bien]/Actes/[yyyy]-[title]` |
-| 31 | Assurances — Contrats | `Logements/[adresse_bien]/Assurances/[type_assurance?]-[numero_contrat]/Contrats/[title]` |
-| 32 | Assurances — Courriers | `Logements/[adresse_bien]/Assurances/[type_assurance?]-[numero_contrat]/Courriers/[title]` |
-| 33 | Contrats (bail, syndic, règlement) | `Logements/[adresse_bien]/Contrats/[yyyy]-[title]` |
-| 34 | Entretiens obligatoires (chaudière, ramonage) | `Logements/[adresse_bien]/Entretiens-obligatoires/[document_type]-[title]` |
-| 35 | Factures (eau, énergie, internet, charges) | `Logements/[adresse_bien]/Factures/[categorie_facture]/[yyyy]/[issuer]-[title]` |
-| 36 | Taxes (foncière, habitation) | `Logements/[adresse_bien]/Taxes/[yyyy]/[document_type]-[title]` |
-| 37 | Travaux (factures, devis, permis) | `Logements/[adresse_bien]/Travaux/[yyyy]/[issuer]-[title]` |
-| 38 | Sinistres (dégât des eaux, incendie, vol) | `Logements/[adresse_bien]/Sinistres/[yyyy]/[title]` |
+| 20 | Actes notariés | `Logements/[adresse_bien]/Actes/[yyyy]-[title]` |
+| 21 | Assurances — Contrats | `Logements/[adresse_bien]/Assurances/[type_assurance?]-[numero_contrat]/Contrats/[title]` |
+| 22 | Assurances — Courriers | `Logements/[adresse_bien]/Assurances/[type_assurance?]-[numero_contrat]/Courriers/[title]` |
+| 23 | Contrats (bail, syndic, règlement) | `Logements/[adresse_bien]/Contrats/[yyyy]-[title]` |
+| 24 | Entretiens obligatoires (chaudière, ramonage) | `Logements/[adresse_bien]/Entretiens-obligatoires/[document_type]-[title]` |
+| 25 | Factures (eau, énergie, internet, charges) | `Logements/[adresse_bien]/Factures/[categorie_facture]/[yyyy]/[issuer]-[title]` |
+| 26 | Taxes (foncière, habitation) | `Logements/[adresse_bien]/Taxes/[yyyy]/[document_type]-[title]` |
+| 27 | Travaux (factures, devis, permis) | `Logements/[adresse_bien]/Travaux/[yyyy]/[issuer]-[title]` |
+| 28 | Sinistres (dégât des eaux, incendie, vol) | `Logements/[adresse_bien]/Sinistres/[yyyy]/[title]` |
 
 ---
 
-### Famille (priorités 40–54)
+### Famille — par membre (30–42)
 
-Structure : `Famille/[membre_famille]/` — membres connus : **Emmanuelle, Eric, Camille, Eliott**. Pour une succession, `membre_famille` = le défunt.
-
-#### Par membre
-
-| Priorité | Règle | Path template |
-|---|---|---|
-| 40 | Éducation et formation (scolaire, CPF, DIF) | `Famille/[membre_famille]/Education/[document_type]/[yyyy]-[title]` |
-| 41 | Identité et documents électoraux | `Famille/[membre_famille]/Identite/[document_type]-[title]` |
-| 42 | Santé | `Famille/[membre_famille]/Sante/[yyyy]/[document_type]-[issuer?]-[title]` |
-| 43 | Emploi — Fiches de paie | `Famille/[membre_famille]/Emploi/Fiches-de-paie/[yyyy]/[mm]-[issuer]` |
-| 44 | Emploi — Contrats | `Famille/[membre_famille]/Emploi/Contrats/[yyyy]-[issuer]-[title]` |
-| 45 | Emploi — Attestations | `Famille/[membre_famille]/Emploi/Attestations/[yyyy]-[title]` |
-| 46 | Retraite et pension | `Famille/[membre_famille]/Retraite/[yyyy]/[document_type]-[title]` |
-| 47 | Juridique (jugements, succession, testament) | `Famille/[membre_famille]/Juridique/[yyyy]-[document_type]-[title]` |
-| 48 | Allocations (CAF, RSA, ARE, AAH) | `Famille/[membre_famille]/Allocations/[yyyy]/[issuer]-[title]` |
-| 49 | Assurances personnelles — Contrats (dont emprunteur) | `Famille/[membre_famille]/Assurances/[type_assurance?]-[numero_contrat]/Contrats/[title]` |
-| 50 | Assurances personnelles — Courriers | `Famille/[membre_famille]/Assurances/[type_assurance?]-[numero_contrat]/Courriers/[yyyy]-[title]` |
-| 53 | Services personnels — Contrats (mobile, abonnements) | `Famille/[membre_famille]/Services/[issuer]/Contrats/[title]` |
-| 54 | Services personnels — Factures | `Famille/[membre_famille]/Services/[issuer]/Factures/[yyyy]/[mm]-[title]` |
-
-#### Famille commune (non rattaché à un membre)
+Structure : `Famille/[membre_famille]/` — membres connus : **Emmanuelle, Eric, Camille, Eliott**.
+Pour une succession, `membre_famille` = le défunt.
+Ordre interne : du plus distinctif (fiches de paie) au plus général (services).
 
 | Priorité | Règle | Path template |
 |---|---|---|
-| 51 | Assurances communes — Contrats (voyage, juridique, animaux) | `Famille/Commun/Assurances/[type_assurance?]-[numero_contrat]/Contrats/[title]` |
-| 52 | Assurances communes — Courriers | `Famille/Commun/Assurances/[type_assurance?]-[numero_contrat]/Courriers/[yyyy]-[title]` |
+| 30 | Emploi — Fiches de paie | `Famille/[membre_famille]/Emploi/Fiches-de-paie/[yyyy]/[mm]-[issuer]` |
+| 31 | Identité et documents électoraux | `Famille/[membre_famille]/Identite/[document_type]-[title]` |
+| 32 | Santé | `Famille/[membre_famille]/Sante/[yyyy]/[document_type]-[issuer?]-[title]` |
+| 33 | Éducation et formation (scolaire, CPF, DIF) | `Famille/[membre_famille]/Education/[document_type]/[yyyy]-[title]` |
+| 34 | Emploi — Contrats | `Famille/[membre_famille]/Emploi/Contrats/[yyyy]-[issuer]-[title]` |
+| 35 | Emploi — Attestations | `Famille/[membre_famille]/Emploi/Attestations/[yyyy]-[title]` |
+| 36 | Retraite et pension | `Famille/[membre_famille]/Retraite/[yyyy]/[document_type]-[title]` |
+| 37 | Juridique (jugements, succession, testament) | `Famille/[membre_famille]/Juridique/[yyyy]-[document_type]-[title]` |
+| 38 | Allocations (CAF, RSA, ARE, AAH) | `Famille/[membre_famille]/Allocations/[yyyy]/[issuer]-[title]` |
+| 39 | Assurances personnelles — Contrats (dont emprunteur) | `Famille/[membre_famille]/Assurances/[type_assurance?]-[numero_contrat]/Contrats/[title]` |
+| 40 | Assurances personnelles — Courriers | `Famille/[membre_famille]/Assurances/[type_assurance?]-[numero_contrat]/Courriers/[yyyy]-[title]` |
+| 41 | Services personnels — Contrats (mobile, abonnements) | `Famille/[membre_famille]/Services/[issuer]/Contrats/[title]` |
+| 42 | Services personnels — Factures | `Famille/[membre_famille]/Services/[issuer]/Factures/[yyyy]/[mm]-[title]` |
+
+### Famille — Commun (45–46)
+
+| Priorité | Règle | Path template |
+|---|---|---|
+| 45 | Assurances communes — Contrats (voyage, juridique, animaux) | `Famille/Commun/Assurances/[type_assurance?]-[numero_contrat]/Contrats/[title]` |
+| 46 | Assurances communes — Courriers | `Famille/Commun/Assurances/[type_assurance?]-[numero_contrat]/Courriers/[yyyy]-[title]` |
 
 ---
 
-### Finances (priorités 60–65)
+### Finances (50–55)
 
-#### Banque
-
-Structure : `Finances/Banque/[nom_banque]/` — les produits d'épargne (livret-a, pel, pea…) et crédits sont des types de compte sous la même banque.
+Structure banque : `Finances/Banque/[nom_banque]/` — épargne (livret-a, pel, pea…) et crédits sont des types de compte.
 
 | Priorité | Règle | Path template |
 |---|---|---|
-| 60 | Relevés de compte | `Finances/Banque/[nom_banque]/[type_compte]-[numero_compte?]/Releves/[yyyy]/[mm]-[issuer]` |
-| 61 | Contrats de compte | `Finances/Banque/[nom_banque]/[type_compte]-[numero_compte?]/Contrats/[title]` |
-| 62 | Courriers relatifs à un compte | `Finances/Banque/[nom_banque]/[type_compte]-[numero_compte?]/Courriers/[yyyy]-[title]` |
-| 63 | Courriers généraux (niveau banque) | `Finances/Banque/[nom_banque]/Courriers/[yyyy]-[title]` |
+| 50 | Banque — Relevés de compte | `Finances/Banque/[nom_banque]/[type_compte]-[numero_compte?]/Releves/[yyyy]/[mm]-[issuer]` |
+| 51 | Banque — Contrats de compte | `Finances/Banque/[nom_banque]/[type_compte]-[numero_compte?]/Contrats/[title]` |
+| 52 | Banque — Courriers relatifs à un compte | `Finances/Banque/[nom_banque]/[type_compte]-[numero_compte?]/Courriers/[yyyy]-[title]` |
+| 53 | Banque — Courriers généraux (niveau banque) | `Finances/Banque/[nom_banque]/Courriers/[yyyy]-[title]` |
+| 54 | Impôt sur le revenu (IR, IFI, reçus de dons) | `Finances/Impots/[yyyy]/IR/[document_type]-[title]` |
+| 55 | Autres documents fiscaux (succession, plus-values, CSG) | `Finances/Impots/[yyyy]/[document_type]-[title]` |
 
-#### Impôts et fiscalité
-
-| Priorité | Règle | Path template |
-|---|---|---|
-| 64 | Impôt sur le revenu (IR, IFI, reçus de dons) | `Finances/Impots/[yyyy]/IR/[document_type]-[title]` |
-| 65 | Autres documents fiscaux (succession, plus-values, CSG) | `Finances/Impots/[yyyy]/[document_type]-[title]` |
-
-> **Note :** taxe foncière et taxe d'habitation → règle 36 (Logements). Taxes véhicule → règle 27 (Véhicules).
+> **Note :** taxe foncière et taxe d'habitation → règle 26 (Logements). Taxes véhicule → règle 17 (Véhicules).
 
 ---
 
-### Achats (priorités 70–71)
+### Notices (60)
+
+| Priorité | Règle | Path template |
+|---|---|---|
+| 60 | Notices d'utilisation | `Notices/[categorie_produit]/[issuer]/[modele?]-[title]` |
+
+Placé après les domaines : un manuel véhicule portant une immatriculation serait sinon capturé par les règles véhicule.
+
+---
+
+### Achats (70–71)
 
 Structure : `Achats/[categorie_produit]/`
 
@@ -156,13 +164,13 @@ Structure : `Achats/[categorie_produit]/`
 
 ---
 
-### Administratif (priorité 80)
+### Administratif (80)
 
 | Priorité | Règle | Path template |
 |---|---|---|
 | 80 | Courriers et documents administratifs divers | `Administratif/[yyyy]/[issuer]-[title]` |
 
-Filet pour les courriers officiels d'organismes publics non couverts par une règle plus spécifique (préfecture, mairie, ministères…).
+Filet pour les courriers officiels non couverts par une règle plus spécifique.
 
 ---
 
