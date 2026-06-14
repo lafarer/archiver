@@ -106,7 +106,7 @@
                         @if(!suggestions.isEmpty())
                             <datalist id="${listId}">
                                 @for(String s : suggestions)
-                                    <option value="${s}">
+                                    <option value="${s}"></option>
                                 @endfor
                             </datalist>
                         @endif
