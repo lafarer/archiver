@@ -97,8 +97,13 @@
                     <div>
                         <label class="form-label" for="cf_${cf.getSlug()}">${cf.getLabel()}</label>
                         <input type="text" id="cf_${cf.getSlug()}" name="cf_${cf.getSlug()}"
-                               class="form-control" value="${cfValue}"
-                               placeholder="${cf.getDescription() != null ? cf.getDescription() : ""}">
+                               class="form-control" value="${cfValue}">
+                        @if(cf.getDescription() != null && !cf.getDescription().isEmpty())
+                            <details class="cf-help">
+                                <summary>Instructions</summary>
+                                <div>${cf.getDescription()}</div>
+                            </details>
+                        @endif
                     </div>
                 @endfor
             @endif
