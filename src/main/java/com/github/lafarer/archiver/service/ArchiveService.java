@@ -31,6 +31,7 @@ public class ArchiveService {
         if (move) {
             Files.move(sourceFile, target, StandardCopyOption.ATOMIC_MOVE);
             log.info("Moved {} → {}", sourceFile.getFileName(), target);
+            cleanupEmptyInboxDirs(sourceFile.getParent());
         } else {
             Files.copy(sourceFile, target, StandardCopyOption.REPLACE_EXISTING);
             log.info("Copied {} → {}", sourceFile.getFileName(), target);
@@ -46,6 +47,25 @@ public class ArchiveService {
         Files.move(source, target, StandardCopyOption.ATOMIC_MOVE);
         log.info("Reclassified {} → {}", source.getFileName(), target);
         return target;
+    }
+
+    private void cleanupEmptyInboxDirs(Path dir) {
+        Path inbox = props.getInboxPath();
+        while (dir != null && dir.startsWith(inbox) && !dir.equals(inbox)) {
+            try {
+                boolean isEmpty;
+                try (var stream = Files.list(dir)) {
+                    isEmpty = stream.findAny().isEmpty();
+                }
+                if (!isEmpty) break;
+                Files.delete(dir);
+                log.info("Removed empty inbox folder: {}", dir.getFileName());
+                dir = dir.getParent();
+            } catch (IOException e) {
+                log.warn("Could not remove inbox folder {}: {}", dir, e.getMessage());
+                break;
+            }
+        }
     }
 
     private Path resolveConflict(Path target) {

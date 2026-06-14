@@ -39,12 +39,18 @@ public class InboxController {
     }
 
     @PostMapping("/upload")
-    public String upload(@RequestParam("file") MultipartFile file,
+    public String upload(@RequestParam("files") List<MultipartFile> files,
                          RedirectAttributes redirectAttributes) throws IOException {
-        Path tmp = Files.createTempFile("archiver-", "-" + file.getOriginalFilename());
-        file.transferTo(tmp);
-        pipelineService.processAsync(tmp, ArchiveService.SourceType.MANUAL);
-        redirectAttributes.addFlashAttribute("message", "Document en cours d'analyse…");
+        int count = 0;
+        for (MultipartFile file : files) {
+            if (file.isEmpty()) continue;
+            Path tmp = Files.createTempFile("archiver-", "-" + file.getOriginalFilename());
+            file.transferTo(tmp);
+            pipelineService.processAsync(tmp, ArchiveService.SourceType.MANUAL);
+            count++;
+        }
+        String msg = count == 1 ? "Document en cours d'analyse…" : count + " documents en cours d'analyse…";
+        redirectAttributes.addFlashAttribute("message", msg);
         return "redirect:/inbox";
     }
 

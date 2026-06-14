@@ -197,6 +197,29 @@ body {
     }
 }
 
+// Drag-and-drop overlay
+.drop-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba($primary, 0.12);
+    border: 3px dashed $primary;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+
+    .drop-overlay-inner {
+        background: $white;
+        border-radius: $border-radius-lg;
+        padding: 2rem 3rem;
+        text-align: center;
+        font-weight: 600;
+        color: $primary;
+        box-shadow: $box-shadow-lg;
+    }
+}
+
 // Rules list
 .rule-item {
     background: $white;

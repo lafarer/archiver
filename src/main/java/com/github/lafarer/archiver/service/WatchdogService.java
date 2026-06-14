@@ -60,10 +60,10 @@ public class WatchdogService {
     }
 
     private void scanExisting() {
-        try (var stream = Files.list(props.getInboxPath())) {
+        try (var stream = Files.walk(props.getInboxPath())) {
             stream.filter(f -> Files.isRegularFile(f) && !f.getFileName().toString().startsWith("."))
                   .forEach(f -> {
-                      log.info("Scanning existing inbox file: {}", f.getFileName());
+                      log.info("Scanning existing inbox file: {}", f);
                       pipelineService.processAsync(f, ArchiveService.SourceType.INBOX);
                   });
         } catch (IOException e) {
@@ -85,10 +85,13 @@ public class WatchdogService {
                 for (WatchEvent<?> event : key.pollEvents()) {
                     if (event.kind() == StandardWatchEventKinds.OVERFLOW) continue;
                     @SuppressWarnings("unchecked")
-                    Path file = props.getInboxPath().resolve(((WatchEvent<Path>) event).context());
-                    if (Files.isRegularFile(file) && !file.getFileName().toString().startsWith(".")) {
-                        log.info("New file detected: {}", file.getFileName());
-                        pipelineService.processAsync(file, ArchiveService.SourceType.INBOX);
+                    Path path = props.getInboxPath().resolve(((WatchEvent<Path>) event).context());
+                    if (Files.isDirectory(path)) {
+                        log.info("New folder detected in inbox: {}", path.getFileName());
+                        processFolder(path);
+                    } else if (Files.isRegularFile(path) && !path.getFileName().toString().startsWith(".")) {
+                        log.info("New file detected: {}", path.getFileName());
+                        pipelineService.processAsync(path, ArchiveService.SourceType.INBOX);
                     }
                 }
                 if (!key.reset()) break;
@@ -97,6 +100,18 @@ public class WatchdogService {
             Thread.currentThread().interrupt();
         } catch (IOException e) {
             if (running.get()) log.error("Watchdog error: {}", e.getMessage());
+        }
+    }
+
+    private void processFolder(Path folder) {
+        try (var stream = Files.walk(folder)) {
+            stream.filter(f -> Files.isRegularFile(f) && !f.getFileName().toString().startsWith("."))
+                  .forEach(f -> {
+                      log.info("Processing file from dropped folder: {}", f);
+                      pipelineService.processAsync(f, ArchiveService.SourceType.INBOX);
+                  });
+        } catch (IOException e) {
+            log.warn("Could not scan dropped folder {}: {}", folder.getFileName(), e.getMessage());
         }
     }
 
