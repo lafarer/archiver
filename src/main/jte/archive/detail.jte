@@ -2,9 +2,11 @@
 @import com.github.lafarer.archiver.model.CustomFieldDef
 @import com.github.lafarer.archiver.service.DocumentPipelineService.ProposedPathParts
 @import java.util.List
+@import java.util.Map
 
 @param Document document
 @param List<CustomFieldDef> customFieldDefs
+@param Map<String, List<String>> fieldSuggestions
 @param ProposedPathParts proposedPath
 @param String page
 
@@ -94,10 +96,20 @@
                 <div class="text-muted small fw-semibold mb-1">Champs personnalisés</div>
                 @for(CustomFieldDef cf : customFieldDefs)
                     !{String cfValue = document.getCustomFields().getOrDefault(cf.getSlug(), "");}
+                    !{List<String> suggestions = fieldSuggestions.getOrDefault(cf.getSlug(), List.of());}
+                    !{String listId = "cf-list-" + cf.getSlug();}
                     <div>
                         <label class="form-label" for="cf_${cf.getSlug()}">${cf.getLabel()}</label>
                         <input type="text" id="cf_${cf.getSlug()}" name="cf_${cf.getSlug()}"
-                               class="form-control" value="${cfValue}">
+                               class="form-control" value="${cfValue}"
+                               list="${listId}" autocomplete="off">
+                        @if(!suggestions.isEmpty())
+                            <datalist id="${listId}">
+                                @for(String s : suggestions)
+                                    <option value="${s}">
+                                @endfor
+                            </datalist>
+                        @endif
                         @if(cf.getDescription() != null && !cf.getDescription().isEmpty())
                             <details class="cf-help">
                                 <summary>Instructions</summary>

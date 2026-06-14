@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -46,11 +47,21 @@ public class ArchiveController {
     public String detail(@PathVariable Long id, Model model) {
         Document doc = documentRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Document not found: " + id));
+        var defs = customFieldDefRepository.findAll();
         model.addAttribute("document", doc);
-        model.addAttribute("customFieldDefs", customFieldDefRepository.findAll());
+        model.addAttribute("customFieldDefs", defs);
+        model.addAttribute("fieldSuggestions", buildFieldSuggestions(defs));
         model.addAttribute("proposedPath", pipelineService.proposedPath(doc));
         model.addAttribute("page", "archive");
         return "archive/detail";
+    }
+
+    private Map<String, List<String>> buildFieldSuggestions(List<com.github.lafarer.archiver.model.CustomFieldDef> defs) {
+        Map<String, List<String>> result = new LinkedHashMap<>();
+        for (var def : defs) {
+            result.put(def.getSlug(), documentRepository.findDistinctCustomFieldValues("$." + def.getSlug()));
+        }
+        return result;
     }
 
     @PostMapping("/{id}/reclassify")
