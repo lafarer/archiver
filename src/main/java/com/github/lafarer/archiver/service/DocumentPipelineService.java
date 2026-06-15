@@ -68,14 +68,20 @@ public class DocumentPipelineService {
             var existing = documentRepository.findBySha256Hash(hash);
             if (existing.isPresent()) {
                 log.info("Duplicate detected, skipping: {}", file.getFileName());
-                // Only remove from inbox if already archived — if the document is pending
-                // validation the file is still needed at its sourcePath
-                if (sourceType == ArchiveService.SourceType.INBOX && existing.get().isClassified()) {
-                    try {
-                        Files.deleteIfExists(file);
-                        log.info("Removed duplicate from inbox: {}", file.getFileName());
-                    } catch (IOException e) {
-                        log.warn("Could not remove duplicate from inbox: {}", e.getMessage());
+                if (sourceType == ArchiveService.SourceType.INBOX) {
+                    Document dup = existing.get();
+                    // Keep the file only if it IS the pending document's own source file —
+                    // the watchdog fires for that file too and it must stay for validation.
+                    // Any other copy (second drop, already archived) is safe to remove.
+                    boolean isPendingSourceFile = !dup.isClassified()
+                        && file.toAbsolutePath().toString().equals(dup.getSourcePath());
+                    if (!isPendingSourceFile) {
+                        try {
+                            Files.deleteIfExists(file);
+                            log.info("Removed duplicate from inbox: {}", file.getFileName());
+                        } catch (IOException e) {
+                            log.warn("Could not remove duplicate from inbox: {}", e.getMessage());
+                        }
                     }
                 }
                 return;
