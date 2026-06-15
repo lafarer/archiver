@@ -81,9 +81,9 @@ INSERT INTO storage_path_rule (priority, label, condition_nl, path_template, is_
      'Logements/[adresse_bien]/Contrats/[yyyy]-[title]',
      0, 1),
 
-    (24, 'Entretiens obligatoires logement',
-     'Le document est un rapport, un certificat ou une facture d''entretien obligatoire lié à un logement : entretien de chaudière, ramonage de cheminée, vérification VMC, contrôle installation gaz, contrôle installation électrique, désinsectisation.',
-     'Logements/[adresse_bien]/Entretiens-obligatoires/[document_type]-[title]',
+    (24, 'Entretiens et contrôles logement',
+     'Le document est un rapport, un certificat ou une facture d''entretien ou de contrôle lié à un logement : entretien de chaudière, ramonage de cheminée, vérification VMC, contrôle installation gaz, contrôle installation électrique, désinsectisation.',
+     'Logements/[adresse_bien]/Entretiens-et-controles/[document_type]-[title]',
      0, 1),
 
     (25, 'Factures logement',
