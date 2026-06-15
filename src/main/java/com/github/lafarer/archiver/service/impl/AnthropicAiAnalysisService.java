@@ -91,6 +91,8 @@ public class AnthropicAiAnalysisService implements AiAnalysisService {
         sb.append("""
             You are a document analysis assistant. Analyze the provided document and return a JSON object.
 
+            USER HINT: If the user message starts with "USER HINT:", it provides authoritative context that MUST override your own analysis. Follow it strictly for document_type, applied_rule_id, custom fields (especially adresse_bien, membre_famille, etc.), and any other classification decision. Extract the hint's information directly into the relevant JSON fields.
+
             """);
 
         if (documentTypes != null && !documentTypes.isEmpty()) {
@@ -179,7 +181,7 @@ public class AnthropicAiAnalysisService implements AiAnalysisService {
         if (hint != null && !hint.isBlank()) {
             blocks.add(ContentBlockParam.ofText(
                 TextBlockParam.builder()
-                    .text("USER HINT (important - take this into account when classifying): " + hint.trim())
+                    .text("USER HINT: " + hint.trim())
                     .build()
             ));
         }
