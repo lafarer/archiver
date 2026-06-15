@@ -70,8 +70,13 @@ public class InboxController {
             if (file.isEmpty()) continue;
             Path dest = resolveInboxPath(file.getOriginalFilename());
             file.transferTo(dest);
-            pipelineService.processAsync(dest, ArchiveService.SourceType.INBOX);
-            count++;
+            // Create stub synchronously so it exists before the redirect renders the page,
+            // then launch analysis in a separate async thread via the Spring proxy.
+            Long stubId = pipelineService.createStubSync(dest, ArchiveService.SourceType.INBOX);
+            if (stubId != null) {
+                pipelineService.analyzeFromStub(stubId, dest, ArchiveService.SourceType.INBOX);
+                count++;
+            }
         }
         String msg = count == 1 ? "Document en cours d'analyse…" : count + " documents en cours d'analyse…";
         redirectAttributes.addFlashAttribute("message", msg);

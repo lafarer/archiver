@@ -63,37 +63,53 @@ public class DocumentPipelineService {
         documentRepository.deleteByAnalysisStatus(AnalysisStatus.ANALYZING);
     }
 
+    // Creates the stub synchronously (hash + dedup + DB insert + SSE).
+    // Returns the stub ID, or null if the file was a duplicate (and possibly deleted).
+    // Called from the UI upload path so the stubs exist before the redirect fires.
+    public Long createStubSync(Path file, ArchiveService.SourceType sourceType) throws IOException {
+        String hash = sha256(file);
+        var existing = documentRepository.findBySha256Hash(hash);
+        if (existing.isPresent()) {
+            log.info("Duplicate detected, skipping: {}", file.getFileName());
+            if (sourceType == ArchiveService.SourceType.INBOX) {
+                Document dup = existing.get();
+                boolean isPendingSourceFile = !dup.isClassified()
+                    && file.toAbsolutePath().toString().equals(dup.getSourcePath());
+                if (!isPendingSourceFile) {
+                    Files.deleteIfExists(file);
+                    log.info("Removed duplicate from inbox: {}", file.getFileName());
+                }
+            }
+            return null;
+        }
+        Long stubId = documentStubService.createStub(file, hash);
+        inboxEventService.notifyInboxChanged();
+        return stubId;
+    }
+
+    // Async analysis for an already-created stub. Must be called via the Spring proxy
+    // (i.e. from another bean) for @Async to take effect.
+    @Async
+    public void analyzeFromStub(Long stubId, Path file, ArchiveService.SourceType sourceType) {
+        try {
+            Document doc = process(stubId, file, sourceType);
+            if (doc != null && !doc.isClassified()) {
+                inboxEventService.notifyInboxChanged();
+            }
+        } catch (Exception e) {
+            log.error("Analysis failed for {}: {}", file.getFileName(), e.getMessage(), e);
+            documentRepository.deleteById(stubId);
+            inboxEventService.notifyInboxChanged();
+        }
+    }
+
+    // Used by the watchdog - fully async (stub creation + analysis in the same thread).
     @Async
     public void processAsync(Path file, ArchiveService.SourceType sourceType) {
         Long stubId = null;
         try {
-            String hash = sha256(file);
-            var existing = documentRepository.findBySha256Hash(hash);
-            if (existing.isPresent()) {
-                log.info("Duplicate detected, skipping: {}", file.getFileName());
-                if (sourceType == ArchiveService.SourceType.INBOX) {
-                    Document dup = existing.get();
-                    // Keep the file only if it IS the pending document's own source file -
-                    // the watchdog fires for that file too and it must stay for validation.
-                    // Any other copy (second drop, already archived) is safe to remove.
-                    boolean isPendingSourceFile = !dup.isClassified()
-                        && file.toAbsolutePath().toString().equals(dup.getSourcePath());
-                    if (!isPendingSourceFile) {
-                        try {
-                            Files.deleteIfExists(file);
-                            log.info("Removed duplicate from inbox: {}", file.getFileName());
-                        } catch (IOException e) {
-                            log.warn("Could not remove duplicate from inbox: {}", e.getMessage());
-                        }
-                    }
-                }
-                return;
-            }
-
-            // Persist a stub immediately so the UI can show an "analyzing" card
-            stubId = documentStubService.createStub(file, hash);
-            inboxEventService.notifyInboxChanged();
-
+            stubId = createStubSync(file, sourceType);
+            if (stubId == null) return;
             Document doc = process(stubId, file, sourceType);
             if (doc != null && !doc.isClassified()) {
                 inboxEventService.notifyInboxChanged();
