@@ -120,10 +120,10 @@ public class PathResolverService {
     }
 
     private String parseMonth(String date) {
-        return (date != null && date.length() >= 7) ? date.substring(5, 7) : "_";
+        return (date != null && date.length() >= 7) ? date.substring(5, 7) : null;
     }
 
     private String parseDay(String date) {
-        return (date != null && date.length() == 10) ? date.substring(8, 10) : "_";
+        return (date != null && date.length() == 10) ? date.substring(8, 10) : null;
     }
 }
