@@ -2,6 +2,7 @@ package com.github.lafarer.archiver.model;
 
 import com.github.lafarer.archiver.model.converter.StringListConverter;
 import com.github.lafarer.archiver.model.converter.StringMapConverter;
+import com.github.lafarer.archiver.model.enums.AnalysisStatus;
 import com.github.lafarer.archiver.model.enums.DatePrecision;
 import com.github.lafarer.archiver.model.enums.FieldSource;
 import jakarta.persistence.*;
@@ -107,6 +108,10 @@ public class Document {
 
     @Column(name = "sidecar_path")
     private String sidecarPath;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "analysis_status", nullable = false)
+    private AnalysisStatus analysisStatus = AnalysisStatus.COMPLETE;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

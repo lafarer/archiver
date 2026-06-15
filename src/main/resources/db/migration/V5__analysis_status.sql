@@ -1,0 +1,1 @@
+ALTER TABLE document ADD COLUMN analysis_status TEXT NOT NULL DEFAULT 'COMPLETE';

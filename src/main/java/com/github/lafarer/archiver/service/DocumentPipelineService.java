@@ -5,6 +5,7 @@ import com.github.lafarer.archiver.model.ClassificationHistory;
 import com.github.lafarer.archiver.model.CustomFieldDef;
 import com.github.lafarer.archiver.model.Document;
 import com.github.lafarer.archiver.model.StoragePathRule;
+import com.github.lafarer.archiver.model.enums.AnalysisStatus;
 import com.github.lafarer.archiver.model.enums.ClassificationTrigger;
 import com.github.lafarer.archiver.model.enums.DatePrecision;
 import com.github.lafarer.archiver.model.enums.FieldSource;
@@ -17,6 +18,8 @@ import com.github.lafarer.archiver.service.ExtractionService.ExtractionResult;
 import com.github.lafarer.archiver.service.PathResolverService.ResolvedPath;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,37 +53,56 @@ public class DocumentPipelineService {
     private final StoragePathRuleRepository storagePathRuleRepository;
     private final ClassificationHistoryRepository historyRepository;
     private final InboxEventService inboxEventService;
+    private final DocumentStubService documentStubService;
+
+    @EventListener(ApplicationReadyEvent.class)
+    public void cleanupStaleAnalyzing() {
+        documentRepository.deleteByAnalysisStatus(AnalysisStatus.ANALYZING);
+    }
 
     @Async
     public void processAsync(Path file, ArchiveService.SourceType sourceType) {
+        Long stubId = null;
         try {
-            Document doc = process(file, sourceType);
+            String hash = sha256(file);
+            if (documentRepository.findBySha256Hash(hash).isPresent()) {
+                log.info("Duplicate detected, skipping: {}", file.getFileName());
+                if (sourceType == ArchiveService.SourceType.INBOX) {
+                    try {
+                        Files.deleteIfExists(file);
+                        log.info("Removed duplicate from inbox: {}", file.getFileName());
+                    } catch (IOException e) {
+                        log.warn("Could not remove duplicate from inbox: {}", e.getMessage());
+                    }
+                }
+                return;
+            }
+
+            // Persist a stub immediately so the UI can show an "analyzing" card
+            stubId = documentStubService.createStub(file, hash);
+            inboxEventService.notifyInboxChanged();
+
+            Document doc = process(stubId, file, sourceType);
             if (doc != null && !doc.isClassified()) {
                 inboxEventService.notifyInboxChanged();
             }
         } catch (Exception e) {
             log.error("Pipeline failed for {}: {}", file.getFileName(), e.getMessage(), e);
+            if (stubId != null) {
+                documentRepository.deleteById(stubId);
+                inboxEventService.notifyInboxChanged();
+            }
         }
     }
 
     @Transactional
-    public Document process(Path file, ArchiveService.SourceType sourceType) throws IOException {
-        String hash = sha256(file);
-        if (documentRepository.findBySha256Hash(hash).isPresent()) {
-            log.info("Duplicate detected, skipping: {}", file.getFileName());
-            if (sourceType == ArchiveService.SourceType.INBOX) {
-                try {
-                    Files.deleteIfExists(file);
-                    log.info("Removed duplicate from inbox: {}", file.getFileName());
-                } catch (IOException e) {
-                    log.warn("Could not remove duplicate from inbox: {}", e.getMessage());
-                }
-            }
-            return null;
-        }
+    public Document process(Long stubId, Path file, ArchiveService.SourceType sourceType) throws IOException {
+        Document doc = documentRepository.findById(stubId)
+            .orElseThrow(() -> new IllegalArgumentException("Stub not found: " + stubId));
 
         // Step 1 — pre-extraction
         ExtractionResult extraction = extractionService.extract(file);
+        doc.setFilesystemMtime(extraction.filesystemMtime());
 
         // Step 2 — AI analysis (always called)
         List<CustomFieldHint> cfHints = customFieldDefRepository.findAll().stream()
@@ -123,16 +145,9 @@ public class DocumentPipelineService {
             analysis.tags().forEach(t -> tagService.autoRegister(t.slug(), t.label(), t.description()));
         }
 
-        // Step 3 — build document entity
-        Document doc = new Document();
-        doc.setOriginalFilename(file.getFileName().toString());
-        doc.setSourcePath(file.toAbsolutePath().toString());
-        doc.setSha256Hash(hash);
-        doc.setMimeType(Files.probeContentType(file));
-        doc.setFileSizeBytes(Files.size(file));
-        doc.setFilesystemMtime(extraction.filesystemMtime());
-
+        // Step 3 — populate document entity from analysis
         applyAnalysis(doc, analysis);
+        doc.setAnalysisStatus(AnalysisStatus.COMPLETE);
 
         // Step 4 — resolve path
         Map<String, String> cfValues = doc.getCustomFields();

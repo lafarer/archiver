@@ -1,6 +1,7 @@
 package com.github.lafarer.archiver.repository;
 
 import com.github.lafarer.archiver.model.Document;
+import com.github.lafarer.archiver.model.enums.AnalysisStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,6 +16,8 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
     Optional<Document> findBySha256Hash(String sha256Hash);
 
     List<Document> findByClassifiedFalseOrderByCreatedAtDesc();
+
+    void deleteByAnalysisStatus(AnalysisStatus status);
 
     Page<Document> findByClassifiedTrue(Pageable pageable);
 
