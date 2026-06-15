@@ -3,6 +3,7 @@
 @import java.util.List
 
 @param List<Document> documents
+@param String archiveRoot
 
 @if(documents.isEmpty())
     <div class="text-center text-muted py-5">
@@ -55,6 +56,11 @@
                         !{int dotIdx = doc.getOriginalFilename().lastIndexOf('.');}
                         !{String rpExt = dotIdx > 0 ? doc.getOriginalFilename().substring(dotIdx) : "";}
                         <div class="doc-path">→ <span class="opacity-50">${rpFolder}</span><strong>${rpName}${rpExt}</strong></div>
+                    @endif
+                    @if(doc.getSourcePath() != null)
+                        !{String sp = doc.getSourcePath();}
+                        !{String displaySrc = sp.startsWith(archiveRoot) ? sp.substring(archiveRoot.length()).replaceFirst("^[/\\\\]", "") : sp;}
+                        <div class="doc-source-path">${displaySrc}</div>
                     @endif
                 </div>
                 <div class="d-flex flex-column gap-1">

@@ -2,6 +2,7 @@
 @import java.util.List
 
 @param List<Document> documents
+@param String archiveRoot
 @param String page
 
 @template.layout.base(page = page, title = "Inbox", inboxCount = documents.size(), content = @`
@@ -14,7 +15,7 @@
 </div>
 
 <div class="page-body" id="inbox-list">
-    @template.inbox.doclist(documents = documents)
+    @template.inbox.doclist(documents = documents, archiveRoot = archiveRoot)
 </div>
 
 <!-- Upload modal -->

@@ -38,6 +38,7 @@ public class InboxController {
     public String index(Model model) {
         List<Document> pending = documentRepository.findByClassifiedFalseOrderByCreatedAtDesc();
         model.addAttribute("documents", pending);
+        model.addAttribute("archiveRoot", props.getRoot().toString());
         model.addAttribute("page", "inbox");
         return "inbox/index";
     }
@@ -50,6 +51,7 @@ public class InboxController {
     @GetMapping("/fragment")
     public String fragment(Model model) {
         model.addAttribute("documents", documentRepository.findByClassifiedFalseOrderByCreatedAtDesc());
+        model.addAttribute("archiveRoot", props.getRoot().toString());
         return "inbox/fragment";
     }
 
