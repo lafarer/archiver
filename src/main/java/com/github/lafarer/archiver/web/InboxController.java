@@ -59,14 +59,33 @@ public class InboxController {
         int count = 0;
         for (MultipartFile file : files) {
             if (file.isEmpty()) continue;
-            Path tmp = Files.createTempFile("archiver-", "-" + file.getOriginalFilename());
-            file.transferTo(tmp);
-            pipelineService.processAsync(tmp, ArchiveService.SourceType.MANUAL);
+            Path dest = resolveInboxPath(file.getOriginalFilename());
+            file.transferTo(dest);
+            pipelineService.processAsync(dest, ArchiveService.SourceType.INBOX);
             count++;
         }
         String msg = count == 1 ? "Document en cours d'analyse…" : count + " documents en cours d'analyse…";
         redirectAttributes.addFlashAttribute("message", msg);
         return "redirect:/inbox";
+    }
+
+    private Path resolveInboxPath(String originalFilename) {
+        // Strip any directory components to prevent path traversal
+        String filename = Path.of(originalFilename != null ? originalFilename : "upload").getFileName().toString();
+        String base = filename;
+        String ext = "";
+        int dot = filename.lastIndexOf('.');
+        if (dot > 0) {
+            base = filename.substring(0, dot);
+            ext  = filename.substring(dot);
+        }
+        Path candidate = props.getInboxPath().resolve(filename);
+        int i = 1;
+        while (Files.exists(candidate)) {
+            candidate = props.getInboxPath().resolve(base + "-" + i + ext);
+            i++;
+        }
+        return candidate;
     }
 
     @GetMapping("/{id}/edit")
