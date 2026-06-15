@@ -82,8 +82,8 @@ INSERT INTO storage_path_rule (priority, label, condition_nl, path_template, is_
      0, 1),
 
     (24, 'Entretiens et contrôles logement',
-     'Le document est un rapport, un certificat ou une facture d''entretien ou de contrôle lié à un logement : entretien de chaudière, ramonage de cheminée, vérification VMC, contrôle installation gaz, contrôle installation électrique, désinsectisation.',
-     'Logements/[adresse_bien]/Entretiens-et-controles/[document_type]-[title]',
+     'Le document est un rapport, un certificat, une attestation ou une facture relatif à un entretien obligatoire ou à un contrôle par un organisme certificateur pour un logement. Entretiens obligatoires : entretien annuel de chaudière, ramonage de cheminée, vérification VMC, désinsectisation, dératisation. Contrôles certificateurs : certificat PEB (performance énergétique), contrôle conformité installation électrique (CERGA, Vinçotte, AIB-Vinçotte…), contrôle installation gaz, diagnostic amiante, diagnostic plomb. Ne concerne PAS les travaux de rénovation, d''aménagement ou de réparation non-obligatoires.',
+     'Logements/[adresse_bien]/Entretiens-et-controles/[yyyy]/[document_type]-[title]',
      0, 1),
 
     (25, 'Factures logement',
@@ -97,7 +97,7 @@ INSERT INTO storage_path_rule (priority, label, condition_nl, path_template, is_
      0, 1),
 
     (27, 'Travaux logement',
-     'Le document est une facture, un devis, un bon de commande ou un permis lié à des travaux dans un logement : rénovation, aménagement, construction, extension, second œuvre (plomberie, électricité, peinture, carrelage…).',
+     'Le document est une facture, un devis, un bon de commande ou un permis lié à des travaux non-obligatoires dans un logement : rénovation, aménagement, construction, extension, second œuvre (plomberie, électricité, peinture, carrelage, menuiserie…). Exclure les entretiens obligatoires (chaudière, ramonage, VMC) et les contrôles par organismes certificateurs (PEB, électricité, gaz, amiante, plomb) qui relèvent de la règle "Entretiens et contrôles logement".',
      'Logements/[adresse_bien]/Travaux/[yyyy]/[issuer]-[title]',
      0, 1),
 
