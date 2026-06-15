@@ -65,9 +65,12 @@ public class DocumentPipelineService {
         Long stubId = null;
         try {
             String hash = sha256(file);
-            if (documentRepository.findBySha256Hash(hash).isPresent()) {
+            var existing = documentRepository.findBySha256Hash(hash);
+            if (existing.isPresent()) {
                 log.info("Duplicate detected, skipping: {}", file.getFileName());
-                if (sourceType == ArchiveService.SourceType.INBOX) {
+                // Only remove from inbox if already archived — if the document is pending
+                // validation the file is still needed at its sourcePath
+                if (sourceType == ArchiveService.SourceType.INBOX && existing.get().isClassified()) {
                     try {
                         Files.deleteIfExists(file);
                         log.info("Removed duplicate from inbox: {}", file.getFileName());
