@@ -142,7 +142,7 @@ public class InboxController {
                 }
             }
         });
-        documentRepository.save(doc);
+        pipelineService.refreshResolvedPath(doc);
         redirectAttributes.addFlashAttribute("message", "Document mis à jour.");
         return "redirect:/inbox/" + id + "/edit";
     }

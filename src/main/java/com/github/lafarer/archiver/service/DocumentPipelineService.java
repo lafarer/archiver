@@ -350,6 +350,18 @@ public class DocumentPipelineService {
         log.info("Reclassified document {}: {} → {}", documentId, oldRelPath, actualNewRelPath);
     }
 
+    @Transactional
+    public void refreshResolvedPath(Document doc) {
+        ResolvedPath resolved = pathResolverService.resolve(
+            doc.getAppliedRule() != null ? doc.getAppliedRule().getId() : null,
+            doc.getDocumentType(), doc.getDocumentDate(),
+            doc.getTitle(), doc.getIssuer(), doc.getCustomFields()
+        );
+        doc.setResolvedPath(resolved.relativePath());
+        doc.setAppliedRule(resolved.appliedRule());
+        documentRepository.save(doc);
+    }
+
     public record ProposedPathParts(String full, String existing, String newPart) {}
 
     public ProposedPathParts proposedPath(Document doc) {
