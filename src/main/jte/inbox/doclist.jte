@@ -48,7 +48,13 @@
                         </div>
                     @endif
                     @if(doc.getResolvedPath() != null)
-                        <div class="doc-path">→ ${doc.getResolvedPath()}</div>
+                        !{String rp = doc.getResolvedPath();}
+                        !{int lastSlash = rp.lastIndexOf('/');}
+                        !{String rpFolder = lastSlash > 0 ? rp.substring(0, lastSlash + 1) : "";}
+                        !{String rpName   = lastSlash > 0 ? rp.substring(lastSlash + 1) : rp;}
+                        !{int dotIdx = doc.getOriginalFilename().lastIndexOf('.');}
+                        !{String rpExt = dotIdx > 0 ? doc.getOriginalFilename().substring(dotIdx) : "";}
+                        <div class="doc-path">→ <span class="opacity-50">${rpFolder}</span><strong>${rpName}${rpExt}</strong></div>
                     @endif
                 </div>
                 <div class="d-flex flex-column gap-1">
