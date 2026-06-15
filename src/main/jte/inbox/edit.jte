@@ -188,7 +188,7 @@
         spinner.classList.remove('d-none');
         btn.childNodes[btn.childNodes.length - 1].textContent = ' Analyse en cours…';
         document.querySelectorAll('input, textarea, select, button')
-            .forEach(el => el.disabled = true);
+            .forEach(el => { if (!el.closest('#reanalyzeForm')) el.disabled = true; });
     });
     </script>
 

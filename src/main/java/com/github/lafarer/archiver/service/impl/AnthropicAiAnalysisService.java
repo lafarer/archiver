@@ -80,8 +80,13 @@ public class AnthropicAiAnalysisService implements AiAnalysisService {
             ))
             .build();
 
+        if (hint != null && !hint.isBlank()) {
+            log.info("Sending re-analysis with hint: {}", hint);
+        }
+        log.debug("User content blocks: {}", userContent.size());
         Message response = client.messages().create(params);
         String json = stripMarkdown(extractText(response));
+        log.debug("AI raw response: {}", json);
 
         return parseResponse(json);
     }
