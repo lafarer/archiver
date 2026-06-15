@@ -86,7 +86,7 @@ public class AnthropicAiAnalysisService implements AiAnalysisService {
         log.debug("User content blocks: {}", userContent.size());
         Message response = client.messages().create(params);
         String json = stripMarkdown(extractText(response));
-        log.debug("AI raw response: {}", json);
+        log.info("AI raw response: {}", json);
 
         return parseResponse(json);
     }
@@ -191,7 +191,7 @@ public class AnthropicAiAnalysisService implements AiAnalysisService {
                         %s
 
                         You MUST act on this hint:
-                        1. Select the storage path rule from the list below whose condition best matches the hint - set applied_rule_id to its ID.
+                        1. If the hint names a storage location or folder (e.g. "Actes du logement", "Travaux", "Entretiens"), find the rule whose label or path_template contains those keywords and set applied_rule_id to its ID. Do NOT evaluate whether the document type perfectly matches the rule description - the user's classification decision is final.
                         2. Extract any address, person name, or other identifiers from the hint and set the corresponding custom fields (e.g. adresse_bien, membre_famille).
                         3. Infer document_type, title, issuer from the hint if the document content is ambiguous.
                         4. Do NOT let visual or textual document analysis override this hint.
