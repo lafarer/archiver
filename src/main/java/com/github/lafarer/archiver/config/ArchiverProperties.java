@@ -16,16 +16,16 @@ public class ArchiverProperties {
     @NotNull
     private Path root;
 
-    private Path inbox;
+    private String inboxFolder = "Inbox";
+
+    private String archiveFolder = "Archive";
 
     private String host = "127.0.0.1";
 
     private int port = 8080;
 
-    private String archiveFolder = "Archive";
-
     public Path getInboxPath() {
-        return inbox != null ? inbox : root.resolve("inbox");
+        return root.resolve(inboxFolder);
     }
 
     public Path getArchivePath() {
