@@ -1,5 +1,6 @@
 package com.github.lafarer.archiver.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.lafarer.archiver.config.ArchiverProperties;
 import com.github.lafarer.archiver.model.ClassificationHistory;
 import com.github.lafarer.archiver.model.CustomFieldDef;
@@ -30,6 +31,7 @@ import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.time.Instant;
 import java.util.HexFormat;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -54,6 +56,7 @@ public class DocumentPipelineService {
     private final ClassificationHistoryRepository historyRepository;
     private final InboxEventService inboxEventService;
     private final DocumentStubService documentStubService;
+    private final ObjectMapper objectMapper;
 
     @EventListener(ApplicationReadyEvent.class)
     public void cleanupStaleAnalyzing() {
@@ -174,7 +177,7 @@ public class DocumentPipelineService {
         doc.setAppliedRule(resolved.appliedRule());
 
         if (autoArchive) {
-            doc = archiveAndFinalize(doc, file, resolved, analysis, sourceType);
+            doc = archiveAndFinalize(doc, file, resolved, sourceType);
         } else {
             // Leave in pending state for UI validation
             doc = documentRepository.save(doc);
@@ -196,26 +199,18 @@ public class DocumentPipelineService {
         doc.setResolvedPath(resolved.relativePath());
         doc.setAppliedRule(resolved.appliedRule());
 
-        DocumentTypeResult dummyType = doc.getDocumentType() != null
-            ? new DocumentTypeResult(doc.getDocumentType(), null, null) : null;
-        List<TagResult> dummyTags = doc.getTags().stream().map(s -> new TagResult(s, null, null)).toList();
-        AnalysisResult dummyAnalysis = new AnalysisResult(
-            null, dummyType, null, null, null, null, null,
-            dummyTags, Map.of(), doc.getAppliedRule() != null ? doc.getAppliedRule().getId() : null
-        );
-
-        return archiveAndFinalize(doc, sourceFile, resolved, dummyAnalysis, ArchiveService.SourceType.MANUAL);
+        return archiveAndFinalize(doc, sourceFile, resolved, ArchiveService.SourceType.MANUAL);
     }
 
     private Document archiveAndFinalize(
         Document doc, Path sourceFile, ResolvedPath resolved,
-        AnalysisResult analysis, ArchiveService.SourceType sourceType
+        ArchiveService.SourceType sourceType
     ) throws IOException {
         String relPath = resolved.relativePath() + extension(sourceFile);
         Path archivedFile = archiveService.archive(sourceFile, relPath, sourceType);
 
         doc.setResolvedPath(relPath);
-        sidecarService.write(archivedFile, doc, analysis);
+        sidecarService.write(archivedFile, doc);
         doc.setSidecarPath(sidecarService.sidecarPathFor(archivedFile).toString());
         doc.setClassified(true);
         doc.setClassifiedAt(Instant.now());
@@ -338,8 +333,23 @@ public class DocumentPipelineService {
         if (a.tags() != null) {
             doc.setTags(a.tags().stream().map(TagResult::slug).toList());
         }
+        doc.setAiReasoning(a.reasoning());
+        doc.setAiModel(settingService.get("ai_model"));
+
         if (a.customFields() != null) {
-            a.customFields().forEach((k, v) -> doc.getCustomFields().put(k, v.value()));
+            Map<String, Object> prov = new LinkedHashMap<>();
+            a.customFields().forEach((k, v) -> {
+                doc.getCustomFields().put(k, v.value());
+                prov.put(k, Map.of(
+                    "source",     v.source() != null ? v.source() : "ai",
+                    "confidence", v.confidence() != null ? v.confidence() : 0.0
+                ));
+            });
+            try {
+                doc.setCustomFieldsProvenance(objectMapper.writeValueAsString(prov));
+            } catch (Exception e) {
+                log.warn("Failed to serialize custom_fields_provenance: {}", e.getMessage());
+            }
         }
     }
 

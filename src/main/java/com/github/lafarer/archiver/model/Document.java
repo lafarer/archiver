@@ -65,6 +65,15 @@ public class Document {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "ai_reasoning", columnDefinition = "TEXT")
+    private String aiReasoning;
+
+    @Column(name = "ai_model")
+    private String aiModel;
+
+    @Column(name = "custom_fields_provenance", columnDefinition = "TEXT")
+    private String customFieldsProvenance = "{}";
+
     @Convert(converter = StringListConverter.class)
     @Column(columnDefinition = "TEXT")
     private List<String> tags = new ArrayList<>();

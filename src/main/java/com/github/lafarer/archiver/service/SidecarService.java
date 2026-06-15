@@ -1,9 +1,9 @@
 package com.github.lafarer.archiver.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.github.lafarer.archiver.model.Document;
-import com.github.lafarer.archiver.service.AiAnalysisService.AnalysisResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -25,13 +25,13 @@ public class SidecarService {
         return archivedFile.getParent().resolve(name);
     }
 
-    public void write(Path archivedFile, Document document, AnalysisResult analysis) {
+    public void write(Path archivedFile, Document document) {
         Path sidecar = sidecarPathFor(archivedFile);
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("schema_version", 1);
         data.put("extracted_at", Instant.now().toString());
-        data.put("ai_model", "claude-sonnet-4-6");
-        data.put("ai_reasoning", analysis.reasoning());
+        data.put("ai_model", document.getAiModel());
+        data.put("ai_reasoning", document.getAiReasoning());
         data.put("document_type", document.getDocumentType());
         data.put("title", document.getTitle());
         data.put("document_date", document.getDocumentDate());
@@ -43,7 +43,7 @@ public class SidecarService {
         data.put("resolved_path", document.getResolvedPath());
         data.put("applied_rule", document.getAppliedRule() != null
             ? document.getAppliedRule().getLabel() : null);
-        data.put("provenance", buildProvenance(document, analysis));
+        data.put("provenance", buildProvenance(document));
 
         try {
             mapper.writeValue(sidecar.toFile(), data);
@@ -53,15 +53,20 @@ public class SidecarService {
         }
     }
 
-    private Map<String, Object> buildProvenance(Document doc, AnalysisResult analysis) {
+    private Map<String, Object> buildProvenance(Document doc) {
         Map<String, Object> p = new LinkedHashMap<>();
         addProvenance(p, "title",         doc.getTitleSource(),         doc.getTitleConfidence());
         addProvenance(p, "document_date", doc.getDocumentDateSource(),  doc.getDocumentDateConfidence());
         addProvenance(p, "issuer",        doc.getIssuerSource(),        doc.getIssuerConfidence());
-        if (analysis.customFields() != null) {
-            analysis.customFields().forEach((k, v) ->
-                p.put(k, Map.of("source", v.source(), "confidence", v.confidence() != null ? v.confidence() : 0.0))
-            );
+
+        String cfProv = doc.getCustomFieldsProvenance();
+        if (cfProv != null && !cfProv.isBlank() && !cfProv.equals("{}")) {
+            try {
+                Map<String, Map<String, Object>> parsed = mapper.readValue(cfProv, new TypeReference<>() {});
+                p.putAll(parsed);
+            } catch (Exception e) {
+                log.warn("Failed to parse custom_fields_provenance: {}", e.getMessage());
+            }
         }
         return p;
     }
