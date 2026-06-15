@@ -181,7 +181,16 @@ public class AnthropicAiAnalysisService implements AiAnalysisService {
         if (hint != null && !hint.isBlank()) {
             blocks.add(ContentBlockParam.ofText(
                 TextBlockParam.builder()
-                    .text("USER HINT: " + hint.trim())
+                    .text("""
+                        USER HINT (AUTHORITATIVE - OVERRIDES YOUR ANALYSIS):
+                        %s
+
+                        You MUST act on this hint:
+                        1. Select the storage path rule from the list below whose condition best matches the hint - set applied_rule_id to its ID.
+                        2. Extract any address, person name, or other identifiers from the hint and set the corresponding custom fields (e.g. adresse_bien, membre_famille).
+                        3. Infer document_type, title, issuer from the hint if the document content is ambiguous.
+                        4. Do NOT let visual or textual document analysis override this hint.
+                        """.formatted(hint.trim()))
                     .build()
             ));
         }
