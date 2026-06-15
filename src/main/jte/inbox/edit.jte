@@ -164,18 +164,31 @@
                 data-bs-toggle="collapse" data-bs-target="#reanalyzePanel">
             Ré-analyser avec un hint…
         </button>
-        <div class="collapse mt-3" id="reanalyzePanel">
-            <form method="post" action="/inbox/${document.getId()}/reanalyze">
+        <div class="collapse mt-3 ${message != null ? "show" : ""}" id="reanalyzePanel">
+            <form method="post" action="/inbox/${document.getId()}/reanalyze" id="reanalyzeForm">
                 <div class="mb-2">
                     <label class="form-label small fw-semibold" for="hint">Hint pour l'IA</label>
                     <textarea id="hint" name="hint" class="form-control form-control-sm" rows="3"
                               placeholder="ex: Ce document est un certificat PEB, pas une facture de travaux. L'émetteur est CERGA."></textarea>
                     <div class="form-text">Le hint est transmis à l'IA uniquement pour cette ré-analyse. Tous les champs seront recalculés.</div>
                 </div>
-                <button type="submit" class="btn btn-warning btn-sm">Ré-analyser</button>
+                <button type="submit" id="reanalyzeBtn" class="btn btn-warning btn-sm">
+                    <span id="reanalyzeSpinner" class="spinner-border spinner-border-sm me-1 d-none" role="status"></span>
+                    Ré-analyser
+                </button>
             </form>
         </div>
     </div>
+
+    <script>
+    document.getElementById('reanalyzeForm').addEventListener('submit', function() {
+        const btn = document.getElementById('reanalyzeBtn');
+        const spinner = document.getElementById('reanalyzeSpinner');
+        btn.disabled = true;
+        spinner.classList.remove('d-none');
+        btn.childNodes[btn.childNodes.length - 1].textContent = ' Analyse en cours…';
+    });
+    </script>
 
     <div style="max-width: 700px">
         <form method="post" action="/inbox/${document.getId()}/validate">
