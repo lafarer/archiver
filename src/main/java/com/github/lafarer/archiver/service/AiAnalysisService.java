@@ -43,6 +43,7 @@ public interface AiAnalysisService {
         List<CustomFieldHint> customFields,
         List<DocumentTypeHint> documentTypes,
         List<TagHint> tags,
-        List<RuleHint> rules
+        List<RuleHint> rules,
+        String hint
     );
 }

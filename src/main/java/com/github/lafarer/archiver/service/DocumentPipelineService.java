@@ -158,7 +158,8 @@ public class DocumentPipelineService {
             cfHints,
             typeHints,
             tagHints,
-            ruleHints
+            ruleHints,
+            null
         );
 
         if (analysis.documentType() != null) {
@@ -201,6 +202,64 @@ public class DocumentPipelineService {
         }
 
         return doc;
+    }
+
+    @Transactional
+    public Document reanalyze(Long documentId, String hint) throws IOException {
+        Document doc = documentRepository.findById(documentId)
+            .orElseThrow(() -> new IllegalArgumentException("Document not found: " + documentId));
+
+        Path file = doc.getSourcePath() != null
+            ? Path.of(doc.getSourcePath())
+            : props.getInboxPath().resolve(doc.getOriginalFilename());
+
+        ExtractionResult extraction = extractionService.extract(file);
+
+        List<CustomFieldHint> cfHints = customFieldDefRepository.findAll().stream()
+            .map(cf -> new CustomFieldHint(cf.getSlug(), cf.getLabel(), cf.getDescription()))
+            .collect(Collectors.toList());
+
+        List<DocumentTypeHint> typeHints = documentTypeService.findEnabled().stream()
+            .map(dt -> new DocumentTypeHint(dt.getSlug(), dt.getLabel(), dt.getDescription()))
+            .collect(Collectors.toList());
+
+        List<TagHint> tagHints = tagService.findEnabled().stream()
+            .map(t -> new TagHint(t.getSlug(), t.getLabel(), t.getDescription()))
+            .collect(Collectors.toList());
+
+        List<RuleHint> ruleHints = storagePathRuleRepository.findByActiveTrueOrderByPriorityAsc().stream()
+            .map(r -> new RuleHint(r.getId(), r.getLabel(), r.getConditionNl()))
+            .collect(Collectors.toList());
+
+        AnalysisResult analysis = aiAnalysisService.analyze(
+            file, extraction.fileType(), extraction.extractedText(),
+            extraction.pdfMetadata(), extraction.filenameDateHint(),
+            cfHints, typeHints, tagHints, ruleHints, hint
+        );
+
+        if (analysis.documentType() != null) {
+            documentTypeService.autoRegister(
+                analysis.documentType().slug(),
+                analysis.documentType().label(),
+                analysis.documentType().description()
+            );
+        }
+        if (analysis.tags() != null) {
+            analysis.tags().forEach(t -> tagService.autoRegister(t.slug(), t.label(), t.description()));
+        }
+
+        doc.getCustomFields().clear();
+        applyAnalysis(doc, analysis);
+
+        ResolvedPath resolved = pathResolverService.resolve(
+            analysis.appliedRuleId(),
+            doc.getDocumentType(), doc.getDocumentDate(),
+            doc.getTitle(), doc.getIssuer(), doc.getCustomFields()
+        );
+        doc.setResolvedPath(resolved.relativePath());
+        doc.setAppliedRule(resolved.appliedRule());
+
+        return documentRepository.save(doc);
     }
 
     public Document validateAndArchive(Long documentId, Path sourceFile) throws IOException {

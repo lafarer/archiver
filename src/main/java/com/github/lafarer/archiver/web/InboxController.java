@@ -112,6 +112,7 @@ public class InboxController {
         model.addAttribute("fieldSuggestions", buildFieldSuggestions(defs));
         model.addAttribute("proposedPath", pipelineService.proposedPath(doc));
         model.addAttribute("page", "inbox");
+        if (!model.containsAttribute("message")) model.addAttribute("message", null);
         return "inbox/edit";
     }
 
@@ -143,6 +144,15 @@ public class InboxController {
         });
         documentRepository.save(doc);
         redirectAttributes.addFlashAttribute("message", "Document mis à jour.");
+        return "redirect:/inbox/" + id + "/edit";
+    }
+
+    @PostMapping("/{id}/reanalyze")
+    public String reanalyze(@PathVariable Long id,
+                            @RequestParam(required = false) String hint,
+                            RedirectAttributes redirectAttributes) throws IOException {
+        pipelineService.reanalyze(id, hint);
+        redirectAttributes.addFlashAttribute("message", "Document ré-analysé.");
         return "redirect:/inbox/" + id + "/edit";
     }
 

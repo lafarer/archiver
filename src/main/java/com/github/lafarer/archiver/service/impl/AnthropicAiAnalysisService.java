@@ -54,12 +54,13 @@ public class AnthropicAiAnalysisService implements AiAnalysisService {
         List<CustomFieldHint> customFields,
         List<DocumentTypeHint> documentTypes,
         List<TagHint> tags,
-        List<RuleHint> rules
+        List<RuleHint> rules,
+        String hint
     ) {
         String model = settingService.get("ai_model");
 
         List<ContentBlockParam> userContent = buildUserContent(
-            file, fileType, extractedText, pdfMetadata, filenameDateHint, rules
+            file, fileType, extractedText, pdfMetadata, filenameDateHint, rules, hint
         );
 
         TextBlockParam systemBlock = TextBlockParam.builder()
@@ -171,9 +172,17 @@ public class AnthropicAiAnalysisService implements AiAnalysisService {
     private List<ContentBlockParam> buildUserContent(
         Path file, DocumentFileType fileType,
         String extractedText, Map<String, String> pdfMetadata,
-        String filenameDateHint, List<RuleHint> rules
+        String filenameDateHint, List<RuleHint> rules, String hint
     ) {
         List<ContentBlockParam> blocks = new ArrayList<>();
+
+        if (hint != null && !hint.isBlank()) {
+            blocks.add(ContentBlockParam.ofText(
+                TextBlockParam.builder()
+                    .text("USER HINT (important - take this into account when classifying): " + hint.trim())
+                    .build()
+            ));
+        }
 
         // Pre-extracted context
         StringBuilder context = new StringBuilder("PRE-EXTRACTED INFORMATION:\n");

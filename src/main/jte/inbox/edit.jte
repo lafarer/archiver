@@ -9,6 +9,7 @@
 @param Map<String, List<String>> fieldSuggestions
 @param ProposedPathParts proposedPath
 @param String page
+@param String message = null
 
 !{String pageTitle = "Éditer - " + (document.getTitle() != null ? document.getTitle() : document.getOriginalFilename());}
 @template.layout.base(page = page, title = pageTitle, content = @`
@@ -41,6 +42,14 @@
 @endif
 
 <div class="page-body">
+
+    @if(message != null)
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    @endif
+
 
     <div class="mb-3 text-muted small">
         Fichier : <strong>${document.getOriginalFilename()}</strong>
@@ -149,6 +158,24 @@
     </form>
 
     <hr class="my-4" style="max-width: 700px">
+
+    <div style="max-width: 700px" class="mb-4">
+        <button class="btn btn-outline-secondary btn-sm" type="button"
+                data-bs-toggle="collapse" data-bs-target="#reanalyzePanel">
+            Ré-analyser avec un hint…
+        </button>
+        <div class="collapse mt-3" id="reanalyzePanel">
+            <form method="post" action="/inbox/${document.getId()}/reanalyze">
+                <div class="mb-2">
+                    <label class="form-label small fw-semibold" for="hint">Hint pour l'IA</label>
+                    <textarea id="hint" name="hint" class="form-control form-control-sm" rows="3"
+                              placeholder="ex: Ce document est un certificat PEB, pas une facture de travaux. L'émetteur est CERGA."></textarea>
+                    <div class="form-text">Le hint est transmis à l'IA uniquement pour cette ré-analyse. Tous les champs seront recalculés.</div>
+                </div>
+                <button type="submit" class="btn btn-warning btn-sm">Ré-analyser</button>
+            </form>
+        </div>
+    </div>
 
     <div style="max-width: 700px">
         <form method="post" action="/inbox/${document.getId()}/validate">
