@@ -187,7 +187,7 @@
         btn.disabled = true;
         spinner.classList.remove('d-none');
         btn.childNodes[btn.childNodes.length - 1].textContent = ' Analyse en cours…';
-        document.querySelectorAll('#editForm input, #editForm textarea, #editForm select, #editForm button')
+        document.querySelectorAll('input, textarea, select, button')
             .forEach(el => el.disabled = true);
     });
     </script>
