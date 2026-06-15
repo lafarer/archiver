@@ -22,8 +22,14 @@ public class ArchiverProperties {
 
     private int port = 8080;
 
+    private String archiveFolder = "Archive";
+
     public Path getInboxPath() {
         return inbox != null ? inbox : root.resolve("inbox");
+    }
+
+    public Path getArchivePath() {
+        return root.resolve(archiveFolder);
     }
 
     public Path getDbPath() {
