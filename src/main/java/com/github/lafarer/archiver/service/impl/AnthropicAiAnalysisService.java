@@ -62,10 +62,15 @@ public class AnthropicAiAnalysisService implements AiAnalysisService {
             file, fileType, extractedText, pdfMetadata, filenameDateHint, rules
         );
 
+        TextBlockParam systemBlock = TextBlockParam.builder()
+            .text(buildSystemPrompt(customFields, documentTypes, tags))
+            .cacheControl(CacheControlEphemeral.builder().build())
+            .build();
+
         MessageCreateParams params = MessageCreateParams.builder()
             .model(model)
             .maxTokens(2048)
-            .system(buildSystemPrompt(customFields, documentTypes, tags))
+            .system(MessageCreateParams.System.ofTextBlockParams(List.of(systemBlock)))
             .messages(List.of(
                 MessageParam.builder()
                     .role(MessageParam.Role.USER)
