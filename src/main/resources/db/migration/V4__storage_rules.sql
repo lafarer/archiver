@@ -63,7 +63,7 @@ INSERT INTO storage_path_rule (priority, label, condition_nl, path_template, is_
 
     (20, 'Actes notariés logement',
      'Le document est un acte notarié ou un document juridique lié à un bien immobilier : acte de vente, acte d''achat, compromis de vente, donation, hypothèque, titre de propriété.',
-     'Logements/[adresse_bien]/Actes/[yyyy]-[title]',
+     'Logements/[adresse_bien]/Actes/[yyyy]-[mm?]-[dd?]-[title]',
      0, 1),
 
     (21, 'Assurances logement - Contrats et polices',
