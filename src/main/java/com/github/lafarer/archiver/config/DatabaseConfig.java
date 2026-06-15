@@ -24,8 +24,10 @@ public class DatabaseConfig {
     DataSource dataSource() throws IOException {
         Files.createDirectories(props.getRoot());
         Files.createDirectories(props.getInboxPath());
+        Files.createDirectories(props.getArchivePath());
         log.info("Archive root : {}", props.getRoot());
         log.info("Inbox        : {}", props.getInboxPath());
+        log.info("Archive      : {}", props.getArchivePath());
 
         SQLiteDataSource ds = new SQLiteDataSource();
         ds.setUrl("jdbc:sqlite:" + props.getDbPath().toAbsolutePath());
