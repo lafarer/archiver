@@ -57,7 +57,7 @@
         <code><span class="opacity-50">${proposedPath.existing()}</span><strong>${proposedPath.newPart()}</strong></code>
     </div>
 
-    <form method="post" action="/inbox/${document.getId()}">
+    <form id="editForm" method="post" action="/inbox/${document.getId()}">
 
         <div class="d-flex flex-column gap-3" style="max-width: 700px">
 
@@ -187,6 +187,8 @@
         btn.disabled = true;
         spinner.classList.remove('d-none');
         btn.childNodes[btn.childNodes.length - 1].textContent = ' Analyse en cours…';
+        document.querySelectorAll('#editForm input, #editForm textarea, #editForm select, #editForm button')
+            .forEach(el => el.disabled = true);
     });
     </script>
 
