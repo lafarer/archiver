@@ -1,14 +1,14 @@
 -- Storage path rules ordered by priority (lower number = evaluated first).
 -- Ordering principle: most constrained (specific, unique identifier) → least constrained (catch-all).
 --
--- 10-17 : Véhicules     — contrainte forte : immatriculation unique
--- 20-28 : Logements     — contrainte forte : adresse_bien normalisée
--- 30-42 : Famille/membre — contrainte personne : membre_famille + type de document
--- 45-46 : Famille/Commun — moins contraint que par membre
--- 50-55 : Finances       — documents très distinctifs par nature
--- 60    : Notices        — type de document transversal, après les domaines
--- 70-71 : Achats         — règles générales sur les preuves d'achat
--- 80    : Administratif  — filet, toujours en dernier
+-- 10-17 : Véhicules     - contrainte forte : immatriculation unique
+-- 20-28 : Logements     - contrainte forte : adresse_bien normalisée
+-- 30-42 : Famille/membre - contrainte personne : membre_famille + type de document
+-- 45-46 : Famille/Commun - moins contraint que par membre
+-- 50-55 : Finances       - documents très distinctifs par nature
+-- 60    : Notices        - type de document transversal, après les domaines
+-- 70-71 : Achats         - règles générales sur les preuves d'achat
+-- 80    : Administratif  - filet, toujours en dernier
 
 INSERT INTO storage_path_rule (priority, label, condition_nl, path_template, is_default, is_active) VALUES
 
@@ -16,12 +16,12 @@ INSERT INTO storage_path_rule (priority, label, condition_nl, path_template, is_
     -- VÉHICULES (10-17)
     -- -------------------------------------------------------------------------
 
-    (10, 'Assurances véhicule — Contrats et polices',
+    (10, 'Assurances véhicule - Contrats et polices',
      'Le document est un contrat d''assurance, une police, une attestation d''assurance, un certificat d''assurance ou un avis d''échéance pour un véhicule automobile, moto ou véhicule motorisé.',
      'Vehicules/[modele]-[immatriculation]/Assurances/[type_assurance?]-[numero_contrat]/Contrats/[title]',
      0, 1),
 
-    (11, 'Assurances véhicule — Courriers',
+    (11, 'Assurances véhicule - Courriers',
      'Le document est un courrier, une lettre ou une notification émanant d''une compagnie d''assurance et concernant un véhicule : résiliation, modification de contrat, relevé d''informations, réponse à réclamation.',
      'Vehicules/[modele]-[immatriculation]/Assurances/[type_assurance?]-[numero_contrat]/Courriers/[title]',
      0, 1),
@@ -66,12 +66,12 @@ INSERT INTO storage_path_rule (priority, label, condition_nl, path_template, is_
      'Logements/[adresse_bien]/Actes/[yyyy]-[title]',
      0, 1),
 
-    (21, 'Assurances logement — Contrats et polices',
+    (21, 'Assurances logement - Contrats et polices',
      'Le document est un contrat d''assurance habitation, une police multirisque habitation, une assurance propriétaire non-occupant (PNO), une attestation d''assurance logement ou un avis d''échéance pour un bien immobilier. Ne concerne pas les véhicules.',
      'Logements/[adresse_bien]/Assurances/[type_assurance?]-[numero_contrat]/Contrats/[title]',
      0, 1),
 
-    (22, 'Assurances logement — Courriers',
+    (22, 'Assurances logement - Courriers',
      'Le document est un courrier, une lettre ou une notification d''une compagnie d''assurance concernant un logement ou bien immobilier : résiliation, modification de contrat, réponse à réclamation. Ne concerne pas les véhicules.',
      'Logements/[adresse_bien]/Assurances/[type_assurance?]-[numero_contrat]/Courriers/[title]',
      0, 1),
@@ -107,88 +107,88 @@ INSERT INTO storage_path_rule (priority, label, condition_nl, path_template, is_
      0, 1),
 
     -- -------------------------------------------------------------------------
-    -- FAMILLE — PAR MEMBRE (30-42)
+    -- FAMILLE - PAR MEMBRE (30-42)
     -- Membres connus : Emmanuelle, Eric, Camille, Eliott
     -- Pour une succession : membre_famille = le défunt
     -- Ordre interne : du plus distinctif au plus général
     -- -------------------------------------------------------------------------
 
-    (30, 'Famille — Emploi : fiches de paie',
+    (30, 'Famille - Emploi : fiches de paie',
      'Le document est une fiche de paie ou un bulletin de salaire d''un membre de la famille.',
      'Famille/[membre_famille]/Emploi/Fiches-de-paie/[yyyy]/[mm]-[issuer]',
      0, 1),
 
-    (31, 'Famille — Identité et documents électoraux',
+    (31, 'Famille - Identité et documents électoraux',
      'Le document est un document d''identité officiel ou électoral nominatif d''un membre de la famille : carte nationale d''identité, passeport, permis de conduire, acte de naissance, acte de mariage, livret de famille, titre de séjour, carte d''électeur, procuration de vote.',
      'Famille/[membre_famille]/Identite/[document_type]-[title]',
      0, 1),
 
-    (32, 'Famille — Santé',
+    (32, 'Famille - Santé',
      'Le document concerne la santé d''un membre de la famille : ordonnance, résultat d''analyse ou d''examen médical, compte-rendu de consultation ou d''hospitalisation, remboursement Sécurité Sociale ou mutuelle, attestation de droits, carnet de vaccination.',
      'Famille/[membre_famille]/Sante/[yyyy]/[document_type]-[issuer?]-[title]',
      0, 1),
 
-    (33, 'Famille — Éducation et formation',
+    (33, 'Famille - Éducation et formation',
      'Le document concerne l''éducation ou la formation d''un membre de la famille, qu''elle soit scolaire, universitaire ou professionnelle : diplôme, bulletin scolaire, certificat de scolarité, résultats d''examens, relevé de notes universitaire, attestation de formation professionnelle, titre certifiant, bilan de compétences, attestation de formation CPF (Compte Personnel de Formation), attestation DIF, certificat de qualification professionnelle.',
      'Famille/[membre_famille]/Education/[document_type]/[yyyy]-[title]',
      0, 1),
 
-    (34, 'Famille — Emploi : contrats',
+    (34, 'Famille - Emploi : contrats',
      'Le document est un contrat de travail, un avenant ou une promesse d''embauche d''un membre de la famille.',
      'Famille/[membre_famille]/Emploi/Contrats/[yyyy]-[issuer]-[title]',
      0, 1),
 
-    (35, 'Famille — Emploi : attestations',
+    (35, 'Famille - Emploi : attestations',
      'Le document est une attestation liée à l''emploi d''un membre de la famille : attestation employeur, certificat de travail, solde de tout compte, rupture conventionnelle, attestation Pôle Emploi, ARE.',
      'Famille/[membre_famille]/Emploi/Attestations/[yyyy]-[title]',
      0, 1),
 
-    (36, 'Famille — Retraite et pension',
+    (36, 'Famille - Retraite et pension',
      'Le document concerne la retraite ou la pension d''un membre de la famille : relevé de carrière, notification de droits à la retraite, bulletin de pension, estimation retraite, relevé de points.',
      'Famille/[membre_famille]/Retraite/[yyyy]/[document_type]-[title]',
      0, 1),
 
-    (37, 'Famille — Juridique',
+    (37, 'Famille - Juridique',
      'Le document est un acte ou document juridique nominatif concernant un membre de la famille : acte de mariage, jugement de divorce, PACS, jugement civil ou prud''homal, procuration, testament, pension alimentaire, documents de succession (acte de notoriété, inventaire du patrimoine successoral, acte de partage, attestation de propriété après décès).',
      'Famille/[membre_famille]/Juridique/[yyyy]-[document_type]-[title]',
      0, 1),
 
-    (38, 'Famille — Allocations',
+    (38, 'Famille - Allocations',
      'Le document concerne des allocations ou aides sociales pour un membre de la famille : allocations familiales CAF, RSA, prime d''activité, aide au logement, ARE (chômage), allocation adulte handicapé.',
      'Famille/[membre_famille]/Allocations/[yyyy]/[issuer]-[title]',
      0, 1),
 
-    (39, 'Famille — Assurances personnelles : contrats',
+    (39, 'Famille - Assurances personnelles : contrats',
      'Le document est un contrat d''assurance personnelle d''un membre de la famille, non liée à un logement ou un véhicule : assurance vie, prévoyance individuelle, complémentaire santé (mutuelle), garantie accidents de la vie, assurance emprunteur (liée à un crédit immobilier ou à la consommation, rattachée à la personne assurée).',
      'Famille/[membre_famille]/Assurances/[type_assurance?]-[numero_contrat]/Contrats/[title]',
      0, 1),
 
-    (40, 'Famille — Assurances personnelles : courriers',
+    (40, 'Famille - Assurances personnelles : courriers',
      'Le document est un courrier ou une notification d''une assurance personnelle d''un membre de la famille, non liée à un logement ou un véhicule : résiliation, modification, relevé annuel, attestation, avis d''échéance. Inclut les courriers relatifs à une assurance emprunteur.',
      'Famille/[membre_famille]/Assurances/[type_assurance?]-[numero_contrat]/Courriers/[yyyy]-[title]',
      0, 1),
 
-    (41, 'Famille — Services personnels : contrats',
+    (41, 'Famille - Services personnels : contrats',
      'Le document est un contrat ou un abonnement de service personnel d''un membre de la famille, non lié à un logement : téléphonie mobile, abonnement internet mobile, abonnement de streaming (TV, musique, jeux), abonnement de presse ou magazine, abonnement sportif ou culturel.',
      'Famille/[membre_famille]/Services/[issuer]/Contrats/[title]',
      0, 1),
 
-    (42, 'Famille — Services personnels : factures',
+    (42, 'Famille - Services personnels : factures',
      'Le document est une facture ou un relevé de consommation lié à un service personnel d''un membre de la famille, non lié à un logement : facture de téléphonie mobile, facture d''abonnement streaming, reçu d''abonnement en ligne.',
      'Famille/[membre_famille]/Services/[issuer]/Factures/[yyyy]/[mm]-[title]',
      0, 1),
 
     -- -------------------------------------------------------------------------
-    -- FAMILLE — COMMUN (45-46)
+    -- FAMILLE - COMMUN (45-46)
     -- Documents couvrant l''ensemble du foyer, non nominatifs
     -- -------------------------------------------------------------------------
 
-    (45, 'Famille Commun — Assurances : contrats',
+    (45, 'Famille Commun - Assurances : contrats',
      'Le document est un contrat d''assurance couvrant l''ensemble de la famille ou du foyer, non rattaché à un membre en particulier, ni à un logement ou un véhicule spécifique : assurance voyage, assurance annulation, protection juridique familiale, assurance animaux de compagnie, assurance scolaire collective.',
      'Famille/Commun/Assurances/[type_assurance?]-[numero_contrat]/Contrats/[title]',
      0, 1),
 
-    (46, 'Famille Commun — Assurances : courriers',
+    (46, 'Famille Commun - Assurances : courriers',
      'Le document est un courrier, une attestation ou une notification liée à une assurance couvrant l''ensemble de la famille ou du foyer, non rattaché à un membre en particulier, ni à un logement ou un véhicule spécifique : résiliation, modification, attestation d''assurance voyage, relevé annuel protection juridique.',
      'Famille/Commun/Assurances/[type_assurance?]-[numero_contrat]/Courriers/[yyyy]-[title]',
      0, 1),
@@ -197,22 +197,22 @@ INSERT INTO storage_path_rule (priority, label, condition_nl, path_template, is_
     -- FINANCES (50-55)
     -- -------------------------------------------------------------------------
 
-    (50, 'Banque — Relevés de compte',
+    (50, 'Banque - Relevés de compte',
      'Le document est un relevé de compte bancaire mensuel ou périodique (compte courant, livret d''épargne, PEA, compte-titres, crédit). Le document est clairement lié à un compte identifié chez une banque ou un établissement financier.',
      'Finances/Banque/[nom_banque]/[type_compte]-[numero_compte?]/Releves/[yyyy]/[mm]-[issuer]',
      0, 1),
 
-    (51, 'Banque — Contrats de compte',
+    (51, 'Banque - Contrats de compte',
      'Le document est un contrat ou une convention liée à un compte ou produit bancaire spécifique : ouverture de compte, convention de compte courant, contrat de livret d''épargne, contrat PEA, offre de prêt, contrat de crédit immobilier ou à la consommation, tableau d''amortissement.',
      'Finances/Banque/[nom_banque]/[type_compte]-[numero_compte?]/Contrats/[title]',
      0, 1),
 
-    (52, 'Banque — Courriers relatifs à un compte',
+    (52, 'Banque - Courriers relatifs à un compte',
      'Le document est un courrier, une notification ou un avis émis par une banque ou un établissement financier et concernant un compte ou produit spécifique identifiable : modification de conditions, alerte de solde, notification de virement, relevé de frais, résiliation d''un produit bancaire particulier.',
      'Finances/Banque/[nom_banque]/[type_compte]-[numero_compte?]/Courriers/[yyyy]-[title]',
      0, 1),
 
-    (53, 'Banque — Courriers généraux',
+    (53, 'Banque - Courriers généraux',
      'Le document est un courrier, une communication générale ou un document administratif émis par une banque ou un établissement financier, non lié à un compte ou produit spécifique : conditions générales, information tarifaire générale, communication commerciale, réponse à réclamation générale.',
      'Finances/Banque/[nom_banque]/Courriers/[yyyy]-[title]',
      0, 1),
@@ -241,21 +241,21 @@ INSERT INTO storage_path_rule (priority, label, condition_nl, path_template, is_
     -- ACHATS (70-71)
     -- -------------------------------------------------------------------------
 
-    (70, 'Achats — Preuves d''achat',
+    (70, 'Achats - Preuves d''achat',
      'Le document est une preuve d''achat d''un bien de consommation : ticket de caisse, reçu de paiement, facture d''achat, bon de commande livré. Concerne des biens matériels conservés pour leur valeur (électronique, électroménager, mobilier, bijoux, outillage, vêtements, équipements sportifs…). Exclure les factures de services (eau, électricité, téléphone, abonnements), les factures de travaux et les achats liés à un logement ou un véhicule.',
      'Achats/[categorie_produit]/[yyyy]-[issuer]-[title]',
      0, 1),
 
-    (71, 'Achats — Garanties',
+    (71, 'Achats - Garanties',
      'Le document est un bon de garantie, un certificat de garantie constructeur ou un contrat de garantie étendue pour un bien de consommation acheté.',
      'Achats/[categorie_produit]/Garanties/[yyyy]-[title]',
      0, 1),
 
     -- -------------------------------------------------------------------------
-    -- ADMINISTRATIF (80) — filet
+    -- ADMINISTRATIF (80) - filet
     -- -------------------------------------------------------------------------
 
-    (80, 'Administratif — Divers',
+    (80, 'Administratif - Divers',
      'Le document est un courrier ou document officiel émanant d''un organisme public ou administratif (préfecture, mairie, ministère, tribunal, organisme de sécurité sociale) et non couvert par une règle plus spécifique : autorisation administrative, déclaration diverse, notification officielle, correspondance avec une administration.',
      'Administratif/[yyyy]/[issuer]-[title]',
      0, 1);

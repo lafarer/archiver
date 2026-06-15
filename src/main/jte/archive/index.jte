@@ -33,10 +33,10 @@
                 <tbody>
                     @for(Document doc : documents.getContent())
                         <tr>
-                            <td class="text-nowrap">${doc.getDocumentDate() != null ? doc.getDocumentDate() : "—"}</td>
-                            <td><span class="badge bg-light text-dark">${doc.getDocumentType() != null ? doc.getDocumentType() : "—"}</span></td>
+                            <td class="text-nowrap">${doc.getDocumentDate() != null ? doc.getDocumentDate() : "-"}</td>
+                            <td><span class="badge bg-light text-dark">${doc.getDocumentType() != null ? doc.getDocumentType() : "-"}</span></td>
                             <td>${doc.getTitle() != null ? doc.getTitle() : doc.getOriginalFilename()}</td>
-                            <td>${doc.getIssuer() != null ? doc.getIssuer() : "—"}</td>
+                            <td>${doc.getIssuer() != null ? doc.getIssuer() : "-"}</td>
                             <td>
                                 @for(String tag : doc.getTags())
                                     <span class="tag">${tag}</span>

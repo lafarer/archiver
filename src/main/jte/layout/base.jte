@@ -10,7 +10,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>${title} — Archiver</title>
+    <title>${title} - Archiver</title>
     <link rel="stylesheet" href="/css/app.css">
     <script src="https://unpkg.com/htmx.org@2.0.3" defer></script>
     <script src="https://unpkg.com/sortablejs@1.15.3/Sortable.min.js" defer></script>

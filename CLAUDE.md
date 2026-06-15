@@ -17,9 +17,9 @@ Outil personnel de classification et d'archivage de documents.
 
 | Variable | Obligatoire | Défaut | Description |
 |---|---|---|---|
-| `ARCHIVER_ROOT` | Oui | — | Dossier racine d'archivage (absolu) |
+| `ARCHIVER_ROOT` | Oui | - | Dossier racine d'archivage (absolu) |
 | `ARCHIVER_INBOX` | Non | `$ARCHIVER_ROOT/inbox` | Dossier de dépôt surveillé |
-| `ANTHROPIC_API_KEY` | Oui | — | Clé API Anthropic |
+| `ANTHROPIC_API_KEY` | Oui | - | Clé API Anthropic |
 | `ARCHIVER_HOST` | Non | `127.0.0.1` | Bind address |
 | `ARCHIVER_PORT` | Non | `8080` | Port HTTP |
 
@@ -83,7 +83,7 @@ src/main/
     templates/                # jte
     static/
       css/
-        app.css               # compilé depuis SCSS — gitignored
+        app.css               # compilé depuis SCSS - gitignored
       js/
   scss/
     app.scss                  # point d'entrée : variables puis bootstrap
@@ -116,7 +116,7 @@ $primary:   #3d6b8e;
 $font-size-base: 0.9rem;
 ```
 
-La compilation SCSS est déclenchée automatiquement par Gradle avant `bootRun` via le plugin `com.github.node-gradle.node`. Le fichier compilé `app.css` est gitignored — seuls les sources SCSS sont versionnés.
+La compilation SCSS est déclenchée automatiquement par Gradle avant `bootRun` via le plugin `com.github.node-gradle.node`. Le fichier compilé `app.css` est gitignored - seuls les sources SCSS sont versionnés.
 
 ## Schéma de données
 
@@ -132,15 +132,15 @@ La compilation SCSS est déclenchée automatiquement par Gradle avant `bootRun` 
 
 - `document.tags` et `document.custom_fields` stockés en JSON (string en SQLite)
 - `document.document_date` stocké en string (`"2024"`, `"2024-03"`, `"2024-03-15"`) pour supporter les dates partielles
-- `document.sha256_hash` UNIQUE — déduplication
-- Index partiel sur `storage_path_rule.is_default` — exactement une règle par défaut
-- FK vers `storage_path_rule` en `SET NULL` dans `classification_history` — historique préservé si règle supprimée
+- `document.sha256_hash` UNIQUE - déduplication
+- Index partiel sur `storage_path_rule.is_default` - exactement une règle par défaut
+- FK vers `storage_path_rule` en `SET NULL` dans `classification_history` - historique préservé si règle supprimée
 
 ## Pipeline d'extraction
 
 1. **Détection** : natif (PDFBox, texte > 100 chars) vs scanné vs image
 2. **Pré-extraction** : texte PDFBox (natif), métadonnées PDF, parsing dates filename, mtime filesystem
-3. **Analyse IA** : appel unique — analyse document + sélection storage path rule
+3. **Analyse IA** : appel unique - analyse document + sélection storage path rule
    - Prompt caché : instructions + définitions custom fields + hints types/tags
    - Prompt variable : rules actives + contexte pré-extrait + contenu document
 4. **Merge** : réconciliation pré-extraction / IA avec provenance par champ

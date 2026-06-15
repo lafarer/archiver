@@ -93,7 +93,7 @@ public class AnthropicAiAnalysisService implements AiAnalysisService {
             """);
 
         if (documentTypes != null && !documentTypes.isEmpty()) {
-            sb.append("KNOWN DOCUMENT TYPES (non-exhaustive — suggest a better slug if none fits):\n");
+            sb.append("KNOWN DOCUMENT TYPES (non-exhaustive - suggest a better slug if none fits):\n");
             documentTypes.forEach(dt -> sb.append(String.format(
                 "  - %s (%s): %s%n", dt.slug(), dt.label(), dt.description()
             )));
@@ -107,7 +107,7 @@ public class AnthropicAiAnalysisService implements AiAnalysisService {
 
         sb.append("\n");
         if (tags != null && !tags.isEmpty()) {
-            sb.append("KNOWN TAGS (non-exhaustive — add new ones if needed):\n");
+            sb.append("KNOWN TAGS (non-exhaustive - add new ones if needed):\n");
             tags.forEach(t -> sb.append(String.format(
                 "  - %s (%s): %s%n", t.slug(), t.label(), t.description()
             )));
@@ -122,7 +122,7 @@ public class AnthropicAiAnalysisService implements AiAnalysisService {
 
         sb.append("""
 
-            CUSTOM FIELDS — evaluate applicability for this document:
+            CUSTOM FIELDS - evaluate applicability for this document:
             """);
 
         customFields.forEach(cf -> sb.append(String.format(
@@ -188,7 +188,7 @@ public class AnthropicAiAnalysisService implements AiAnalysisService {
         if (rules != null && !rules.isEmpty()) {
             context.append("STORAGE PATH RULES (select the most appropriate, or null for default):\n");
             rules.forEach(r -> context.append(String.format(
-                "  ID %d — %s: %s%n", r.id(), r.label(),
+                "  ID %d - %s: %s%n", r.id(), r.label(),
                 r.conditionNl() != null ? r.conditionNl() : "(default)"
             )));
             context.append("\n");

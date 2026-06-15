@@ -4,6 +4,7 @@
 @param List<Document> documents
 @param String archiveRoot
 @param String page
+@param String uploadError = null
 
 @template.layout.base(page = page, title = "Inbox", inboxCount = documents.size(), content = @`
 
@@ -13,6 +14,13 @@
         + Importer
     </button>
 </div>
+
+@if(uploadError != null)
+<div class="alert alert-danger alert-dismissible fade show" id="uploadErrorAlert" role="alert">
+    Fichier trop volumineux. La taille maximale autorisée est de 200 Mo.
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+@endif
 
 <div class="page-body" id="inbox-list">
     @template.inbox.doclist(documents = documents, archiveRoot = archiveRoot)
@@ -116,8 +124,26 @@ document.addEventListener('DOMContentLoaded', function() {
     async function uploadFiles(files) {
         const fd = new FormData();
         for (const f of files) fd.append('files', f);
-        await fetch('/inbox/upload', { method: 'POST', body: fd });
-        location.reload();
+        const response = await fetch('/inbox/upload', { method: 'POST', body: fd });
+        if (response.url && response.url.includes('uploadError=')) {
+            showUploadError('Fichier trop volumineux. La taille maximale autorisée est de 200 Mo.');
+        } else {
+            location.reload();
+        }
+    }
+
+    function showUploadError(message) {
+        let el = document.getElementById('uploadErrorAlert');
+        if (!el) {
+            el = document.createElement('div');
+            el.id = 'uploadErrorAlert';
+            el.className = 'alert alert-danger alert-dismissible fade show';
+            el.setAttribute('role', 'alert');
+            el.innerHTML = '<span class="error-msg"></span><button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+            const pageBody = document.getElementById('inbox-list');
+            pageBody.parentNode.insertBefore(el, pageBody);
+        }
+        el.querySelector('.error-msg').textContent = message;
     }
 
     // Folder picker button

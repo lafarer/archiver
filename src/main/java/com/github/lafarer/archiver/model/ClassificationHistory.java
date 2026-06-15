@@ -27,7 +27,7 @@ public class ClassificationHistory {
     @Column(name = "new_path", nullable = false)
     private String newPath;
 
-    // SET NULL on delete — history preserved when rules are deleted
+    // SET NULL on delete - history preserved when rules are deleted
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "old_rule_id", foreignKey = @ForeignKey(name = "fk_history_old_rule"))
     private StoragePathRule oldRule;

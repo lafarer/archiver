@@ -73,7 +73,7 @@ public class DocumentPipelineService {
                 log.info("Duplicate detected, skipping: {}", file.getFileName());
                 if (sourceType == ArchiveService.SourceType.INBOX) {
                     Document dup = existing.get();
-                    // Keep the file only if it IS the pending document's own source file —
+                    // Keep the file only if it IS the pending document's own source file -
                     // the watchdog fires for that file too and it must stay for validation.
                     // Any other copy (second drop, already archived) is safe to remove.
                     boolean isPendingSourceFile = !dup.isClassified()
@@ -112,11 +112,11 @@ public class DocumentPipelineService {
         Document doc = documentRepository.findById(stubId)
             .orElseThrow(() -> new IllegalArgumentException("Stub not found: " + stubId));
 
-        // Step 1 — pre-extraction
+        // Step 1 - pre-extraction
         ExtractionResult extraction = extractionService.extract(file);
         doc.setFilesystemMtime(extraction.filesystemMtime());
 
-        // Step 2 — AI analysis (always called)
+        // Step 2 - AI analysis (always called)
         List<CustomFieldHint> cfHints = customFieldDefRepository.findAll().stream()
             .map(cf -> new CustomFieldHint(cf.getSlug(), cf.getLabel(), cf.getDescription()))
             .collect(Collectors.toList());
@@ -157,11 +157,11 @@ public class DocumentPipelineService {
             analysis.tags().forEach(t -> tagService.autoRegister(t.slug(), t.label(), t.description()));
         }
 
-        // Step 3 — populate document entity from analysis
+        // Step 3 - populate document entity from analysis
         applyAnalysis(doc, analysis);
         doc.setAnalysisStatus(AnalysisStatus.COMPLETE);
 
-        // Step 4 — resolve path
+        // Step 4 - resolve path
         Map<String, String> cfValues = doc.getCustomFields();
         ResolvedPath resolved = pathResolverService.resolve(
             analysis.appliedRuleId(),

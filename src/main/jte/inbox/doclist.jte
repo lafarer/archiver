@@ -37,7 +37,7 @@
                     </div>
                     <div class="doc-title">${doc.getTitle() != null ? doc.getTitle() : doc.getOriginalFilename()}</div>
                     <div class="doc-subtitle">
-                        ${doc.getIssuer() != null ? doc.getIssuer() : "—"}
+                        ${doc.getIssuer() != null ? doc.getIssuer() : "-"}
                         &nbsp;·&nbsp;
                         ${doc.getDocumentDate() != null ? doc.getDocumentDate() : "date inconnue"}
                     </div>

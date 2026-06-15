@@ -1,4 +1,4 @@
-# Règles de classement — Archiver
+# Règles de classement - Archiver
 
 Ce document décrit la structure de classement et les règles de stockage appliquées par l'IA.
 La source de vérité reste les migrations Flyway (`src/main/resources/db/migration/`).
@@ -62,8 +62,8 @@ Structure : `Vehicules/[modele]-[immatriculation]/`
 
 | Priorité | Règle | Path template |
 |---|---|---|
-| 10 | Assurances — Contrats et polices | `Vehicules/[modele]-[immatriculation]/Assurances/[type_assurance?]-[numero_contrat]/Contrats/[title]` |
-| 11 | Assurances — Courriers | `Vehicules/[modele]-[immatriculation]/Assurances/[type_assurance?]-[numero_contrat]/Courriers/[title]` |
+| 10 | Assurances - Contrats et polices | `Vehicules/[modele]-[immatriculation]/Assurances/[type_assurance?]-[numero_contrat]/Contrats/[title]` |
+| 11 | Assurances - Courriers | `Vehicules/[modele]-[immatriculation]/Assurances/[type_assurance?]-[numero_contrat]/Courriers/[title]` |
 | 12 | Documents officiels (carte grise, CT) | `Vehicules/[modele]-[immatriculation]/Documents/[document_type]-[title]` |
 | 13 | Entretiens et réparations | `Vehicules/[modele]-[immatriculation]/Entretien/[yyyy]/[issuer]-[title]` |
 | 14 | Garanties | `Vehicules/[modele]-[immatriculation]/Garanties/[issuer?]-[title]` |
@@ -75,13 +75,13 @@ Structure : `Vehicules/[modele]-[immatriculation]/`
 
 ### Logements (20–28)
 
-Structure : `Logements/[adresse_bien]/` — normalisé en `ville-nom-de-rue` (sans numéro ni code postal).
+Structure : `Logements/[adresse_bien]/` - normalisé en `ville-nom-de-rue` (sans numéro ni code postal).
 
 | Priorité | Règle | Path template |
 |---|---|---|
 | 20 | Actes notariés | `Logements/[adresse_bien]/Actes/[yyyy]-[title]` |
-| 21 | Assurances — Contrats | `Logements/[adresse_bien]/Assurances/[type_assurance?]-[numero_contrat]/Contrats/[title]` |
-| 22 | Assurances — Courriers | `Logements/[adresse_bien]/Assurances/[type_assurance?]-[numero_contrat]/Courriers/[title]` |
+| 21 | Assurances - Contrats | `Logements/[adresse_bien]/Assurances/[type_assurance?]-[numero_contrat]/Contrats/[title]` |
+| 22 | Assurances - Courriers | `Logements/[adresse_bien]/Assurances/[type_assurance?]-[numero_contrat]/Courriers/[title]` |
 | 23 | Contrats (bail, syndic, règlement) | `Logements/[adresse_bien]/Contrats/[yyyy]-[title]` |
 | 24 | Entretiens obligatoires (chaudière, ramonage) | `Logements/[adresse_bien]/Entretiens-obligatoires/[document_type]-[title]` |
 | 25 | Factures (eau, énergie, internet, charges) | `Logements/[adresse_bien]/Factures/[categorie_facture]/[yyyy]/[issuer]-[title]` |
@@ -91,47 +91,47 @@ Structure : `Logements/[adresse_bien]/` — normalisé en `ville-nom-de-rue` (sa
 
 ---
 
-### Famille — par membre (30–42)
+### Famille - par membre (30–42)
 
-Structure : `Famille/[membre_famille]/` — membres connus : **Emmanuelle, Eric, Camille, Eliott**.
+Structure : `Famille/[membre_famille]/` - membres connus : **Emmanuelle, Eric, Camille, Eliott**.
 Pour une succession, `membre_famille` = le défunt.
 Ordre interne : du plus distinctif (fiches de paie) au plus général (services).
 
 | Priorité | Règle | Path template |
 |---|---|---|
-| 30 | Emploi — Fiches de paie | `Famille/[membre_famille]/Emploi/Fiches-de-paie/[yyyy]/[mm]-[issuer]` |
+| 30 | Emploi - Fiches de paie | `Famille/[membre_famille]/Emploi/Fiches-de-paie/[yyyy]/[mm]-[issuer]` |
 | 31 | Identité et documents électoraux | `Famille/[membre_famille]/Identite/[document_type]-[title]` |
 | 32 | Santé | `Famille/[membre_famille]/Sante/[yyyy]/[document_type]-[issuer?]-[title]` |
 | 33 | Éducation et formation (scolaire, CPF, DIF) | `Famille/[membre_famille]/Education/[document_type]/[yyyy]-[title]` |
-| 34 | Emploi — Contrats | `Famille/[membre_famille]/Emploi/Contrats/[yyyy]-[issuer]-[title]` |
-| 35 | Emploi — Attestations | `Famille/[membre_famille]/Emploi/Attestations/[yyyy]-[title]` |
+| 34 | Emploi - Contrats | `Famille/[membre_famille]/Emploi/Contrats/[yyyy]-[issuer]-[title]` |
+| 35 | Emploi - Attestations | `Famille/[membre_famille]/Emploi/Attestations/[yyyy]-[title]` |
 | 36 | Retraite et pension | `Famille/[membre_famille]/Retraite/[yyyy]/[document_type]-[title]` |
 | 37 | Juridique (jugements, succession, testament) | `Famille/[membre_famille]/Juridique/[yyyy]-[document_type]-[title]` |
 | 38 | Allocations (CAF, RSA, ARE, AAH) | `Famille/[membre_famille]/Allocations/[yyyy]/[issuer]-[title]` |
-| 39 | Assurances personnelles — Contrats (dont emprunteur) | `Famille/[membre_famille]/Assurances/[type_assurance?]-[numero_contrat]/Contrats/[title]` |
-| 40 | Assurances personnelles — Courriers | `Famille/[membre_famille]/Assurances/[type_assurance?]-[numero_contrat]/Courriers/[yyyy]-[title]` |
-| 41 | Services personnels — Contrats (mobile, abonnements) | `Famille/[membre_famille]/Services/[issuer]/Contrats/[title]` |
-| 42 | Services personnels — Factures | `Famille/[membre_famille]/Services/[issuer]/Factures/[yyyy]/[mm]-[title]` |
+| 39 | Assurances personnelles - Contrats (dont emprunteur) | `Famille/[membre_famille]/Assurances/[type_assurance?]-[numero_contrat]/Contrats/[title]` |
+| 40 | Assurances personnelles - Courriers | `Famille/[membre_famille]/Assurances/[type_assurance?]-[numero_contrat]/Courriers/[yyyy]-[title]` |
+| 41 | Services personnels - Contrats (mobile, abonnements) | `Famille/[membre_famille]/Services/[issuer]/Contrats/[title]` |
+| 42 | Services personnels - Factures | `Famille/[membre_famille]/Services/[issuer]/Factures/[yyyy]/[mm]-[title]` |
 
-### Famille — Commun (45–46)
+### Famille - Commun (45–46)
 
 | Priorité | Règle | Path template |
 |---|---|---|
-| 45 | Assurances communes — Contrats (voyage, juridique, animaux) | `Famille/Commun/Assurances/[type_assurance?]-[numero_contrat]/Contrats/[title]` |
-| 46 | Assurances communes — Courriers | `Famille/Commun/Assurances/[type_assurance?]-[numero_contrat]/Courriers/[yyyy]-[title]` |
+| 45 | Assurances communes - Contrats (voyage, juridique, animaux) | `Famille/Commun/Assurances/[type_assurance?]-[numero_contrat]/Contrats/[title]` |
+| 46 | Assurances communes - Courriers | `Famille/Commun/Assurances/[type_assurance?]-[numero_contrat]/Courriers/[yyyy]-[title]` |
 
 ---
 
 ### Finances (50–55)
 
-Structure banque : `Finances/Banque/[nom_banque]/` — épargne (livret-a, pel, pea…) et crédits sont des types de compte.
+Structure banque : `Finances/Banque/[nom_banque]/` - épargne (livret-a, pel, pea…) et crédits sont des types de compte.
 
 | Priorité | Règle | Path template |
 |---|---|---|
-| 50 | Banque — Relevés de compte | `Finances/Banque/[nom_banque]/[type_compte]-[numero_compte?]/Releves/[yyyy]/[mm]-[issuer]` |
-| 51 | Banque — Contrats de compte | `Finances/Banque/[nom_banque]/[type_compte]-[numero_compte?]/Contrats/[title]` |
-| 52 | Banque — Courriers relatifs à un compte | `Finances/Banque/[nom_banque]/[type_compte]-[numero_compte?]/Courriers/[yyyy]-[title]` |
-| 53 | Banque — Courriers généraux (niveau banque) | `Finances/Banque/[nom_banque]/Courriers/[yyyy]-[title]` |
+| 50 | Banque - Relevés de compte | `Finances/Banque/[nom_banque]/[type_compte]-[numero_compte?]/Releves/[yyyy]/[mm]-[issuer]` |
+| 51 | Banque - Contrats de compte | `Finances/Banque/[nom_banque]/[type_compte]-[numero_compte?]/Contrats/[title]` |
+| 52 | Banque - Courriers relatifs à un compte | `Finances/Banque/[nom_banque]/[type_compte]-[numero_compte?]/Courriers/[yyyy]-[title]` |
+| 53 | Banque - Courriers généraux (niveau banque) | `Finances/Banque/[nom_banque]/Courriers/[yyyy]-[title]` |
 | 54 | Impôt sur le revenu (IR, IFI, reçus de dons) | `Finances/Impots/[yyyy]/IR/[document_type]-[title]` |
 | 55 | Autres documents fiscaux (succession, plus-values, CSG) | `Finances/Impots/[yyyy]/[document_type]-[title]` |
 
@@ -178,8 +178,8 @@ Filet pour les courriers officiels non couverts par une règle plus spécifique.
 
 | Syntaxe | Comportement |
 |---|---|
-| `[champ]` | Champ requis — si absent, segment omis |
-| `[champ?]` | Champ optionnel — si absent, le séparateur précédent est aussi omis |
+| `[champ]` | Champ requis - si absent, segment omis |
+| `[champ?]` | Champ optionnel - si absent, le séparateur précédent est aussi omis |
 | `[yyyy]` | Année extraite de `document_date` |
 | `[mm]` | Mois extrait de `document_date` |
 | `[title]` | Titre du document (slugifié) |

@@ -31,10 +31,10 @@ public class DatabaseConfig {
 
         SQLiteDataSource ds = new SQLiteDataSource();
         ds.setUrl("jdbc:sqlite:" + props.getDbPath().toAbsolutePath());
-        // SQLite is single-writer — pool size 1 avoids SQLITE_BUSY errors
+        // SQLite is single-writer - pool size 1 avoids SQLITE_BUSY errors
         ds.setDatabaseName(props.getDbPath().toAbsolutePath().toString());
 
-        // Run migrations before JPA initialises — auto-configuration cannot pick up
+        // Run migrations before JPA initialises - auto-configuration cannot pick up
         // a programmatic DataSource, so Flyway is invoked explicitly here.
         Flyway.configure()
             .dataSource(ds)

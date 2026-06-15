@@ -20,9 +20,9 @@ public class PathResolverService {
     private final StoragePathRuleRepository ruleRepository;
     private final ArchiverProperties props;
     private static final Slugify SLUGIFY = Slugify.builder().build();
-    // [var?]sep — optional variable: if absent, var and following separator are omitted
+    // [var?]sep - optional variable: if absent, var and following separator are omitted
     private static final Pattern OPT_VARIABLE = Pattern.compile("\\[(\\w+)\\?]([-/._]?)");
-    // [var] — required variable: if absent, replaced by '_inconnu'
+    // [var] - required variable: if absent, replaced by '_inconnu'
     private static final Pattern REQ_VARIABLE = Pattern.compile("\\[(\\w+)]");
 
     public record ResolvedPath(String relativePath, StoragePathRule appliedRule) {}
@@ -44,7 +44,7 @@ public class PathResolverService {
         String fullPath = (archiveFolder != null && !archiveFolder.isBlank())
             ? archiveFolder + "/" + path
             : path;
-        return new ResolvedPath(fullPath, rule);  // rule may be null — Document.appliedRule is nullable
+        return new ResolvedPath(fullPath, rule);  // rule may be null - Document.appliedRule is nullable
     }
 
     private StoragePathRule selectRule(Long aiSelectedRuleId) {
@@ -78,7 +78,7 @@ public class PathResolverService {
         vars.put("mm",            mm);
         vars.put("dd",            dd);
 
-        // Pass 1 — optional variables: [var?]sep → "value+sep" or "" when absent
+        // Pass 1 - optional variables: [var?]sep → "value+sep" or "" when absent
         Matcher optM = OPT_VARIABLE.matcher(template);
         StringBuffer pass1 = new StringBuffer();
         while (optM.find()) {
@@ -93,14 +93,14 @@ public class PathResolverService {
         }
         optM.appendTail(pass1);
 
-        // Pass 2 — required variables: [var] → value or "_inconnu"
+        // Pass 2 - required variables: [var] → value or "_inconnu"
         Matcher reqM = REQ_VARIABLE.matcher(pass1);
         StringBuilder pass2 = new StringBuilder();
         while (reqM.find()) {
             String key = reqM.group(1);
             String value = vars.getOrDefault(key, null);
             if (value == null) {
-                log.warn("Path template variable [{}] not resolved — using '_inconnu'", key);
+                log.warn("Path template variable [{}] not resolved - using '_inconnu'", key);
                 value = "_inconnu";
             }
             reqM.appendReplacement(pass2, Matcher.quoteReplacement(slug(value, "_inconnu")));

@@ -10,7 +10,7 @@
 @param ProposedPathParts proposedPath
 @param String page
 
-!{String pageTitle = "Éditer — " + (document.getTitle() != null ? document.getTitle() : document.getOriginalFilename());}
+!{String pageTitle = "Éditer - " + (document.getTitle() != null ? document.getTitle() : document.getOriginalFilename());}
 @template.layout.base(page = page, title = pageTitle, content = @`
 
 !{boolean previewable = document.getMimeType() != null && (document.getMimeType().startsWith("image/") || document.getMimeType().equals("application/pdf"));}

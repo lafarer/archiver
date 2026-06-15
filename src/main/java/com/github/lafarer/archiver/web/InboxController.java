@@ -12,6 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -35,12 +36,18 @@ public class InboxController {
     private final InboxEventService inboxEventService;
 
     @GetMapping
-    public String index(Model model) {
+    public String index(Model model, @RequestParam(required = false) String uploadError) {
         List<Document> pending = documentRepository.findByClassifiedFalseOrderByCreatedAtDesc();
         model.addAttribute("documents", pending);
         model.addAttribute("archiveRoot", props.getRoot().toString());
+        model.addAttribute("uploadError", uploadError);
         model.addAttribute("page", "inbox");
         return "inbox/index";
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public String handleMaxUploadSize() {
+        return "redirect:/inbox?uploadError=size";
     }
 
     @GetMapping(value = "/events", produces = MediaType.TEXT_EVENT_STREAM_VALUE)

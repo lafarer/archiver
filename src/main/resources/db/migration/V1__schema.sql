@@ -1,4 +1,4 @@
--- Storage path rules (must come first — referenced by document and classification_history)
+-- Storage path rules (must come first - referenced by document and classification_history)
 CREATE TABLE storage_path_rule (
     id           INTEGER PRIMARY KEY AUTOINCREMENT,
     priority     INTEGER NOT NULL,
