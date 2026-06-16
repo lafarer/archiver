@@ -36,7 +36,7 @@ public class SettingsController {
         settingService.setAll(Map.of(
             "watchdog_enabled",      params.getOrDefault("watchdog_enabled", "false"),
             "auto_archive_enabled",  params.getOrDefault("auto_archive_enabled", "false"),
-            "ai_model",              params.getOrDefault("ai_model", "claude-sonnet-4-6"),
+            "ai_model",              params.getOrDefault("ai_model", "claude-haiku-4-5"),
             "confidence_threshold",  params.getOrDefault("confidence_threshold", "0.75"),
             "import_mode",           params.getOrDefault("import_mode", "copy")
         ));

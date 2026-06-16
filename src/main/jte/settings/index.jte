@@ -21,7 +21,7 @@
         <div class="card-body">
             <dl class="row mb-0">
                 <dt class="col-sm-4">Dossier d'archivage</dt>
-                <dd class="col-sm-8"><code>${props.getRoot().toString()}</code></dd>
+                <dd class="col-sm-8"><code>${props.getArchivePath().toString()}</code></dd>
                 <dt class="col-sm-4">Dossier inbox</dt>
                 <dd class="col-sm-8 mb-0"><code>${props.getInboxPath().toString()}</code></dd>
             </dl>
@@ -74,7 +74,7 @@
                 <select name="ai_model" id="aiModel" class="form-select">
                     <option value="claude-sonnet-4-6" selected="${"claude-sonnet-4-6".equals(settings.get("ai_model"))}">claude-sonnet-4-6</option>
                     <option value="claude-opus-4-7"   selected="${"claude-opus-4-7".equals(settings.get("ai_model"))}">claude-opus-4-7</option>
-                    <option value="claude-haiku-4-5-20251001" selected="${"claude-haiku-4-5-20251001".equals(settings.get("ai_model"))}">claude-haiku-4-5</option>
+                    <option value="claude-haiku-4-5" selected="${"claude-haiku-4-5".equals(settings.get("ai_model"))}">claude-haiku-4-5</option>
                 </select>
             </div>
             <div class="form-check form-switch">
