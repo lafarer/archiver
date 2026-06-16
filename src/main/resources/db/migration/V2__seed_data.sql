@@ -1,7 +1,7 @@
 -- Settings
 INSERT INTO setting (key, value) VALUES
     ('watchdog_enabled',     'true'),
-    ('ai_model',             'claude-sonnet-4-6'),
+    ('ai_model',             'claude-haiku-4-5'),
     ('auto_archive_enabled', 'false'),
     ('confidence_threshold', '0.75'),
     ('import_mode',          'move');
