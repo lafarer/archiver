@@ -12,6 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
@@ -34,13 +35,18 @@ public class ArchiveController {
                         @RequestParam(required = false) String tag,
                         @RequestParam(required = false) String q,
                         @RequestParam(defaultValue = "0") int page,
+                        HttpServletRequest request,
                         Model model) {
         PageRequest pageable = PageRequest.of(page, PAGE_SIZE,
             Sort.by(Sort.Direction.DESC, "documentDate", "createdAt"));
-        Page<Document> documents = documentRepository.findByClassifiedTrue(pageable);
+        Page<Document> documents = (q != null && !q.isBlank())
+            ? documentRepository.searchClassified(q, pageable)
+            : documentRepository.findByClassifiedTrue(pageable);
         model.addAttribute("documents", documents);
+        model.addAttribute("q", q != null ? q : "");
         model.addAttribute("page", "archive");
-        return "archive/index";
+        boolean htmx = "true".equals(request.getHeader("HX-Request"));
+        return htmx ? "archive/list_fragment" : "archive/index";
     }
 
     @GetMapping("/{id}")

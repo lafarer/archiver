@@ -21,6 +21,12 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
 
     Page<Document> findByClassifiedTrue(Pageable pageable);
 
+    @Query("SELECT d FROM Document d WHERE d.classified = true AND (" +
+           "LOWER(d.title) LIKE LOWER(CONCAT('%', :q, '%')) OR " +
+           "LOWER(d.issuer) LIKE LOWER(CONCAT('%', :q, '%')) OR " +
+           "LOWER(d.documentType) LIKE LOWER(CONCAT('%', :q, '%')))")
+    Page<Document> searchClassified(@Param("q") String q, Pageable pageable);
+
     @Query("SELECT d FROM Document d WHERE d.appliedRule.id = :ruleId AND d.classified = true ORDER BY d.classifiedAt DESC")
     Page<Document> findByAppliedRuleId(@Param("ruleId") Long ruleId, Pageable pageable);
 
