@@ -21,8 +21,11 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
 
     Page<Document> findByClassifiedTrue(Pageable pageable);
 
-    @Query("SELECT d FROM Document d WHERE d.appliedRule.id = :ruleId AND d.classified = true")
-    List<Document> findByAppliedRuleId(Long ruleId);
+    @Query("SELECT d FROM Document d WHERE d.appliedRule.id = :ruleId AND d.classified = true ORDER BY d.classifiedAt DESC")
+    Page<Document> findByAppliedRuleId(@Param("ruleId") Long ruleId, Pageable pageable);
+
+    @Query("SELECT d.appliedRule.id, COUNT(d) FROM Document d WHERE d.appliedRule IS NOT NULL AND d.classified = true GROUP BY d.appliedRule.id")
+    List<Object[]> countGroupedByAppliedRule();
 
     @Query(value = """
             SELECT DISTINCT json_extract(custom_fields, :jsonPath)

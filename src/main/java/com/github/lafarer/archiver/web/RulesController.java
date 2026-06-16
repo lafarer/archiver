@@ -1,14 +1,22 @@
 package com.github.lafarer.archiver.web;
 
+import com.github.lafarer.archiver.model.Document;
 import com.github.lafarer.archiver.model.StoragePathRule;
+import com.github.lafarer.archiver.repository.DocumentRepository;
 import com.github.lafarer.archiver.repository.StoragePathRuleRepository;
+import com.github.lafarer.archiver.service.PathResolverService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/rules")
@@ -16,11 +24,27 @@ import java.util.List;
 public class RulesController {
 
     private final StoragePathRuleRepository ruleRepository;
+    private final DocumentRepository documentRepository;
+    private final PathResolverService pathResolverService;
+
+    public record SimulateResult(Document document, String newPath, boolean changed) {}
+
+    private static final int PAGE_SIZE = 20;
+
+    private static String stripExtension(String path) {
+        if (path == null) return null;
+        int dot = path.lastIndexOf('.');
+        int slash = path.lastIndexOf('/');
+        return (dot > slash) ? path.substring(0, dot) : path;
+    }
 
     @GetMapping
     public String index(Model model) {
         List<StoragePathRule> rules = ruleRepository.findByActiveTrueOrderByPriorityAsc();
+        Map<Long, Long> docCounts = documentRepository.countGroupedByAppliedRule().stream()
+            .collect(Collectors.toMap(r -> (Long) r[0], r -> (Long) r[1]));
         model.addAttribute("rules", rules);
+        model.addAttribute("docCounts", docCounts);
         model.addAttribute("page", "rules");
         return "rules/index";
     }
@@ -28,6 +52,9 @@ public class RulesController {
     @GetMapping("/new")
     public String newForm(Model model) {
         model.addAttribute("rule", new StoragePathRule());
+        model.addAttribute("docPage", Page.empty());
+        model.addAttribute("results", List.of());
+        model.addAttribute("pathTemplate", "");
         model.addAttribute("page", "rules");
         return "rules/form";
     }
@@ -36,9 +63,36 @@ public class RulesController {
     public String editForm(@PathVariable Long id, Model model) {
         StoragePathRule rule = ruleRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Rule not found: " + id));
+        Page<Document> docPage = documentRepository.findByAppliedRuleId(id, PageRequest.of(0, PAGE_SIZE));
         model.addAttribute("rule", rule);
+        model.addAttribute("docPage", docPage);
+        model.addAttribute("results", List.of());
+        model.addAttribute("pathTemplate", "");
         model.addAttribute("page", "rules");
         return "rules/form";
+    }
+
+    @GetMapping("/{id}/documents")
+    public String documents(@PathVariable Long id,
+                            @RequestParam(defaultValue = "0") int page,
+                            @RequestParam(defaultValue = "") String pathTemplate,
+                            Model model) {
+        Page<Document> docPage = documentRepository.findByAppliedRuleId(id, PageRequest.of(page, PAGE_SIZE));
+        List<SimulateResult> results = List.of();
+        if (!pathTemplate.isBlank()) {
+            results = docPage.getContent().stream()
+                .map(doc -> {
+                    String newPath = pathResolverService.simulatePath(pathTemplate, doc);
+                    boolean changed = !newPath.equals(stripExtension(doc.getResolvedPath()));
+                    return new SimulateResult(doc, newPath, changed);
+                })
+                .collect(Collectors.toList());
+        }
+        model.addAttribute("ruleId", id);
+        model.addAttribute("docPage", docPage);
+        model.addAttribute("results", results);
+        model.addAttribute("pathTemplate", pathTemplate);
+        return "rules/docs_fragment";
     }
 
     @PostMapping

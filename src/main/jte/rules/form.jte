@@ -1,6 +1,13 @@
 @import com.github.lafarer.archiver.model.StoragePathRule
+@import com.github.lafarer.archiver.model.Document
+@import com.github.lafarer.archiver.web.RulesController.SimulateResult
+@import org.springframework.data.domain.Page
+@import java.util.List
 
 @param StoragePathRule rule
+@param Page<Document> docPage
+@param List<SimulateResult> results
+@param String pathTemplate
 @param String page
 
 @template.layout.base(page = page, title = "Règle", content = @`
@@ -59,6 +66,30 @@
             </form>
         </div>
     </div>
+
+    @if(rule.getId() != null)
+    <div class="card mt-4" style="max-width: 640px">
+        <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
+            <span>Documents concernés <span class="badge bg-secondary ms-1">${docPage.getTotalElements()}</span></span>
+            @if(docPage.getTotalElements() > 0)
+            <div class="d-flex align-items-center gap-2">
+                <%-- Tracks the template used for simulate; persists across HTMX swaps of #docs-body --%>
+                <input type="hidden" id="docFragTemplate" name="pathTemplate" value="${pathTemplate}">
+                <button type="button" class="btn btn-sm btn-outline-secondary"
+                        onclick="document.getElementById('docFragTemplate').value=document.querySelector('[name=pathTemplate]').value"
+                        hx-get="/rules/${rule.getId()}/documents"
+                        hx-include="#docFragTemplate"
+                        hx-vals='{"page":"0"}'
+                        hx-target="#docs-body"
+                        hx-swap="innerHTML">Simuler</button>
+            </div>
+            @endif
+        </div>
+        <div id="docs-body" class="list-group list-group-flush small">
+            @template.rules.docs_fragment(ruleId = rule.getId(), docPage = docPage, results = results, pathTemplate = pathTemplate)
+        </div>
+    </div>
+    @endif
 </div>
 
 `)

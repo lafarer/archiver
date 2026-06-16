@@ -27,6 +27,13 @@ public class PathResolverService {
 
     public record ResolvedPath(String relativePath, StoragePathRule appliedRule) {}
 
+    public String simulatePath(String template, com.github.lafarer.archiver.model.Document doc) {
+        String path = renderTemplate(template, doc.getDocumentType(), doc.getDocumentDate(),
+                doc.getTitle(), doc.getIssuer(), doc.getCustomFields());
+        String archiveFolder = props.getArchiveFolder();
+        return (archiveFolder != null && !archiveFolder.isBlank()) ? archiveFolder + "/" + path : path;
+    }
+
     private static final String FALLBACK_TEMPLATE = "Documents/[yyyy]/[mm]/[document_type]-[title]";
 
     public ResolvedPath resolve(

@@ -1,7 +1,9 @@
 @import com.github.lafarer.archiver.model.StoragePathRule
 @import java.util.List
+@import java.util.Map
 
 @param List<StoragePathRule> rules
+@param Map<Long, Long> docCounts
 @param String page
 
 @template.layout.base(page = page, title = "Règles", content = @`
@@ -25,6 +27,10 @@
                         @endif
                         @if(!rule.isActive())
                             <span class="badge bg-secondary ms-1">inactif</span>
+                        @endif
+                        !{long count = docCounts.getOrDefault(rule.getId(), 0L);}
+                        @if(count > 0)
+                            <span class="badge bg-light text-secondary border ms-1">${count} doc${count > 1 ? "s" : ""}</span>
                         @endif
                     </div>
                     @if(rule.getConditionNl() != null)
