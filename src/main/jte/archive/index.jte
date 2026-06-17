@@ -49,7 +49,8 @@
     </div>
 
     <%-- Offcanvas panel --%>
-    <div class="offcanvas offcanvas-end" tabindex="-1" id="filtersPanel" style="width:320px">
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="filtersPanel" style="width:320px"
+         data-bs-backdrop="false" data-bs-scroll="true">
         <div class="offcanvas-header border-bottom">
             <h6 class="offcanvas-title fw-semibold">Filtres</h6>
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
@@ -120,10 +121,8 @@
 
         </div>
 
-        <div class="p-3 border-top d-flex gap-2">
-            <a href="/archive" class="btn btn-outline-secondary btn-sm flex-fill">Effacer tout</a>
-            <button type="button" class="btn btn-primary btn-sm flex-fill"
-                    data-bs-dismiss="offcanvas">Appliquer</button>
+        <div class="p-3 border-top">
+            <a href="/archive" class="btn btn-outline-secondary btn-sm w-100">Effacer tout</a>
         </div>
     </div>
 
@@ -131,8 +130,18 @@
 
 <div class="page-body">
     <div id="doc-list">
-        @template.archive.list_fragment(documents = documents, q = q, selectedType = selectedType, selectedIssuer = selectedIssuer, selectedTags = selectedTags)
+        @template.archive.list_fragment(documents = documents, q = q, selectedType = selectedType, selectedIssuer = selectedIssuer, selectedTags = selectedTags, selectedCustomFields = selectedCustomFields, customFieldDefs = customFieldDefs)
     </div>
 </div>
+
+<script>
+(function() {
+    var panel = document.getElementById('filtersPanel');
+    var main  = document.getElementById('mainContent');
+    if (!panel || !main) return;
+    panel.addEventListener('show.bs.offcanvas',  function() { main.classList.add('filter-panel-open'); });
+    panel.addEventListener('hidden.bs.offcanvas', function() { main.classList.remove('filter-panel-open'); });
+})();
+</script>
 
 `)

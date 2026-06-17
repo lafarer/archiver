@@ -1,12 +1,58 @@
 @import com.github.lafarer.archiver.model.Document
+@import com.github.lafarer.archiver.model.CustomFieldDef
 @import org.springframework.data.domain.Page
 @import java.util.List
+@import java.util.Map
 
 @param Page<Document> documents
 @param String q
 @param String selectedType
 @param String selectedIssuer
 @param List<String> selectedTags
+@param Map<String, String> selectedCustomFields
+@param List<CustomFieldDef> customFieldDefs
+
+!{boolean hasFilters = !q.isBlank() || !selectedType.isBlank() || !selectedIssuer.isBlank() || !selectedTags.isEmpty() || !selectedCustomFields.isEmpty();}
+@if(hasFilters)
+<div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
+    @if(!q.isBlank())
+        <span class="badge rounded-pill bg-secondary d-flex align-items-center gap-1">
+            <span>Recherche : ${q}</span>
+            <button type="button" class="btn-close btn-close-white" style="font-size:0.6rem"
+                    onclick="removeFilter('q', '')"></button>
+        </span>
+    @endif
+    @if(!selectedType.isBlank())
+        <span class="badge rounded-pill bg-secondary d-flex align-items-center gap-1">
+            <span>Type : ${selectedType}</span>
+            <button type="button" class="btn-close btn-close-white" style="font-size:0.6rem"
+                    onclick="removeFilter('type', '')"></button>
+        </span>
+    @endif
+    @if(!selectedIssuer.isBlank())
+        <span class="badge rounded-pill bg-secondary d-flex align-items-center gap-1">
+            <span>Émetteur : ${selectedIssuer}</span>
+            <button type="button" class="btn-close btn-close-white" style="font-size:0.6rem"
+                    onclick="removeFilter('issuer', '')"></button>
+        </span>
+    @endif
+    @for(String tag : selectedTags)
+        <span class="badge rounded-pill bg-secondary d-flex align-items-center gap-1">
+            <span>${tag}</span>
+            <button type="button" class="btn-close btn-close-white" style="font-size:0.6rem"
+                    onclick="removeFilter('tag', '${tag}')"></button>
+        </span>
+    @endfor
+    @for(var entry : selectedCustomFields.entrySet())
+        !{String cfLabel = customFieldDefs.stream().filter(d -> d.getSlug().equals(entry.getKey())).map(d -> d.getLabel()).findFirst().orElse(entry.getKey());}
+        <span class="badge rounded-pill bg-secondary d-flex align-items-center gap-1">
+            <span>${cfLabel} : ${entry.getValue()}</span>
+            <button type="button" class="btn-close btn-close-white" style="font-size:0.6rem"
+                    onclick="removeFilter('cf_${entry.getKey()}', '')"></button>
+        </span>
+    @endfor
+</div>
+@endif
 
 @if(documents.isEmpty())
     <div class="text-center text-muted py-5">Aucun document trouvé.</div>
@@ -88,3 +134,20 @@
         </nav>
     @endif
 @endif
+
+<script>
+function removeFilter(name, value) {
+    var form = document.getElementById('archive-filters');
+    if (!form) return;
+    if (value === '') {
+        var el = form.elements[name];
+        if (!el) return;
+        if (el.type === 'checkbox') { el.checked = false; }
+        else { el.value = ''; }
+    } else {
+        var boxes = form.querySelectorAll('input[name="' + name + '"]');
+        boxes.forEach(function(cb) { if (cb.value === value) cb.checked = false; });
+    }
+    htmx.trigger(form, 'change');
+}
+</script>

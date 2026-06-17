@@ -56,6 +56,11 @@ body {
 .main-content {
     flex: 1;
     overflow-y: auto;
+    transition: margin-right 0.3s ease;
+
+    &.filter-panel-open {
+        margin-right: 320px;
+    }
 }
 
 .page-header {
