@@ -10,8 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.nio.file.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Service
@@ -23,7 +22,11 @@ public class WatchdogService {
     private final SettingService settingService;
     private final DocumentPipelineService pipelineService;
 
+    private static final long DEBOUNCE_MS = 1500;
+
     private final AtomicBoolean running = new AtomicBoolean(false);
+    private final ConcurrentHashMap<String, ScheduledFuture<?>> pending = new ConcurrentHashMap<>();
+    private final ScheduledExecutorService debouncer = Executors.newSingleThreadScheduledExecutor();
     private ExecutorService executor;
     private WatchService watchService;
 
@@ -48,6 +51,8 @@ public class WatchdogService {
 
     public void stop() {
         running.set(false);
+        pending.values().forEach(f -> f.cancel(false));
+        pending.clear();
         try {
             if (watchService != null) watchService.close();
         } catch (IOException ignored) {}
@@ -89,9 +94,8 @@ public class WatchdogService {
                     if (Files.isDirectory(path)) {
                         log.info("New folder detected in inbox: {}", path.getFileName());
                         processFolder(path);
-                    } else if (Files.isRegularFile(path) && !path.getFileName().toString().startsWith(".")) {
-                        log.info("New file detected: {}", path.getFileName());
-                        pipelineService.processAsync(path, ArchiveService.SourceType.INBOX);
+                    } else if (!path.getFileName().toString().startsWith(".")) {
+                        scheduleProcess(path);
                     }
                 }
                 if (!key.reset()) break;
@@ -101,6 +105,19 @@ public class WatchdogService {
         } catch (IOException e) {
             if (running.get()) log.error("Watchdog error: {}", e.getMessage());
         }
+    }
+
+    private void scheduleProcess(Path path) {
+        String key = path.getFileName().toString();
+        ScheduledFuture<?> existing = pending.remove(key);
+        if (existing != null) existing.cancel(false);
+        pending.put(key, debouncer.schedule(() -> {
+            pending.remove(key);
+            if (Files.isRegularFile(path)) {
+                log.info("New file detected: {}", key);
+                pipelineService.processAsync(path, ArchiveService.SourceType.INBOX);
+            }
+        }, DEBOUNCE_MS, TimeUnit.MILLISECONDS));
     }
 
     private void processFolder(Path folder) {
