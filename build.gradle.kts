@@ -5,6 +5,7 @@ plugins {
     id("org.springframework.boot") version "3.5.0"
     id("io.spring.dependency-management") version "1.1.7"
     id("com.github.node-gradle.node") version "7.0.2"
+    id("gg.jte.gradle") version "3.1.16"
 }
 
 group = "com.github.lafarer"
@@ -63,6 +64,11 @@ node {
     version = "20.18.0"
     download = true
     nodeProjectDir = file("${projectDir}/src/main/frontend")
+}
+
+jte {
+    sourceDirectory = file("src/main/jte").toPath()
+    generate()
 }
 
 val compileSass = tasks.register<NpmTask>("compileSass") {
