@@ -2,9 +2,9 @@ services:
   archiver:
     build: .
     ports:
-      - "${ARCHIVER_PORT:-8080}:8080"
+      - "${ARCHIVER_PORT:-8081}:8080"
     environment:
       ARCHIVER_ANTHROPIC_API_KEY: ${ARCHIVER_ANTHROPIC_API_KEY}
     volumes:
-      - ${ARCHIVER_DATA_PATH:-./data}:/data
+      - ${ARCHIVER_DATA_PATH:-~/Documents/prive}:/data
     restart: unless-stopped
