@@ -2,6 +2,7 @@ package com.github.lafarer.archiver.web;
 
 import com.github.lafarer.archiver.config.ArchiverProperties;
 import com.github.lafarer.archiver.model.Document;
+import com.github.lafarer.archiver.repository.ClassificationHistoryRepository;
 import com.github.lafarer.archiver.repository.CustomFieldDefRepository;
 import com.github.lafarer.archiver.repository.DocumentRepository;
 import com.github.lafarer.archiver.repository.DocumentSpecs;
@@ -31,6 +32,7 @@ import java.util.Map;
 public class ArchiveController {
 
     private final DocumentRepository documentRepository;
+    private final ClassificationHistoryRepository historyRepository;
     private final CustomFieldDefRepository customFieldDefRepository;
     private final DocumentTypeDefRepository documentTypeDefRepository;
     private final DocumentPipelineService pipelineService;
@@ -101,6 +103,8 @@ public class ArchiveController {
         model.addAttribute("fieldSuggestions", buildFieldSuggestions(defs));
         model.addAttribute("documentTypeDefs", documentTypeDefRepository.findByEnabledTrueOrderByLabelAsc());
         model.addAttribute("proposedPath", pipelineService.proposedPath(doc));
+        model.addAttribute("history", historyRepository.findByDocumentIdOrderByCreatedAtDesc(id));
+        if (!model.containsAttribute("message")) model.addAttribute("message", null);
         model.addAttribute("page", "archive");
         return "archive/detail";
     }
