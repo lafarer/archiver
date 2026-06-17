@@ -27,6 +27,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/archive")
@@ -79,7 +81,14 @@ public class ArchiveController {
         for (var def : customFieldDefs)
             cfSuggestions.put(def.getSlug(), documentRepository.findDistinctCustomFieldValues("$." + def.getSlug()));
 
+        Set<Long> outOfSyncIds = documents.getContent().stream()
+            .filter(doc -> doc.getResolvedPath() != null)
+            .filter(doc -> !doc.getResolvedPath().equals(pipelineService.proposedPath(doc).full()))
+            .map(Document::getId)
+            .collect(Collectors.toSet());
+
         model.addAttribute("documents", documents);
+        model.addAttribute("outOfSyncIds", outOfSyncIds);
         model.addAttribute("q",                   q != null ? q : "");
         model.addAttribute("selectedType",         type != null ? type : "");
         model.addAttribute("selectedIssuer",       issuer != null ? issuer : "");

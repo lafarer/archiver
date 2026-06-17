@@ -3,6 +3,7 @@
 @import org.springframework.data.domain.Page
 @import java.util.List
 @import java.util.Map
+@import java.util.Set
 
 @param Page<Document> documents
 @param String q
@@ -15,6 +16,7 @@
 @param List<String> allTags
 @param List<CustomFieldDef> customFieldDefs
 @param Map<String, List<String>> cfSuggestions
+@param Set<Long> outOfSyncIds
 @param String page
 @param boolean watchdogRunning = false
 
@@ -131,7 +133,7 @@
 
 <div class="page-body">
     <div id="doc-list">
-        @template.archive.list_fragment(documents = documents, q = q, selectedType = selectedType, selectedIssuer = selectedIssuer, selectedTags = selectedTags, selectedCustomFields = selectedCustomFields, customFieldDefs = customFieldDefs)
+        @template.archive.list_fragment(documents = documents, q = q, selectedType = selectedType, selectedIssuer = selectedIssuer, selectedTags = selectedTags, selectedCustomFields = selectedCustomFields, customFieldDefs = customFieldDefs, outOfSyncIds = outOfSyncIds)
     </div>
 </div>
 

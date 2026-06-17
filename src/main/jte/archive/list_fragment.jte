@@ -3,6 +3,7 @@
 @import org.springframework.data.domain.Page
 @import java.util.List
 @import java.util.Map
+@import java.util.Set
 
 @param Page<Document> documents
 @param String q
@@ -11,6 +12,7 @@
 @param List<String> selectedTags
 @param Map<String, String> selectedCustomFields
 @param List<CustomFieldDef> customFieldDefs
+@param Set<Long> outOfSyncIds = java.util.Set.of()
 
 !{boolean hasFilters = !q.isBlank() || !selectedType.isBlank() || !selectedIssuer.isBlank() || !selectedTags.isEmpty() || !selectedCustomFields.isEmpty();}
 @if(hasFilters)
@@ -62,6 +64,9 @@
         <div class="doc-card">
             <div class="doc-card-header">
                 <span class="badge bg-light text-dark">${doc.getDocumentType() != null ? doc.getDocumentType() : "-"}</span>
+                @if(outOfSyncIds.contains(doc.getId()))
+                    <span class="badge bg-warning text-dark">⚠ chemin modifié</span>
+                @endif
                 <span class="doc-card-date">${doc.getDocumentDate() != null ? doc.getDocumentDate() : "-"}</span>
             </div>
             <div class="doc-card-title">${doc.getTitle() != null ? doc.getTitle() : doc.getOriginalFilename()}</div>
