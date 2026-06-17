@@ -15,7 +15,7 @@ A self-hosted document management tool that watches an inbox folder, extracts me
 ## Prerequisites
 
 - An [Anthropic API key](https://console.anthropic.com/)
-- Docker (recommended) or Java 21+ and Node 20+
+- Docker (recommended) or Java 21+
 
 ## Getting started with Docker
 
