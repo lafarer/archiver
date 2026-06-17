@@ -20,6 +20,9 @@ node/
 .env
 *.db
 
+# Docker data volume
+data/
+
 # Local config overrides
 src/main/resources/application-local.properties
 
