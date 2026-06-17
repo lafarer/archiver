@@ -51,12 +51,20 @@ public class ArchiveController {
                         @RequestParam(required = false) String type,
                         @RequestParam(required = false) String issuer,
                         @RequestParam(name = "tag", required = false) List<String> selectedTags,
+                        @RequestParam(defaultValue = "date_desc") String sort,
                         @RequestParam(defaultValue = "0") int page,
                         @RequestParam Map<String, String> allParams,
                         HttpServletRequest request,
                         Model model) {
-        PageRequest pageable = PageRequest.of(page, PAGE_SIZE,
-            Sort.by(Sort.Direction.DESC, "documentDate", "createdAt"));
+        Sort pageSort = switch (sort) {
+            case "date_asc"   -> Sort.by(Sort.Direction.ASC,  "documentDate", "createdAt");
+            case "title_asc"  -> Sort.by(Sort.Direction.ASC,  "title");
+            case "title_desc" -> Sort.by(Sort.Direction.DESC, "title");
+            case "issuer_asc" -> Sort.by(Sort.Direction.ASC,  "issuer");
+            case "type_asc"   -> Sort.by(Sort.Direction.ASC,  "documentType");
+            default           -> Sort.by(Sort.Direction.DESC, "documentDate", "createdAt");
+        };
+        PageRequest pageable = PageRequest.of(page, PAGE_SIZE, pageSort);
 
         // Collect active custom field filters from cf_* params
         Map<String, String> selectedCustomFields = new HashMap<>();
@@ -99,6 +107,7 @@ public class ArchiveController {
         model.addAttribute("allTags",    documentRepository.findDistinctTagValues());
         model.addAttribute("customFieldDefs",  customFieldDefs);
         model.addAttribute("cfSuggestions",    cfSuggestions);
+        model.addAttribute("sort",    sort);
         model.addAttribute("totalSize", formatSize(documentRepository.sumFileSizeBytesClassified()));
         model.addAttribute("page", "archive");
 

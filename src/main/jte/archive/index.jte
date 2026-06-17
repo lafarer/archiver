@@ -18,6 +18,7 @@
 @param Map<String, List<String>> cfSuggestions
 @param Set<Long> outOfSyncIds
 @param String totalSize = ""
+@param String sort = "date_desc"
 @param String page
 @param boolean watchdogRunning = false
 
@@ -38,6 +39,15 @@
     <div class="page-filters">
         <input type="search" name="q" class="form-control form-control-sm"
                style="width:240px" placeholder="Rechercher…" value="${q}">
+
+        <select name="sort" class="form-select form-select-sm" style="width:auto">
+            <option value="date_desc"  selected="${sort.equals("date_desc")}">Date ↓</option>
+            <option value="date_asc"   selected="${sort.equals("date_asc")}">Date ↑</option>
+            <option value="title_asc"  selected="${sort.equals("title_asc")}">Titre A→Z</option>
+            <option value="title_desc" selected="${sort.equals("title_desc")}">Titre Z→A</option>
+            <option value="issuer_asc" selected="${sort.equals("issuer_asc")}">Émetteur A→Z</option>
+            <option value="type_asc"   selected="${sort.equals("type_asc")}">Type A→Z</option>
+        </select>
 
         <button type="button" class="btn btn-sm ${activeFilterCount > 0 ? "btn-primary" : "btn-outline-secondary"}"
                 data-bs-toggle="offcanvas" data-bs-target="#filtersPanel">
