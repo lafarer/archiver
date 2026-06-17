@@ -49,4 +49,7 @@ public interface DocumentRepository extends JpaRepository<Document, Long>, JpaSp
             ORDER BY 1
             """, nativeQuery = true)
     List<String> findDistinctCustomFieldValues(@Param("jsonPath") String jsonPath);
+
+    @Query("SELECT SUM(d.fileSizeBytes) FROM Document d WHERE d.classified = true")
+    Long sumFileSizeBytesClassified();
 }

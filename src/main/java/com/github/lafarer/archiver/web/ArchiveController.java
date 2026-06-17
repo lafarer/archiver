@@ -99,6 +99,7 @@ public class ArchiveController {
         model.addAttribute("allTags",    documentRepository.findDistinctTagValues());
         model.addAttribute("customFieldDefs",  customFieldDefs);
         model.addAttribute("cfSuggestions",    cfSuggestions);
+        model.addAttribute("totalSize", formatSize(documentRepository.sumFileSizeBytesClassified()));
         model.addAttribute("page", "archive");
 
         boolean htmx = "true".equals(request.getHeader("HX-Request"));
@@ -147,6 +148,14 @@ public class ArchiveController {
             });
         } catch (Exception ignored) {}
         return result;
+    }
+
+    public static String formatSize(Long bytes) {
+        if (bytes == null || bytes == 0) return "0 o";
+        if (bytes >= 1_073_741_824L) return String.format("%.1f Go", bytes / 1_073_741_824.0);
+        if (bytes >= 1_048_576L)     return String.format("%.1f Mo", bytes / 1_048_576.0);
+        if (bytes >= 1_024L)         return String.format("%.0f Ko", bytes / 1_024.0);
+        return bytes + " o";
     }
 
     private static String cfSourceLabel(String source) {

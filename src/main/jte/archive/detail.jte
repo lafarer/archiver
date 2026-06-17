@@ -4,6 +4,9 @@
 @import com.github.lafarer.archiver.model.ClassificationHistory
 @import com.github.lafarer.archiver.model.enums.ClassificationTrigger
 @import com.github.lafarer.archiver.service.DocumentPipelineService.ProposedPathParts
+@import com.github.lafarer.archiver.web.ArchiveController
+@import java.time.ZoneId
+@import java.time.format.DateTimeFormatter
 @import java.util.List
 @import java.util.Map
 
@@ -46,9 +49,15 @@
     @endif
 
     !{boolean pathChanged = document.getResolvedPath() != null && !document.getResolvedPath().equals(proposedPath.full());}
+    !{String docSize = ArchiveController.formatSize(document.getFileSizeBytes());}
+    !{DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").withZone(ZoneId.systemDefault());}
     <div class="mb-3 text-muted small">
         Fichier : <strong>${document.getOriginalFilename()}</strong>
-        &nbsp;·&nbsp;
+        &nbsp;·&nbsp; ${docSize}
+        @if(document.getFilesystemMtime() != null)
+            &nbsp;·&nbsp; ${dtf.format(document.getFilesystemMtime())}
+        @endif
+        <br>
         <code>${document.getResolvedPath() != null ? document.getResolvedPath() : proposedPath.full()}</code>
         @if(proposedPath.pathTemplate() != null)
             <div class="mt-1">

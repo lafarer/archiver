@@ -17,13 +17,14 @@
 @param List<CustomFieldDef> customFieldDefs
 @param Map<String, List<String>> cfSuggestions
 @param Set<Long> outOfSyncIds
+@param String totalSize = ""
 @param String page
 @param boolean watchdogRunning = false
 
 @template.layout.base(page = page, title = "Archive", watchdogRunning = watchdogRunning, content = @`
 
 <div class="page-header">
-    <h1>Archive</h1>
+    <h1>Archive @if(!totalSize.isEmpty())<span class="text-muted fw-normal small ms-2">${totalSize}</span>@endif</h1>
 </div>
 
 !{int activeFilterCount = (selectedType.isBlank() ? 0 : 1) + (selectedIssuer.isBlank() ? 0 : 1) + selectedTags.size() + selectedCustomFields.size();}
