@@ -71,7 +71,7 @@
         </thead>
         <tbody>
             @for(Document doc : documents.getContent())
-                <tr>
+                <tr class="align-middle">
                     <td class="text-nowrap">${doc.getDocumentDate() != null ? doc.getDocumentDate() : "-"}</td>
                     <td><span class="badge bg-light text-dark">${doc.getDocumentType() != null ? doc.getDocumentType() : "-"}</span></td>
                     <td>
@@ -86,7 +86,8 @@
                             <span class="tag">${tag}</span>
                         @endfor
                     </td>
-                    <td class="text-end d-flex gap-1 justify-content-end">
+                    <td class="text-end">
+                        <div class="d-flex gap-1 justify-content-end">
                         @if(doc.getMimeType() != null && (doc.getMimeType().startsWith("image/") || doc.getMimeType().equals("application/pdf")))
                             !{String docTitle = doc.getTitle() != null ? doc.getTitle() : doc.getOriginalFilename();}
                             <button class="btn btn-sm btn-outline-primary"
@@ -96,6 +97,7 @@
                                     data-title="${docTitle}">Aperçu</button>
                         @endif
                         <a href="/archive/${doc.getId()}" class="btn btn-sm btn-outline-secondary">Détail</a>
+                        </div>
                     </td>
                 </tr>
             @endfor
