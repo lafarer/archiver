@@ -39,7 +39,7 @@ The app will be available at http://localhost:8080. Archived documents and the d
 | Variable | Required | Default | Description |
 |---|---|---|---|
 | `ARCHIVER_ANTHROPIC_API_KEY` | Yes | - | Anthropic API key |
-| `ARCHIVER_ROOT` | Yes | `~/Documents` | Root directory for the archive |
+| `ARCHIVER_ROOT` | No | `/data` | Root directory for the archive |
 | `ARCHIVER_INBOX_FOLDER` | No | `Inbox` | Inbox subfolder name |
 | `ARCHIVER_ARCHIVE_FOLDER` | No | `Archive` | Archive subfolder name |
 | `ARCHIVER_PORT` | No | `8080` | HTTP port |
