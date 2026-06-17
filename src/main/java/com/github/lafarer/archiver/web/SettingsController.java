@@ -34,11 +34,12 @@ public class SettingsController {
         boolean watchdogBefore = settingService.getBoolean("watchdog_enabled");
 
         settingService.setAll(Map.of(
-            "watchdog_enabled",      params.getOrDefault("watchdog_enabled", "false"),
-            "auto_archive_enabled",  params.getOrDefault("auto_archive_enabled", "false"),
-            "ai_model",              params.getOrDefault("ai_model", "claude-haiku-4-5"),
-            "confidence_threshold",  params.getOrDefault("confidence_threshold", "0.75"),
-            "import_mode",           params.getOrDefault("import_mode", "copy")
+            "watchdog_enabled",       params.getOrDefault("watchdog_enabled", "false"),
+            "watchdog_debounce_ms",   params.getOrDefault("watchdog_debounce_ms", "1500"),
+            "auto_archive_enabled",   params.getOrDefault("auto_archive_enabled", "false"),
+            "ai_model",               params.getOrDefault("ai_model", "claude-haiku-4-5"),
+            "confidence_threshold",   params.getOrDefault("confidence_threshold", "0.75"),
+            "import_mode",            params.getOrDefault("import_mode", "copy")
         ));
 
         boolean watchdogAfter = settingService.getBoolean("watchdog_enabled");

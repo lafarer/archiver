@@ -34,6 +34,8 @@ import java.util.HexFormat;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -57,6 +59,11 @@ public class DocumentPipelineService {
     private final InboxEventService inboxEventService;
     private final DocumentStubService documentStubService;
     private final ObjectMapper objectMapper;
+
+    // Second line of defense against duplicate processing (first is the watchdog debounce).
+    // Tracks filenames currently running through the pipeline. putIfAbsent is atomic,
+    // so concurrent calls for the same filename are safely rejected.
+    private final Set<String> inFlight = ConcurrentHashMap.newKeySet();
 
     @EventListener(ApplicationReadyEvent.class)
     public void cleanupStaleAnalyzing() {
@@ -106,6 +113,13 @@ public class DocumentPipelineService {
     // Used by the watchdog - fully async (stub creation + analysis in the same thread).
     @Async
     public void processAsync(Path file, ArchiveService.SourceType sourceType) {
+        String filename = file.getFileName().toString();
+        // Reject if another thread is already processing this filename.
+        // This is the safety net when the watchdog debounce is not tight enough.
+        if (!inFlight.add(filename)) {
+            log.info("Already in flight, skipping: {}", filename);
+            return;
+        }
         Long stubId = null;
         try {
             stubId = createStubSync(file, sourceType);
@@ -120,6 +134,9 @@ public class DocumentPipelineService {
                 documentRepository.deleteById(stubId);
                 inboxEventService.notifyInboxChanged();
             }
+        } finally {
+            // Always release the lock so the file can be reprocessed later if needed.
+            inFlight.remove(filename);
         }
     }
 

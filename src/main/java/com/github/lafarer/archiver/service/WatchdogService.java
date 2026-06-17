@@ -22,9 +22,10 @@ public class WatchdogService {
     private final SettingService settingService;
     private final DocumentPipelineService pipelineService;
 
-    private static final long DEBOUNCE_MS = 1500;
-
     private final AtomicBoolean running = new AtomicBoolean(false);
+    // Tracks files waiting to be dispatched; keyed by filename.
+    // A new event for the same file cancels the pending timer and restarts it,
+    // so rapid-fire filesystem events (ENTRY_CREATE + ENTRY_MODIFY) collapse into one.
     private final ConcurrentHashMap<String, ScheduledFuture<?>> pending = new ConcurrentHashMap<>();
     private final ScheduledExecutorService debouncer = Executors.newSingleThreadScheduledExecutor();
     private ExecutorService executor;
@@ -109,15 +110,19 @@ public class WatchdogService {
 
     private void scheduleProcess(Path path) {
         String key = path.getFileName().toString();
+        // Cancel any pending timer for this filename and restart it.
+        // This collapses all events for the same file within the debounce window into one dispatch.
         ScheduledFuture<?> existing = pending.remove(key);
         if (existing != null) existing.cancel(false);
+        // Read debounce delay from DB each time so changes take effect without restart.
+        long debounceMs = settingService.getLong("watchdog_debounce_ms", 1500);
         pending.put(key, debouncer.schedule(() -> {
             pending.remove(key);
             if (Files.isRegularFile(path)) {
                 log.info("New file detected: {}", key);
                 pipelineService.processAsync(path, ArchiveService.SourceType.INBOX);
             }
-        }, DEBOUNCE_MS, TimeUnit.MILLISECONDS));
+        }, debounceMs, TimeUnit.MILLISECONDS));
     }
 
     private void processFolder(Path folder) {

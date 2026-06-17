@@ -30,7 +30,7 @@
 
     <div class="card">
         <div class="card-header fw-semibold">Surveillance automatique</div>
-        <div class="card-body">
+        <div class="card-body d-flex flex-column gap-3">
             <div class="form-check form-switch">
                 <input class="form-check-input" type="checkbox" name="watchdog_enabled"
                        value="true" id="watchdog"
@@ -41,6 +41,17 @@
                         ${watchdogRunning ? "actif" : "inactif"}
                     </span>
                 </label>
+            </div>
+            <div>
+                <label class="form-label" for="debounceMs">Délai anti-rebond (ms)</label>
+                <input type="number" class="form-control form-control-sm" id="debounceMs"
+                       name="watchdog_debounce_ms" min="200" max="10000" step="100"
+                       value="${settings.get("watchdog_debounce_ms")}">
+                <div class="form-text">
+                    Délai d'attente avant de traiter un nouveau fichier détecté.
+                    Absorbe les événements filesystem multiples générés par un seul dépôt
+                    (notamment sur les volumes Docker). Valeur par défaut : 1500 ms.
+                </div>
             </div>
         </div>
     </div>

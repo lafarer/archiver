@@ -28,6 +28,10 @@ public class SettingService {
         try { return Double.parseDouble(get(key)); } catch (NumberFormatException e) { return 0; }
     }
 
+    public long getLong(String key, long defaultValue) {
+        try { return Long.parseLong(get(key)); } catch (NumberFormatException e) { return defaultValue; }
+    }
+
     @Transactional
     public void set(String key, String value) {
         repository.save(new Setting(key, value));
