@@ -174,14 +174,29 @@
 
     <div style="max-width: 700px">
         <div class="text-muted small fw-semibold mb-2">Ré-analyse IA</div>
-        <form method="post" action="/archive/${document.getId()}/reanalyze">
+        <form id="reanalyzeForm" method="post" action="/archive/${document.getId()}/reanalyze">
             <div class="mb-2">
                 <textarea name="hint" class="form-control form-control-sm" rows="2"
                           placeholder="Indice optionnel (ex : c'est une facture EDF, l'émetteur est EDF…)"></textarea>
             </div>
-            <button type="submit" class="btn btn-outline-primary btn-sm">Ré-analyser avec l'IA</button>
+            <button type="submit" id="reanalyzeBtn" class="btn btn-outline-primary btn-sm">
+                <span id="reanalyzeSpinner" class="spinner-border spinner-border-sm me-1 d-none" role="status"></span>
+                Ré-analyser avec l'IA
+            </button>
         </form>
     </div>
+
+    <script>
+    document.getElementById('reanalyzeForm').addEventListener('submit', function() {
+        const btn = document.getElementById('reanalyzeBtn');
+        const spinner = document.getElementById('reanalyzeSpinner');
+        btn.disabled = true;
+        spinner.classList.remove('d-none');
+        btn.childNodes[btn.childNodes.length - 1].textContent = ' Analyse en cours…';
+        document.querySelectorAll('input, textarea, select, button')
+            .forEach(el => { if (!el.closest('#reanalyzeForm')) el.disabled = true; });
+    });
+    </script>
 
     <hr class="my-4" style="max-width: 700px">
 
