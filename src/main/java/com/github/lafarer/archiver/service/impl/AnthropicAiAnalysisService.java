@@ -172,6 +172,13 @@ public class AnthropicAiAnalysisService implements AiAnalysisService {
             If the slug is from the known list, label and description can be omitted.
             For custom fields, only include applicable ones with a non-null value.
             Set applied_rule_id to the ID of the matching rule, or null if none match (default will be used).
+
+            ISSUER CONVENTIONS:
+            - fiche-de-paie / contrat-travail / attestation-emploi / rupture-contrat:
+              issuer = the employer (company on the employment contract), NOT the payroll
+              service provider that printed the document. Example: if the bulletin header
+              shows "Groupe Social Lerminiaux" but the employer section shows "THREE-i S.A.",
+              set issuer to "THREE-i S.A.".
             """);
 
         return sb.toString();
