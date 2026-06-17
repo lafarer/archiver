@@ -32,10 +32,12 @@ public class StorageAuditService {
         FILE_WITHOUT_SIDECAR,
         /** File and sidecar exist but no DB record (main reconstruction case) */
         UNTRACKED_WITH_SIDECAR,
-        /** File exists on disk with no sidecar and no DB record */
+        /** File exists in archive with no sidecar and no DB record */
         UNTRACKED_NO_SIDECAR,
         /** Sidecar exists but corresponding file and DB record are both absent */
-        ORPHAN_SIDECAR
+        ORPHAN_SIDECAR,
+        /** File exists in inbox with no pending DB record (watchdog was off) */
+        INBOX_ORPHAN
     }
 
     public record AuditEntry(
@@ -130,6 +132,27 @@ public class StorageAuditService {
                 boolean hasSidecar = Files.exists(sidecarService.sidecarPathFor(filePath));
                 AnomalyType type = hasSidecar ? AnomalyType.MISSING_FILE : AnomalyType.GHOST_RECORD;
                 anomalies.add(new AuditEntry(entry.getKey(), type, entry.getValue()));
+            }
+        }
+
+        // Inbox orphan detection — files in inbox with no pending DB record
+        Path inboxPath = props.getInboxPath();
+        if (Files.exists(inboxPath)) {
+            Set<String> pendingSourcePaths = documentRepository.findByClassifiedFalseOrderByCreatedAtDesc()
+                .stream()
+                .filter(d -> d.getSourcePath() != null)
+                .map(Document::getSourcePath)
+                .collect(Collectors.toSet());
+            try (var stream = Files.walk(inboxPath)) {
+                for (Path path : (Iterable<Path>) stream::iterator) {
+                    if (Files.isDirectory(path)) continue;
+                    String filename = path.getFileName().toString();
+                    if (filename.startsWith(".")) continue;
+                    String relPath = inboxPath.relativize(path).toString();
+                    if (!pendingSourcePaths.contains(relPath)) {
+                        anomalies.add(new AuditEntry(relPath, AnomalyType.INBOX_ORPHAN, null));
+                    }
+                }
             }
         }
 

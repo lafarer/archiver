@@ -4,6 +4,7 @@ import com.github.lafarer.archiver.config.ArchiverProperties;
 import com.github.lafarer.archiver.model.Document;
 import com.github.lafarer.archiver.repository.DocumentRepository;
 import com.github.lafarer.archiver.service.ArchiveService;
+import com.github.lafarer.archiver.service.DocumentPipelineService;
 import com.github.lafarer.archiver.service.SidecarService;
 import com.github.lafarer.archiver.service.StorageAuditService;
 import com.github.lafarer.archiver.service.StorageAuditService.AnomalyType;
@@ -21,6 +22,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -37,6 +39,7 @@ public class AuditController {
     private final DocumentRepository documentRepository;
     private final ArchiveService archiveService;
     private final SidecarService sidecarService;
+    private final DocumentPipelineService pipelineService;
     private final ArchiverProperties props;
 
     @GetMapping
@@ -145,6 +148,84 @@ public class AuditController {
         return "redirect:/audit?run=true";
     }
 
+    // --- Re-analyze untracked archive files (step 5a) ---
+
+    @PostMapping("/repair/reanalyze-archive-file")
+    public String reanalyzeArchiveFile(@RequestParam String relPath,
+                                       RedirectAttributes ra) throws IOException {
+        Path archiveFile = props.getArchivePath().resolve(relPath);
+        if (!Files.exists(archiveFile)) {
+            ra.addFlashAttribute("message", "Fichier introuvable : " + relPath);
+            return "redirect:/audit?run=true";
+        }
+        Files.createDirectories(props.getInboxPath());
+        Path inboxFile = resolveInboxConflict(props.getInboxPath().resolve(archiveFile.getFileName()));
+        Files.move(archiveFile, inboxFile, StandardCopyOption.ATOMIC_MOVE);
+        Long stubId = pipelineService.createStubSync(inboxFile, ArchiveService.SourceType.INBOX);
+        if (stubId != null) {
+            pipelineService.analyzeFromStub(stubId, inboxFile, ArchiveService.SourceType.INBOX);
+        }
+        ra.addFlashAttribute("message", "Ré-analyse lancée : " + archiveFile.getFileName());
+        return "redirect:/audit?run=true";
+    }
+
+    @PostMapping("/repair/reanalyze-all-untracked")
+    public String reanalyzeAllUntracked(RedirectAttributes ra) throws IOException {
+        AuditReport report = auditService.scan();
+        List<AuditEntry> entries = report.byType().getOrDefault(AnomalyType.UNTRACKED_NO_SIDECAR, List.of());
+        Files.createDirectories(props.getInboxPath());
+        int count = 0;
+        for (AuditEntry entry : entries) {
+            Path archiveFile = props.getArchivePath().resolve(entry.relPath());
+            if (!Files.exists(archiveFile)) continue;
+            Path inboxFile = resolveInboxConflict(props.getInboxPath().resolve(archiveFile.getFileName()));
+            Files.move(archiveFile, inboxFile, StandardCopyOption.ATOMIC_MOVE);
+            Long stubId = pipelineService.createStubSync(inboxFile, ArchiveService.SourceType.INBOX);
+            if (stubId != null) {
+                pipelineService.analyzeFromStub(stubId, inboxFile, ArchiveService.SourceType.INBOX);
+                count++;
+            }
+        }
+        ra.addFlashAttribute("message", count + " fichier(s) envoyé(s) en ré-analyse.");
+        return "redirect:/audit?run=true";
+    }
+
+    // --- Analyze inbox orphans (step 5b) ---
+
+    @PostMapping("/repair/analyze-inbox-orphan")
+    public String analyzeInboxOrphan(@RequestParam String relPath,
+                                     RedirectAttributes ra) throws IOException {
+        Path inboxFile = props.getInboxPath().resolve(relPath);
+        if (!Files.exists(inboxFile)) {
+            ra.addFlashAttribute("message", "Fichier introuvable : " + relPath);
+            return "redirect:/audit?run=true";
+        }
+        Long stubId = pipelineService.createStubSync(inboxFile, ArchiveService.SourceType.INBOX);
+        if (stubId != null) {
+            pipelineService.analyzeFromStub(stubId, inboxFile, ArchiveService.SourceType.INBOX);
+        }
+        ra.addFlashAttribute("message", "Analyse lancée : " + inboxFile.getFileName());
+        return "redirect:/audit?run=true";
+    }
+
+    @PostMapping("/repair/analyze-all-inbox-orphans")
+    public String analyzeAllInboxOrphans(RedirectAttributes ra) throws IOException {
+        AuditReport report = auditService.scan();
+        List<AuditEntry> entries = report.byType().getOrDefault(AnomalyType.INBOX_ORPHAN, List.of());
+        int count = 0;
+        for (AuditEntry entry : entries) {
+            Path inboxFile = props.getInboxPath().resolve(entry.relPath());
+            if (!Files.exists(inboxFile)) continue;
+            Long stubId = pipelineService.createStubSync(inboxFile, ArchiveService.SourceType.INBOX);
+            if (stubId != null) {
+                pipelineService.analyzeFromStub(stubId, inboxFile, ArchiveService.SourceType.INBOX);
+                count++;
+            }
+        }
+        ra.addFlashAttribute("message", count + " fichier(s) envoyé(s) en analyse.");
+        return "redirect:/audit?run=true";
+    }
+
     // --- Import from sidecar (step 4) ---
 
     @PostMapping("/repair/import-sidecar")
@@ -189,6 +270,21 @@ public class AuditController {
         documentRepository.save(doc);
         log.info("Imported from sidecar: {}", relPath);
         return 1;
+    }
+
+    private Path resolveInboxConflict(Path target) {
+        if (!Files.exists(target)) return target;
+        String name = target.getFileName().toString();
+        int dot = name.lastIndexOf('.');
+        String base = dot > 0 ? name.substring(0, dot) : name;
+        String ext  = dot > 0 ? name.substring(dot)    : "";
+        int i = 1;
+        Path candidate;
+        do {
+            candidate = target.getParent().resolve(base + "-" + i + ext);
+            i++;
+        } while (Files.exists(candidate));
+        return candidate;
     }
 
     private String sha256(Path file) throws IOException {

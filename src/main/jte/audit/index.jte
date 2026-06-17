@@ -157,18 +157,54 @@
     </div>
     @endif
 
-    <%-- UNTRACKED_NO_SIDECAR : fichier sans sidecar ni DB — nécessite ré-analyse (étape 5) --%>
+    <%-- UNTRACKED_NO_SIDECAR : fichier dans archive sans sidecar ni DB — ré-analyse --%>
     @if(byType.containsKey(AnomalyType.UNTRACKED_NO_SIDECAR))
     !{List<AuditEntry> entries = byType.get(AnomalyType.UNTRACKED_NO_SIDECAR);}
     <div class="card mb-3">
         <div class="card-header d-flex justify-content-between align-items-center">
             <span class="fw-semibold">Non indexés sans sidecar <span class="badge bg-secondary ms-1">${entries.size()}</span></span>
-            <span class="text-muted small">Fichier ✓ · DB ✗ · Sidecar ✗ — nécessitent une ré-analyse</span>
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-muted small">Fichier ✓ · DB ✗ · Sidecar ✗</span>
+                <form method="post" action="/audit/repair/reanalyze-all-untracked">
+                    <button type="submit" class="btn btn-outline-secondary btn-sm">Tout ré-analyser</button>
+                </form>
+            </div>
         </div>
         <div class="list-group list-group-flush small">
             @for(AuditEntry e : entries)
-            <div class="list-group-item">
-                <code class="text-truncate">${e.relPath()}</code>
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+                <code class="text-truncate me-2">${e.relPath()}</code>
+                <form method="post" action="/audit/repair/reanalyze-archive-file" class="flex-shrink-0">
+                    <input type="hidden" name="relPath" value="${e.relPath()}">
+                    <button type="submit" class="btn btn-outline-secondary btn-sm">Ré-analyser</button>
+                </form>
+            </div>
+            @endfor
+        </div>
+    </div>
+    @endif
+
+    <%-- INBOX_ORPHAN : fichier en inbox sans enregistrement DB --%>
+    @if(byType.containsKey(AnomalyType.INBOX_ORPHAN))
+    !{List<AuditEntry> entries = byType.get(AnomalyType.INBOX_ORPHAN);}
+    <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span class="fw-semibold">Inbox non indexés <span class="badge bg-info text-dark ms-1">${entries.size()}</span></span>
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-muted small">Inbox ✓ · DB ✗</span>
+                <form method="post" action="/audit/repair/analyze-all-inbox-orphans">
+                    <button type="submit" class="btn btn-outline-info btn-sm">Tout analyser</button>
+                </form>
+            </div>
+        </div>
+        <div class="list-group list-group-flush small">
+            @for(AuditEntry e : entries)
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+                <code class="text-truncate me-2">${e.relPath()}</code>
+                <form method="post" action="/audit/repair/analyze-inbox-orphan" class="flex-shrink-0">
+                    <input type="hidden" name="relPath" value="${e.relPath()}">
+                    <button type="submit" class="btn btn-outline-info btn-sm">Analyser</button>
+                </form>
             </div>
             @endfor
         </div>
