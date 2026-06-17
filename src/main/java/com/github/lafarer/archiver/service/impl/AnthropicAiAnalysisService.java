@@ -29,7 +29,7 @@ import java.util.*;
 @Slf4j
 public class AnthropicAiAnalysisService implements AiAnalysisService {
 
-    @Value("${anthropic.api-key}")
+    @Value("${archiver.anthropic.api-key}")
     private String apiKey;
 
     private final SettingService settingService;
