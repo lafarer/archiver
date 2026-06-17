@@ -53,14 +53,40 @@
         <div class="d-flex flex-column gap-3" style="max-width: 700px">
 
             <div>
-                <label class="form-label" for="documentType">Type de document</label>
-                <select id="documentType" name="documentType" class="form-select">
-                    <option value="">-- Choisir un type --</option>
+                <label class="form-label" for="documentTypeSearch">Type de document</label>
+                !{String currentSlug = document.getDocumentType() != null ? document.getDocumentType() : "";}
+                !{String currentLabel = documentTypeDefs.stream().filter(dt -> dt.getSlug().equals(currentSlug)).map(dt -> dt.getLabel()).findFirst().orElse(currentSlug);}
+                <input type="text" id="documentTypeSearch" list="doc-types-list"
+                       class="form-control" autocomplete="off"
+                       placeholder="Rechercher un type de document…"
+                       value="${currentLabel}">
+                <datalist id="doc-types-list">
                     @for(DocumentTypeDef dt : documentTypeDefs)
-                        <option value="${dt.getSlug()}"
-                                selected="${dt.getSlug().equals(document.getDocumentType())}">${dt.getLabel()} (${dt.getSlug()})</option>
+                        <option value="${dt.getLabel()}" data-slug="${dt.getSlug()}"></option>
                     @endfor
-                </select>
+                </datalist>
+                <%-- Hidden input carries the slug that gets submitted --%>
+                <input type="hidden" id="documentType" name="documentType" value="${currentSlug}">
+                <script>
+                (function() {
+                    var search = document.getElementById('documentTypeSearch');
+                    var slug   = document.getElementById('documentType');
+                    function sync() {
+                        // Look for a datalist option whose label matches the typed text
+                        var opts = document.querySelectorAll('#doc-types-list option');
+                        for (var i = 0; i < opts.length; i++) {
+                            if (opts[i].value.toLowerCase() === search.value.toLowerCase()) {
+                                slug.value = opts[i].dataset.slug;
+                                return;
+                            }
+                        }
+                        // No known match - fall back to the typed value as slug
+                        slug.value = search.value;
+                    }
+                    search.addEventListener('input',  sync);
+                    search.addEventListener('change', sync);
+                })();
+                </script>
             </div>
 
             <div>
