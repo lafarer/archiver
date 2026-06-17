@@ -28,7 +28,12 @@
                 <tr>
                     <td class="text-nowrap">${doc.getDocumentDate() != null ? doc.getDocumentDate() : "-"}</td>
                     <td><span class="badge bg-light text-dark">${doc.getDocumentType() != null ? doc.getDocumentType() : "-"}</span></td>
-                    <td>${doc.getTitle() != null ? doc.getTitle() : doc.getOriginalFilename()}</td>
+                    <td>
+                        <div>${doc.getTitle() != null ? doc.getTitle() : doc.getOriginalFilename()}</div>
+                        @if(doc.getResolvedPath() != null)
+                            <div class="text-truncate text-muted font-monospace" style="font-size:0.72rem" title="${doc.getResolvedPath()}">${doc.getResolvedPath()}</div>
+                        @endif
+                    </td>
                     <td>${doc.getIssuer() != null ? doc.getIssuer() : "-"}</td>
                     <td>
                         @for(String tag : doc.getTags())
