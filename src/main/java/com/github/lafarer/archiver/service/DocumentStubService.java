@@ -1,5 +1,6 @@
 package com.github.lafarer.archiver.service;
 
+import com.github.lafarer.archiver.config.ArchiverProperties;
 import com.github.lafarer.archiver.model.Document;
 import com.github.lafarer.archiver.model.enums.AnalysisStatus;
 import com.github.lafarer.archiver.repository.DocumentRepository;
@@ -16,12 +17,13 @@ import java.nio.file.Path;
 public class DocumentStubService {
 
     private final DocumentRepository documentRepository;
+    private final ArchiverProperties props;
 
     @Transactional
     public Long createStub(Path file, String hash) throws IOException {
         Document stub = new Document();
         stub.setOriginalFilename(file.getFileName().toString());
-        stub.setSourcePath(file.toAbsolutePath().toString());
+        stub.setSourcePath(props.getInboxPath().relativize(file.toAbsolutePath()).toString());
         stub.setSha256Hash(hash);
         String mimeType = Files.probeContentType(file);
         stub.setMimeType(mimeType != null ? mimeType : "application/octet-stream");

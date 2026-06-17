@@ -21,7 +21,7 @@ public class ArchiveService {
     public enum SourceType { INBOX, MANUAL }
 
     public Path archive(Path sourceFile, String relativeTargetPath, SourceType sourceType) throws IOException {
-        Path target = props.getRoot().resolve(relativeTargetPath);
+        Path target = props.getArchivePath().resolve(relativeTargetPath);
         Files.createDirectories(target.getParent());
         target = resolveConflict(target);
 
@@ -40,7 +40,7 @@ public class ArchiveService {
     }
 
     public Path reclassify(Path source, String relativeTargetPath) throws IOException {
-        Path target = props.getRoot().resolve(relativeTargetPath);
+        Path target = props.getArchivePath().resolve(relativeTargetPath);
         if (source.toAbsolutePath().equals(target.toAbsolutePath())) return source;
         Files.createDirectories(target.getParent());
         target = resolveConflict(target);

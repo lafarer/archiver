@@ -165,7 +165,7 @@ public class InboxController {
         Document doc = documentRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Document not found: " + id));
         Path sourcePath = doc.getSourcePath() != null
-            ? Path.of(doc.getSourcePath())
+            ? props.getInboxPath().resolve(doc.getSourcePath())
             : props.getInboxPath().resolve(doc.getOriginalFilename());
         pipelineService.validateAndArchive(id, sourcePath);
         inboxEventService.notifyInboxChanged();

@@ -81,7 +81,8 @@ public class DocumentPipelineService {
             if (sourceType == ArchiveService.SourceType.INBOX) {
                 Document dup = existing.get();
                 boolean isPendingSourceFile = !dup.isClassified()
-                    && file.toAbsolutePath().toString().equals(dup.getSourcePath());
+                    && dup.getSourcePath() != null
+                    && file.toAbsolutePath().equals(props.getInboxPath().resolve(dup.getSourcePath()).toAbsolutePath());
                 if (!isPendingSourceFile) {
                     Files.deleteIfExists(file);
                     log.info("Removed duplicate from inbox: {}", file.getFileName());
@@ -227,7 +228,7 @@ public class DocumentPipelineService {
             .orElseThrow(() -> new IllegalArgumentException("Document not found: " + documentId));
 
         Path file = doc.getSourcePath() != null
-            ? Path.of(doc.getSourcePath())
+            ? props.getInboxPath().resolve(doc.getSourcePath())
             : props.getInboxPath().resolve(doc.getOriginalFilename());
 
         ExtractionResult extraction = extractionService.extract(file);
@@ -303,7 +304,7 @@ public class DocumentPipelineService {
 
         doc.setResolvedPath(relPath);
         sidecarService.write(archivedFile, doc);
-        doc.setSidecarPath(sidecarService.sidecarPathFor(archivedFile).toString());
+        doc.setSidecarPath(props.getArchivePath().relativize(sidecarService.sidecarPathFor(archivedFile)).toString());
         doc.setClassified(true);
         doc.setClassifiedAt(Instant.now());
 
@@ -326,7 +327,7 @@ public class DocumentPipelineService {
             .orElseThrow(() -> new IllegalArgumentException("Document not found: " + documentId));
 
         String oldRelPath = doc.getResolvedPath();
-        Path oldFile = props.getRoot().resolve(oldRelPath);
+        Path oldFile = props.getArchivePath().resolve(oldRelPath);
 
         ResolvedPath resolved = pathResolverService.resolve(
             doc.getAppliedRule() != null ? doc.getAppliedRule().getId() : null,
@@ -341,14 +342,14 @@ public class DocumentPipelineService {
         }
 
         Path newFile = archiveService.reclassify(oldFile, newRelPath);
-        String actualNewRelPath = props.getRoot().relativize(newFile).toString();
+        String actualNewRelPath = props.getArchivePath().relativize(newFile).toString();
 
         Path oldSidecar = sidecarService.sidecarPathFor(oldFile);
         if (Files.exists(oldSidecar)) {
             Path newSidecar = sidecarService.sidecarPathFor(newFile);
             Files.createDirectories(newSidecar.getParent());
             Files.move(oldSidecar, newSidecar, java.nio.file.StandardCopyOption.ATOMIC_MOVE);
-            doc.setSidecarPath(newSidecar.toString());
+            doc.setSidecarPath(props.getArchivePath().relativize(newSidecar).toString());
         }
 
         ClassificationHistory history = new ClassificationHistory();
@@ -379,6 +380,19 @@ public class DocumentPipelineService {
         documentRepository.save(doc);
     }
 
+    public int applyRuleToAll(Long ruleId) throws IOException {
+        List<Document> docs = documentRepository.findAllByAppliedRuleId(ruleId);
+        int moved = 0;
+        for (Document doc : docs) {
+            String before = doc.getResolvedPath();
+            reclassify(doc.getId());
+            Document updated = documentRepository.findById(doc.getId()).orElse(doc);
+            if (!updated.getResolvedPath().equals(before)) moved++;
+        }
+        log.info("Applied rule {}: {} document(s) moved", ruleId, moved);
+        return moved;
+    }
+
     public record ProposedPathParts(String full, String existing, String newPart) {}
 
     public ProposedPathParts proposedPath(Document doc) {
@@ -393,7 +407,7 @@ public class DocumentPipelineService {
 
     private ProposedPathParts splitProposedPath(String relPath) {
         String[] segments = relPath.split("/");
-        Path current = props.getRoot();
+        Path current = props.getArchivePath();
         int existingCount = 0;
         // Walk directory segments (all but the last, which is the filename)
         for (int i = 0; i < segments.length - 1; i++) {

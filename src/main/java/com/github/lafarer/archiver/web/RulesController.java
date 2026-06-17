@@ -4,6 +4,7 @@ import com.github.lafarer.archiver.model.Document;
 import com.github.lafarer.archiver.model.StoragePathRule;
 import com.github.lafarer.archiver.repository.DocumentRepository;
 import com.github.lafarer.archiver.repository.StoragePathRuleRepository;
+import com.github.lafarer.archiver.service.DocumentPipelineService;
 import com.github.lafarer.archiver.service.PathResolverService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -14,6 +15,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -26,6 +28,7 @@ public class RulesController {
     private final StoragePathRuleRepository ruleRepository;
     private final DocumentRepository documentRepository;
     private final PathResolverService pathResolverService;
+    private final DocumentPipelineService pipelineService;
 
     public record SimulateResult(Document document, String newPath, boolean changed) {}
 
@@ -68,6 +71,8 @@ public class RulesController {
         model.addAttribute("docPage", docPage);
         model.addAttribute("results", List.of());
         model.addAttribute("pathTemplate", "");
+        model.addAttribute("outOfSyncCount", countOutOfSync(id, rule.getPathTemplate()));
+        if (!model.containsAttribute("message")) model.addAttribute("message", null);
         model.addAttribute("page", "rules");
         return "rules/form";
     }
@@ -117,7 +122,17 @@ public class RulesController {
         rule.setDefault(form.isDefault());
         ruleRepository.save(rule);
         ra.addFlashAttribute("message", "Règle mise à jour.");
-        return "redirect:/rules";
+        return "redirect:/rules/" + id + "/edit";
+    }
+
+    @PostMapping("/{id}/apply")
+    public String apply(@PathVariable Long id, RedirectAttributes ra) throws IOException {
+        int moved = pipelineService.applyRuleToAll(id);
+        ra.addFlashAttribute("message",
+            moved == 0 ? "Tous les documents sont déjà à jour."
+            : moved == 1 ? "1 document déplacé."
+            : moved + " documents déplacés.");
+        return "redirect:/rules/" + id + "/edit";
     }
 
     @PostMapping("/{id}/delete")
@@ -137,6 +152,16 @@ public class RulesController {
                 ruleRepository.save(r);
             });
         }
+    }
+
+    private long countOutOfSync(Long ruleId, String pathTemplate) {
+        if (pathTemplate == null || pathTemplate.isBlank()) return 0;
+        return documentRepository.findAllByAppliedRuleId(ruleId).stream()
+            .filter(doc -> {
+                String proposed = pathResolverService.simulatePath(pathTemplate, doc);
+                return !proposed.equals(stripExtension(doc.getResolvedPath()));
+            })
+            .count();
     }
 
     private void ensureSingleDefault(StoragePathRule incoming) {

@@ -8,7 +8,9 @@
 @param Page<Document> docPage
 @param List<SimulateResult> results
 @param String pathTemplate
+@param long outOfSyncCount = 0
 @param String page
+@param String message = null
 
 @template.layout.base(page = page, title = "Règle", content = @`
 
@@ -17,6 +19,14 @@
 </div>
 
 <div class="page-body">
+
+    @if(message != null)
+    <div class="alert alert-success alert-dismissible fade show" role="alert" style="max-width: 640px">
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    @endif
+
     <div class="card" style="max-width: 640px">
         <div class="card-body">
             <form method="post" action="${rule.getId() == null ? "/rules" : "/rules/" + rule.getId()}">
@@ -70,7 +80,14 @@
     @if(rule.getId() != null)
     <div class="card mt-4" style="max-width: 640px">
         <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
-            <span>Documents concernés <span class="badge bg-secondary ms-1">${docPage.getTotalElements()}</span></span>
+            <span>
+                Documents concernés <span class="badge bg-secondary ms-1">${docPage.getTotalElements()}</span>
+                @if(outOfSyncCount > 0)
+                    <span class="badge bg-warning text-dark ms-1">${outOfSyncCount} à déplacer</span>
+                @elseif(docPage.getTotalElements() > 0)
+                    <span class="badge bg-success ms-1">à jour</span>
+                @endif
+            </span>
             @if(docPage.getTotalElements() > 0)
             <div class="d-flex align-items-center gap-2">
                 <%-- Tracks the template used for simulate; persists across HTMX swaps of #docs-body --%>
@@ -82,6 +99,13 @@
                         hx-vals='{"page":"0"}'
                         hx-target="#docs-body"
                         hx-swap="innerHTML">Simuler</button>
+                @if(outOfSyncCount > 0)
+                <form method="post" action="/rules/${rule.getId()}/apply" class="d-inline">
+                    <button type="submit" class="btn btn-sm btn-warning">
+                        Appliquer (${outOfSyncCount})
+                    </button>
+                </form>
+                @endif
             </div>
             @endif
         </div>

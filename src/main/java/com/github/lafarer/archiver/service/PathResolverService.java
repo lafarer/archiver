@@ -1,6 +1,5 @@
 package com.github.lafarer.archiver.service;
 
-import com.github.lafarer.archiver.config.ArchiverProperties;
 import com.github.lafarer.archiver.model.StoragePathRule;
 import com.github.lafarer.archiver.repository.StoragePathRuleRepository;
 import com.github.slugify.Slugify;
@@ -18,7 +17,6 @@ import java.util.regex.Pattern;
 public class PathResolverService {
 
     private final StoragePathRuleRepository ruleRepository;
-    private final ArchiverProperties props;
     private static final Slugify SLUGIFY = Slugify.builder().build();
     // [var?]sep - optional variable: if absent, var and following separator are omitted
     private static final Pattern OPT_VARIABLE = Pattern.compile("\\[(\\w+)\\?]([-/._]?)");
@@ -28,10 +26,8 @@ public class PathResolverService {
     public record ResolvedPath(String relativePath, StoragePathRule appliedRule) {}
 
     public String simulatePath(String template, com.github.lafarer.archiver.model.Document doc) {
-        String path = renderTemplate(template, doc.getDocumentType(), doc.getDocumentDate(),
+        return renderTemplate(template, doc.getDocumentType(), doc.getDocumentDate(),
                 doc.getTitle(), doc.getIssuer(), doc.getCustomFields());
-        String archiveFolder = props.getArchiveFolder();
-        return (archiveFolder != null && !archiveFolder.isBlank()) ? archiveFolder + "/" + path : path;
     }
 
     private static final String FALLBACK_TEMPLATE = "Documents/[yyyy]/[mm]/[document_type]-[title]";
@@ -47,11 +43,7 @@ public class PathResolverService {
         StoragePathRule rule = selectRule(aiSelectedRuleId);
         String template = rule != null ? rule.getPathTemplate() : FALLBACK_TEMPLATE;
         String path = renderTemplate(template, documentType, documentDate, title, issuer, customFields);
-        String archiveFolder = props.getArchiveFolder();
-        String fullPath = (archiveFolder != null && !archiveFolder.isBlank())
-            ? archiveFolder + "/" + path
-            : path;
-        return new ResolvedPath(fullPath, rule);  // rule may be null - Document.appliedRule is nullable
+        return new ResolvedPath(path, rule);  // relative to archivePath; rule may be null
     }
 
     private StoragePathRule selectRule(Long aiSelectedRuleId) {

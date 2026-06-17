@@ -48,10 +48,10 @@ public class DocumentController {
 
     private Path resolveFilePath(Document doc) {
         if (doc.isClassified() && doc.getResolvedPath() != null) {
-            return props.getRoot().resolve(doc.getResolvedPath());
+            return props.getArchivePath().resolve(doc.getResolvedPath());
         }
         if (doc.getSourcePath() != null) {
-            return Path.of(doc.getSourcePath());
+            return props.getInboxPath().resolve(doc.getSourcePath());
         }
         return props.getInboxPath().resolve(doc.getOriginalFilename());
     }
