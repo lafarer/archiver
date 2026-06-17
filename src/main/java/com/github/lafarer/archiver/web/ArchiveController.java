@@ -20,6 +20,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.util.UriComponentsBuilder;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.io.IOException;
@@ -56,15 +57,7 @@ public class ArchiveController {
                         @RequestParam Map<String, String> allParams,
                         HttpServletRequest request,
                         Model model) {
-        Sort pageSort = switch (sort) {
-            case "date_asc"   -> Sort.by(Sort.Direction.ASC,  "documentDate", "createdAt");
-            case "title_asc"  -> Sort.by(Sort.Direction.ASC,  "title");
-            case "title_desc" -> Sort.by(Sort.Direction.DESC, "title");
-            case "issuer_asc" -> Sort.by(Sort.Direction.ASC,  "issuer");
-            case "type_asc"   -> Sort.by(Sort.Direction.ASC,  "documentType");
-            default           -> Sort.by(Sort.Direction.DESC, "documentDate", "createdAt");
-        };
-        PageRequest pageable = PageRequest.of(page, PAGE_SIZE, pageSort);
+        PageRequest pageable = PageRequest.of(page, PAGE_SIZE, buildSort(sort));
 
         // Collect active custom field filters from cf_* params
         Map<String, String> selectedCustomFields = new HashMap<>();
@@ -108,6 +101,7 @@ public class ArchiveController {
         model.addAttribute("customFieldDefs",  customFieldDefs);
         model.addAttribute("cfSuggestions",    cfSuggestions);
         model.addAttribute("sort",    sort);
+        model.addAttribute("navBase", buildNavBase(q, type, issuer, selectedTags, selectedCustomFields, sort, page));
         model.addAttribute("totalSize", formatSize(documentRepository.sumFileSizeBytesClassified()));
         model.addAttribute("page", "archive");
 
@@ -116,10 +110,54 @@ public class ArchiveController {
     }
 
     @GetMapping("/{id}")
-    public String detail(@PathVariable Long id, Model model) {
+    public String detail(@PathVariable Long id,
+                         @RequestParam(required = false) Integer pos,
+                         @RequestParam(name = "page", defaultValue = "0") int navPage,
+                         @RequestParam(name = "sort", defaultValue = "date_desc") String navSort,
+                         @RequestParam(name = "q", required = false) String navQ,
+                         @RequestParam(name = "type", required = false) String navType,
+                         @RequestParam(name = "issuer", required = false) String navIssuer,
+                         @RequestParam(name = "tag", required = false) List<String> navTags,
+                         @RequestParam Map<String, String> allParams,
+                         Model model) {
         Document doc = documentRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Document not found: " + id));
         var defs = customFieldDefRepository.findAll();
+
+        String prevUrl = null, nextUrl = null, backUrl = null;
+        if (pos != null) {
+            Map<String, String> navCf = new HashMap<>();
+            allParams.forEach((k, v) -> { if (k.startsWith("cf_")) navCf.put(k.substring(3), v); });
+
+            String navBase = buildNavBase(navQ, navType, navIssuer, navTags, navCf, navSort, navPage);
+            backUrl = "/archive?" + navBase;
+
+            Page<Document> navDocs = executeNavQuery(navQ, navType, navIssuer, navTags, navCf, navSort, navPage);
+            List<Long> pageIds = navDocs.getContent().stream().map(Document::getId).toList();
+            int idx = pos;
+
+            if (idx > 0 && idx < pageIds.size()) {
+                prevUrl = "/archive/" + pageIds.get(idx - 1) + "?pos=" + (idx - 1) + "&" + navBase;
+            } else if (idx == 0 && navPage > 0) {
+                Page<Document> prevDocs = executeNavQuery(navQ, navType, navIssuer, navTags, navCf, navSort, navPage - 1);
+                if (!prevDocs.isEmpty()) {
+                    List<Long> prevIds = prevDocs.getContent().stream().map(Document::getId).toList();
+                    String prevBase = buildNavBase(navQ, navType, navIssuer, navTags, navCf, navSort, navPage - 1);
+                    prevUrl = "/archive/" + prevIds.get(prevIds.size() - 1) + "?pos=" + (prevIds.size() - 1) + "&" + prevBase;
+                }
+            }
+
+            if (idx < pageIds.size() - 1) {
+                nextUrl = "/archive/" + pageIds.get(idx + 1) + "?pos=" + (idx + 1) + "&" + navBase;
+            } else if (!pageIds.isEmpty() && idx == pageIds.size() - 1 && navPage < navDocs.getTotalPages() - 1) {
+                Page<Document> nextDocs = executeNavQuery(navQ, navType, navIssuer, navTags, navCf, navSort, navPage + 1);
+                if (!nextDocs.isEmpty()) {
+                    String nextBase = buildNavBase(navQ, navType, navIssuer, navTags, navCf, navSort, navPage + 1);
+                    nextUrl = "/archive/" + nextDocs.getContent().getFirst().getId() + "?pos=0&" + nextBase;
+                }
+            }
+        }
+
         model.addAttribute("document", doc);
         model.addAttribute("customFieldDefs", defs);
         model.addAttribute("fieldSuggestions", buildFieldSuggestions(defs));
@@ -127,6 +165,9 @@ public class ArchiveController {
         model.addAttribute("proposedPath", pipelineService.proposedPath(doc));
         model.addAttribute("history", historyRepository.findByDocumentIdOrderByCreatedAtDesc(id));
         model.addAttribute("cfProvenance", buildCfProvenance(doc));
+        model.addAttribute("prevUrl", prevUrl);
+        model.addAttribute("nextUrl", nextUrl);
+        model.addAttribute("backUrl", backUrl);
         if (!model.containsAttribute("message")) model.addAttribute("message", null);
         model.addAttribute("page", "archive");
         return "archive/detail";
@@ -228,6 +269,44 @@ public class ArchiveController {
         documentRepository.save(doc);
         redirectAttributes.addFlashAttribute("message", "Document mis à jour.");
         return "redirect:/archive/" + id;
+    }
+
+    private static Sort buildSort(String sort) {
+        return switch (sort) {
+            case "date_asc"   -> Sort.by("documentDate").ascending();
+            case "title_asc"  -> Sort.by("title").ascending();
+            case "title_desc" -> Sort.by("title").descending();
+            case "issuer_asc" -> Sort.by("issuer").ascending();
+            case "type_asc"   -> Sort.by("documentType").ascending();
+            default           -> Sort.by("documentDate").descending();
+        };
+    }
+
+    private Page<Document> executeNavQuery(String q, String type, String issuer, List<String> tags,
+                                            Map<String, String> cf, String sort, int page) {
+        PageRequest pageable = PageRequest.of(page, PAGE_SIZE, buildSort(sort));
+        Specification<Document> spec = DocumentSpecs.classified();
+        if (q != null && !q.isBlank())           spec = spec.and(DocumentSpecs.queryMatches(q));
+        if (type != null && !type.isBlank())     spec = spec.and(DocumentSpecs.hasType(type));
+        if (issuer != null && !issuer.isBlank()) spec = spec.and(DocumentSpecs.issuerContains(issuer));
+        if (tags != null && !tags.isEmpty())     spec = spec.and(DocumentSpecs.hasAnyTag(tags));
+        for (var entry : cf.entrySet())
+            spec = spec.and(DocumentSpecs.hasCustomField(entry.getKey(), entry.getValue()));
+        return documentRepository.findAll(spec, pageable);
+    }
+
+    private static String buildNavBase(String q, String type, String issuer, List<String> tags,
+                                        Map<String, String> cf, String sort, int page) {
+        UriComponentsBuilder builder = UriComponentsBuilder.newInstance();
+        if (q != null && !q.isBlank())           builder.queryParam("q", q);
+        if (type != null && !type.isBlank())     builder.queryParam("type", type);
+        if (issuer != null && !issuer.isBlank()) builder.queryParam("issuer", issuer);
+        if (tags != null) tags.forEach(t -> builder.queryParam("tag", t));
+        cf.forEach((slug, val) -> builder.queryParam("cf_" + slug, val));
+        builder.queryParam("sort", sort);
+        builder.queryParam("page", page);
+        String query = builder.build().getQuery();
+        return query != null ? query : "";
     }
 
     public record DocumentForm(

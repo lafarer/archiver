@@ -13,6 +13,7 @@
 @param Map<String, String> selectedCustomFields
 @param List<CustomFieldDef> customFieldDefs
 @param Set<Long> outOfSyncIds = java.util.Set.of()
+@param String navBase = ""
 
 !{boolean hasFilters = !q.isBlank() || !selectedType.isBlank() || !selectedIssuer.isBlank() || !selectedTags.isEmpty() || !selectedCustomFields.isEmpty();}
 @if(hasFilters)
@@ -60,7 +61,9 @@
     <div class="text-center text-muted py-5">Aucun document trouvé.</div>
 @else
     <div class="text-muted small mb-2">${documents.getTotalElements()} document${documents.getTotalElements() > 1 ? "s" : ""}</div>
+    !{int[] navPos = {0};}
     @for(Document doc : documents.getContent())
+        !{int pos = navPos[0]++;}
         <div class="doc-card">
             <div class="doc-card-header">
                 <span class="badge bg-light text-dark">${doc.getDocumentType() != null ? doc.getDocumentType() : "-"}</span>
@@ -91,7 +94,7 @@
                                 data-mime-type="${doc.getMimeType()}"
                                 data-title="${docTitle}">Aperçu</button>
                     @endif
-                    <a href="/archive/${doc.getId()}" class="btn btn-sm btn-outline-secondary">Détail</a>
+                    <a href="/archive/${doc.getId()}?pos=${pos}${navBase.isEmpty() ? "" : "&" + navBase}" class="btn btn-sm btn-outline-secondary">Détail</a>
                 </div>
             </div>
         </div>

@@ -19,6 +19,7 @@
 @param Set<Long> outOfSyncIds
 @param String totalSize = ""
 @param String sort = "date_desc"
+@param String navBase = ""
 @param String page
 @param boolean watchdogRunning = false
 
@@ -144,7 +145,7 @@
 
 <div class="page-body">
     <div id="doc-list">
-        @template.archive.list_fragment(documents = documents, q = q, selectedType = selectedType, selectedIssuer = selectedIssuer, selectedTags = selectedTags, selectedCustomFields = selectedCustomFields, customFieldDefs = customFieldDefs, outOfSyncIds = outOfSyncIds)
+        @template.archive.list_fragment(documents = documents, q = q, selectedType = selectedType, selectedIssuer = selectedIssuer, selectedTags = selectedTags, selectedCustomFields = selectedCustomFields, customFieldDefs = customFieldDefs, outOfSyncIds = outOfSyncIds, navBase = navBase)
     </div>
 </div>
 

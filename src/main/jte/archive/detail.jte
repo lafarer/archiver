@@ -17,6 +17,9 @@
 @param Map<String, String> cfProvenance
 @param ProposedPathParts proposedPath
 @param List<ClassificationHistory> history
+@param String prevUrl = null
+@param String nextUrl = null
+@param String backUrl = null
 @param String page
 @param String message = null
 @param boolean watchdogRunning = false
@@ -28,15 +31,27 @@
 !{String previewTitle = document.getTitle() != null ? document.getTitle() : document.getOriginalFilename();}
 <div class="page-header">
     <h1>
-        <a href="/archive" class="text-decoration-none text-muted me-2">←</a>
+        <a href="${backUrl != null ? backUrl : "/archive"}" class="text-decoration-none text-muted me-2">←</a>
         ${pageTitle}
     </h1>
-    @if(previewable)
-        <button type="button" class="btn btn-outline-primary btn-sm"
-                onclick="openPreviewDrawer('/documents/${document.getId()}/file', '${document.getMimeType()}', '${previewTitle}')">
-            Aperçu
-        </button>
-    @endif
+    <div class="d-flex gap-2 align-items-center">
+        @if(prevUrl != null)
+            <a href="${prevUrl}" class="btn btn-sm btn-outline-secondary" title="Document précédent">‹</a>
+        @else
+            <button class="btn btn-sm btn-outline-secondary" disabled>‹</button>
+        @endif
+        @if(nextUrl != null)
+            <a href="${nextUrl}" class="btn btn-sm btn-outline-secondary" title="Document suivant">›</a>
+        @else
+            <button class="btn btn-sm btn-outline-secondary" disabled>›</button>
+        @endif
+        @if(previewable)
+            <button type="button" class="btn btn-outline-primary btn-sm"
+                    onclick="openPreviewDrawer('/documents/${document.getId()}/file', '${document.getMimeType()}', '${previewTitle}')">
+                Aperçu
+            </button>
+        @endif
+    </div>
 </div>
 
 <div class="page-body">
