@@ -47,6 +47,9 @@
             <a class="nav-link ${page.equals("tags") ? "active" : ""}" href="/tags">Tags</a>
         </li>
         <li class="nav-item mt-auto">
+            <a class="nav-link ${page.equals("audit") ? "active" : ""}" href="/audit">Audit</a>
+        </li>
+        <li class="nav-item">
             <a class="nav-link ${page.equals("settings") ? "active" : ""}" href="/settings">Réglages</a>
         </li>
     </ul>
