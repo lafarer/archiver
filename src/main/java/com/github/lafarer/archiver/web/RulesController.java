@@ -46,8 +46,14 @@ public class RulesController {
         List<StoragePathRule> rules = ruleRepository.findByActiveTrueOrderByPriorityAsc();
         Map<Long, Long> docCounts = documentRepository.countGroupedByAppliedRule().stream()
             .collect(Collectors.toMap(r -> (Long) r[0], r -> (Long) r[1]));
+        Map<Long, Long> outOfSyncCounts = rules.stream()
+            .collect(Collectors.toMap(
+                StoragePathRule::getId,
+                r -> countOutOfSync(r.getId(), r.getPathTemplate())
+            ));
         model.addAttribute("rules", rules);
         model.addAttribute("docCounts", docCounts);
+        model.addAttribute("outOfSyncCounts", outOfSyncCounts);
         model.addAttribute("page", "rules");
         return "rules/index";
     }

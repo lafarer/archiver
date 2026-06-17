@@ -4,6 +4,7 @@
 
 @param List<StoragePathRule> rules
 @param Map<Long, Long> docCounts
+@param Map<Long, Long> outOfSyncCounts
 @param String page
 
 @template.layout.base(page = page, title = "Règles", content = @`
@@ -31,6 +32,10 @@
                         !{long count = docCounts.getOrDefault(rule.getId(), 0L);}
                         @if(count > 0)
                             <span class="badge bg-light text-secondary border ms-1">${count} doc${count > 1 ? "s" : ""}</span>
+                        @endif
+                        !{long outOfSync = outOfSyncCounts.getOrDefault(rule.getId(), 0L);}
+                        @if(outOfSync > 0)
+                            <span class="badge bg-warning text-dark ms-1">${outOfSync} à déplacer</span>
                         @endif
                     </div>
                     @if(rule.getConditionNl() != null)
