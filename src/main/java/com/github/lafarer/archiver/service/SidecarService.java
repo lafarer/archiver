@@ -4,13 +4,17 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.github.lafarer.archiver.model.Document;
+import com.github.lafarer.archiver.model.enums.DatePrecision;
+import com.github.lafarer.archiver.model.enums.FieldSource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -51,6 +55,91 @@ public class SidecarService {
         } catch (IOException e) {
             log.error("Failed to write sidecar for {}: {}", archivedFile, e.getMessage());
         }
+    }
+
+    /**
+     * Reads a sidecar JSON and returns a Document populated with its metadata.
+     * File-derived fields (sha256, mimeType, fileSize, mtime, resolvedPath, originalFilename)
+     * are left null - the caller must fill them from the actual file.
+     */
+    @SuppressWarnings("unchecked")
+    public Document importDocument(Path sidecarPath) throws IOException {
+        Map<String, Object> data = mapper.readValue(sidecarPath.toFile(), new TypeReference<>() {});
+        Document doc = new Document();
+        doc.setDocumentType(str(data, "document_type"));
+        doc.setTitle(str(data, "title"));
+        doc.setDocumentDate(str(data, "document_date"));
+        doc.setIssuer(str(data, "issuer"));
+        doc.setDescription(str(data, "description"));
+        doc.setAiModel(str(data, "ai_model"));
+        doc.setAiReasoning(str(data, "ai_reasoning"));
+
+        Object rawPrec = data.get("document_date_precision");
+        if (rawPrec != null) {
+            try { doc.setDocumentDatePrecision(DatePrecision.valueOf(rawPrec.toString())); }
+            catch (IllegalArgumentException ignored) {}
+        }
+
+        Object rawTags = data.get("tags");
+        if (rawTags instanceof List<?> list) {
+            List<String> tags = new ArrayList<>();
+            list.forEach(t -> tags.add(t.toString()));
+            doc.setTags(tags);
+        }
+
+        Object rawCf = data.get("custom_fields");
+        if (rawCf instanceof Map<?, ?> cfMap) {
+            cfMap.forEach((k, v) -> doc.getCustomFields().put(k.toString(), v != null ? v.toString() : ""));
+        }
+
+        Object rawExtracted = data.get("extracted_at");
+        if (rawExtracted != null) {
+            try { doc.setClassifiedAt(Instant.parse(rawExtracted.toString())); }
+            catch (Exception ignored) {}
+        }
+
+        Object rawProv = data.get("provenance");
+        if (rawProv instanceof Map<?, ?> provMap) {
+            applyProvenance(doc, (Map<String, Object>) provMap);
+        }
+
+        doc.setClassified(true);
+        return doc;
+    }
+
+    @SuppressWarnings("unchecked")
+    private void applyProvenance(Document doc, Map<String, Object> provenance) {
+        Map<String, Object> titleProv = (Map<String, Object>) provenance.get("title");
+        if (titleProv != null) {
+            doc.setTitleSource(parseSource(titleProv.get("source")));
+            doc.setTitleConfidence(parseDouble(titleProv.get("confidence")));
+        }
+        Map<String, Object> dateProv = (Map<String, Object>) provenance.get("document_date");
+        if (dateProv != null) {
+            doc.setDocumentDateSource(parseSource(dateProv.get("source")));
+            doc.setDocumentDateConfidence(parseDouble(dateProv.get("confidence")));
+        }
+        Map<String, Object> issuerProv = (Map<String, Object>) provenance.get("issuer");
+        if (issuerProv != null) {
+            doc.setIssuerSource(parseSource(issuerProv.get("source")));
+            doc.setIssuerConfidence(parseDouble(issuerProv.get("confidence")));
+        }
+    }
+
+    private static String str(Map<String, Object> map, String key) {
+        Object v = map.get(key);
+        return v != null ? v.toString() : null;
+    }
+
+    private static FieldSource parseSource(Object v) {
+        if (v == null) return null;
+        try { return FieldSource.valueOf(v.toString().toUpperCase()); }
+        catch (IllegalArgumentException e) { return null; }
+    }
+
+    private static Double parseDouble(Object v) {
+        if (v instanceof Number n) return n.doubleValue();
+        return null;
     }
 
     private Map<String, Object> buildProvenance(Document doc) {

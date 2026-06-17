@@ -47,12 +47,21 @@
     <div class="card mb-3">
         <div class="card-header d-flex justify-content-between align-items-center">
             <span class="fw-semibold">Non indexés avec sidecar <span class="badge bg-warning text-dark ms-1">${entries.size()}</span></span>
-            <span class="text-muted small">Fichier ✓ · Sidecar ✓ · DB ✗ — peuvent être reconstruits</span>
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-muted small">Fichier ✓ · Sidecar ✓ · DB ✗</span>
+                <form method="post" action="/audit/repair/import-all-sidecars">
+                    <button type="submit" class="btn btn-warning btn-sm">Tout importer</button>
+                </form>
+            </div>
         </div>
         <div class="list-group list-group-flush small">
             @for(AuditEntry e : entries)
             <div class="list-group-item d-flex justify-content-between align-items-center">
                 <code class="text-truncate me-2">${e.relPath()}</code>
+                <form method="post" action="/audit/repair/import-sidecar" class="flex-shrink-0">
+                    <input type="hidden" name="relPath" value="${e.relPath()}">
+                    <button type="submit" class="btn btn-outline-warning btn-sm">Importer</button>
+                </form>
             </div>
             @endfor
         </div>

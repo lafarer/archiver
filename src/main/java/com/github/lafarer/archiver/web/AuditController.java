@@ -7,6 +7,7 @@ import com.github.lafarer.archiver.service.ArchiveService;
 import com.github.lafarer.archiver.service.SidecarService;
 import com.github.lafarer.archiver.service.StorageAuditService;
 import com.github.lafarer.archiver.service.StorageAuditService.AnomalyType;
+import com.github.lafarer.archiver.service.StorageAuditService.AuditEntry;
 import com.github.lafarer.archiver.service.StorageAuditService.AuditReport;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,8 +17,15 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
+import java.util.List;
 
 @Controller
 @RequestMapping("/audit")
@@ -135,5 +143,68 @@ public class AuditController {
         }
         ra.addFlashAttribute("message", count + " sidecar(s) régénéré(s).");
         return "redirect:/audit?run=true";
+    }
+
+    // --- Import from sidecar (step 4) ---
+
+    @PostMapping("/repair/import-sidecar")
+    public String importSidecar(@RequestParam String relPath,
+                                RedirectAttributes ra) throws IOException {
+        int imported = importEntry(relPath);
+        ra.addFlashAttribute("message", imported == 1 ? "Document importé." : "Document déjà présent (doublon ignoré).");
+        return "redirect:/audit?run=true";
+    }
+
+    @PostMapping("/repair/import-all-sidecars")
+    public String importAllSidecars(RedirectAttributes ra) throws IOException {
+        AuditReport report = auditService.scan();
+        List<AuditEntry> entries = report.byType().getOrDefault(AnomalyType.UNTRACKED_WITH_SIDECAR, List.of());
+        int imported = 0;
+        for (AuditEntry entry : entries) {
+            imported += importEntry(entry.relPath());
+        }
+        ra.addFlashAttribute("message", imported + " document(s) importé(s).");
+        return "redirect:/audit?run=true";
+    }
+
+    private int importEntry(String relPath) throws IOException {
+        Path docFile = props.getArchivePath().resolve(relPath);
+        Path sidecarFile = sidecarService.sidecarPathFor(docFile);
+        if (!Files.exists(docFile) || !Files.exists(sidecarFile)) return 0;
+
+        String hash = sha256(docFile);
+        if (documentRepository.findBySha256Hash(hash).isPresent()) {
+            log.info("Skipping duplicate during import: {}", relPath);
+            return 0;
+        }
+
+        Document doc = sidecarService.importDocument(sidecarFile);
+        doc.setOriginalFilename(docFile.getFileName().toString());
+        doc.setResolvedPath(relPath);
+        doc.setSidecarPath(props.getArchivePath().relativize(sidecarFile).toString());
+        doc.setSha256Hash(hash);
+        doc.setMimeType(probeType(docFile));
+        doc.setFileSizeBytes(Files.size(docFile));
+        doc.setFilesystemMtime(Files.getLastModifiedTime(docFile).toInstant());
+        documentRepository.save(doc);
+        log.info("Imported from sidecar: {}", relPath);
+        return 1;
+    }
+
+    private String sha256(Path file) throws IOException {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            try (InputStream is = new DigestInputStream(Files.newInputStream(file), md)) {
+                is.transferTo(OutputStream.nullOutputStream());
+            }
+            return HexFormat.of().formatHex(md.digest());
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private String probeType(Path file) throws IOException {
+        String type = Files.probeContentType(file);
+        return type != null ? type : "application/octet-stream";
     }
 }
