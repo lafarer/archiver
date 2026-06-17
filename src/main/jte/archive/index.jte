@@ -1,15 +1,20 @@
 @import com.github.lafarer.archiver.model.Document
+@import com.github.lafarer.archiver.model.CustomFieldDef
 @import org.springframework.data.domain.Page
 @import java.util.List
+@import java.util.Map
 
 @param Page<Document> documents
 @param String q
 @param String selectedType
 @param String selectedIssuer
 @param List<String> selectedTags
+@param Map<String, String> selectedCustomFields
 @param List<String> allTypes
 @param List<String> allIssuers
 @param List<String> allTags
+@param List<CustomFieldDef> customFieldDefs
+@param Map<String, List<String>> cfSuggestions
 @param String page
 
 @template.layout.base(page = page, title = "Archive", content = @`
@@ -18,56 +23,109 @@
     <h1>Archive</h1>
 </div>
 
-<form id="archive-filters" class="page-filters"
+!{int activeFilterCount = (selectedType.isBlank() ? 0 : 1) + (selectedIssuer.isBlank() ? 0 : 1) + selectedTags.size() + selectedCustomFields.size();}
+
+<form id="archive-filters"
       hx-get="/archive"
       hx-trigger="change, keyup changed delay:400ms"
       hx-target="#doc-list"
       hx-swap="innerHTML">
 
-    <input type="search" name="q" class="form-control form-control-sm"
-           style="width:200px" placeholder="Rechercher…" value="${q}">
+    <div class="page-filters">
+        <input type="search" name="q" class="form-control form-control-sm"
+               style="width:240px" placeholder="Rechercher…" value="${q}">
 
-    <select name="type" class="form-select form-select-sm" style="width:auto">
-        <option value="">Tous les types</option>
-        @for(String t : allTypes)
-            <option value="${t}" selected="${t.equals(selectedType)}">${t}</option>
-        @endfor
-    </select>
-
-    <input type="text" name="issuer" class="form-control form-control-sm"
-           style="width:160px" placeholder="Émetteur…"
-           value="${selectedIssuer}" list="issuer-list" autocomplete="off">
-    <datalist id="issuer-list">
-        @for(String iss : allIssuers)
-            <option value="${iss}">${iss}</option>
-        @endfor
-    </datalist>
-
-    <div class="dropdown">
-        !{int tagCount = selectedTags.size();}
-        <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle"
-                data-bs-toggle="dropdown" data-bs-auto-close="outside">
-            Tags
-            @if(tagCount > 0)
-                <span class="badge bg-primary ms-1">${tagCount}</span>
+        <button type="button" class="btn btn-sm ${activeFilterCount > 0 ? "btn-primary" : "btn-outline-secondary"}"
+                data-bs-toggle="offcanvas" data-bs-target="#filtersPanel">
+            Filtres
+            @if(activeFilterCount > 0)
+                <span class="badge bg-white text-primary ms-1">${activeFilterCount}</span>
             @endif
         </button>
-        <ul class="dropdown-menu px-1 py-1" style="max-height:260px;overflow-y:auto;min-width:180px">
-            @for(String tag : allTags)
-                !{boolean checked = selectedTags.contains(tag);}
-                <li>
-                    <label class="dropdown-item d-flex align-items-center gap-2 py-1" style="cursor:pointer">
-                        <input type="checkbox" name="tag" value="${tag}" checked="${checked}">
-                        <span class="tag">${tag}</span>
-                    </label>
-                </li>
-            @endfor
-        </ul>
+
+        @if(activeFilterCount > 0)
+            <a href="/archive" class="btn btn-sm btn-link text-muted p-0">Effacer</a>
+        @endif
     </div>
 
-    @if(!q.isBlank() || !selectedType.isBlank() || !selectedIssuer.isBlank() || !selectedTags.isEmpty())
-        <a href="/archive" class="btn btn-sm btn-link text-muted p-0">Effacer</a>
-    @endif
+    <%-- Offcanvas panel --%>
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="filtersPanel" style="width:320px">
+        <div class="offcanvas-header border-bottom">
+            <h6 class="offcanvas-title fw-semibold">Filtres</h6>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+        </div>
+
+        <div class="offcanvas-body d-flex flex-column gap-4 py-3">
+
+            <div>
+                <label class="form-label fw-semibold small">Type de document</label>
+                <select name="type" class="form-select form-select-sm">
+                    <option value="">Tous</option>
+                    @for(String t : allTypes)
+                        <option value="${t}" selected="${t.equals(selectedType)}">${t}</option>
+                    @endfor
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label fw-semibold small">Émetteur</label>
+                <input type="text" name="issuer" class="form-control form-control-sm"
+                       placeholder="Rechercher un émetteur…"
+                       value="${selectedIssuer}" list="issuer-list" autocomplete="off">
+                <datalist id="issuer-list">
+                    @for(String iss : allIssuers)
+                        <option value="${iss}">${iss}</option>
+                    @endfor
+                </datalist>
+            </div>
+
+            <div>
+                <label class="form-label fw-semibold small">Tags</label>
+                <div class="d-flex flex-column gap-1" style="max-height:220px;overflow-y:auto">
+                    @for(String tag : allTags)
+                        !{boolean checked = selectedTags.contains(tag);}
+                        <label class="d-flex align-items-center gap-2 py-1 px-1 rounded" style="cursor:pointer">
+                            <input type="checkbox" name="tag" value="${tag}" checked="${checked}">
+                            <span class="tag">${tag}</span>
+                        </label>
+                    @endfor
+                </div>
+            </div>
+
+            @if(!customFieldDefs.isEmpty())
+            <div>
+                <div class="fw-semibold small border-top pt-3 mb-3">Champs personnalisés</div>
+                <div class="d-flex flex-column gap-3">
+                    @for(CustomFieldDef def : customFieldDefs)
+                        !{String cfKey = "cf_" + def.getSlug();}
+                        !{String cfVal = selectedCustomFields.getOrDefault(def.getSlug(), "");}
+                        !{List<String> suggestions = cfSuggestions.getOrDefault(def.getSlug(), List.of());}
+                        <div>
+                            <label class="form-label form-label-sm small">${def.getLabel()}</label>
+                            <input type="text" name="${cfKey}" class="form-control form-control-sm"
+                                   placeholder="${def.getLabel()}…" value="${cfVal}"
+                                   list="cf-list-${def.getSlug()}" autocomplete="off">
+                            @if(!suggestions.isEmpty())
+                                <datalist id="cf-list-${def.getSlug()}">
+                                    @for(String v : suggestions)
+                                        <option value="${v}">${v}</option>
+                                    @endfor
+                                </datalist>
+                            @endif
+                        </div>
+                    @endfor
+                </div>
+            </div>
+            @endif
+
+        </div>
+
+        <div class="p-3 border-top d-flex gap-2">
+            <a href="/archive" class="btn btn-outline-secondary btn-sm flex-fill">Effacer tout</a>
+            <button type="button" class="btn btn-primary btn-sm flex-fill"
+                    data-bs-dismiss="offcanvas">Appliquer</button>
+        </div>
+    </div>
 
 </form>
 

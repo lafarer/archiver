@@ -41,4 +41,14 @@ public class DocumentSpecs {
             return cb.or(predicates);
         };
     }
+
+    // Custom fields are stored as JSON e.g. {"adresse_bien":"Paris"}.
+    // Uses SQLite json_extract via cb.function() for a LIKE match.
+    public static Specification<Document> hasCustomField(String slug, String value) {
+        return (root, query, cb) -> {
+            var jsonExtract = cb.function("json_extract", String.class,
+                root.get("customFields"), cb.literal("$." + slug));
+            return cb.like(cb.lower(jsonExtract), "%" + value.toLowerCase() + "%");
+        };
+    }
 }

@@ -17,6 +17,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,27 +39,46 @@ public class ArchiveController {
                         @RequestParam(required = false) String issuer,
                         @RequestParam(name = "tag", required = false) List<String> selectedTags,
                         @RequestParam(defaultValue = "0") int page,
+                        @RequestParam Map<String, String> allParams,
                         HttpServletRequest request,
                         Model model) {
         PageRequest pageable = PageRequest.of(page, PAGE_SIZE,
             Sort.by(Sort.Direction.DESC, "documentDate", "createdAt"));
+
+        // Collect active custom field filters from cf_* params
+        Map<String, String> selectedCustomFields = new HashMap<>();
+        allParams.forEach((key, value) -> {
+            if (key.startsWith("cf_") && !value.isBlank())
+                selectedCustomFields.put(key.substring(3), value);
+        });
 
         Specification<Document> spec = DocumentSpecs.classified();
         if (q != null && !q.isBlank())           spec = spec.and(DocumentSpecs.queryMatches(q));
         if (type != null && !type.isBlank())     spec = spec.and(DocumentSpecs.hasType(type));
         if (issuer != null && !issuer.isBlank()) spec = spec.and(DocumentSpecs.issuerContains(issuer));
         if (selectedTags != null && !selectedTags.isEmpty()) spec = spec.and(DocumentSpecs.hasAnyTag(selectedTags));
+        for (var entry : selectedCustomFields.entrySet())
+            spec = spec.and(DocumentSpecs.hasCustomField(entry.getKey(), entry.getValue()));
 
         Page<Document> documents = documentRepository.findAll(spec, pageable);
 
+        // Build per-field distinct value suggestions
+        var customFieldDefs = customFieldDefRepository.findAll();
+        Map<String, List<String>> cfSuggestions = new LinkedHashMap<>();
+        for (var def : customFieldDefs)
+            cfSuggestions.put(def.getSlug(), documentRepository.findDistinctCustomFieldValues("$." + def.getSlug()));
+
         model.addAttribute("documents", documents);
-        model.addAttribute("q",            q != null ? q : "");
-        model.addAttribute("selectedType",   type != null ? type : "");
-        model.addAttribute("selectedIssuer", issuer != null ? issuer : "");
-        model.addAttribute("selectedTags",   selectedTags != null ? selectedTags : List.of());
-        model.addAttribute("allTypes",  documentRepository.findDistinctDocumentTypes());
+        model.addAttribute("q",                   q != null ? q : "");
+        model.addAttribute("selectedType",         type != null ? type : "");
+        model.addAttribute("selectedIssuer",       issuer != null ? issuer : "");
+        model.addAttribute("selectedTags",         selectedTags != null ? selectedTags : List.of());
+        model.addAttribute("selectedCustomFields", selectedCustomFields);
+        model.addAttribute("allTypes",   documentRepository.findDistinctDocumentTypes());
         model.addAttribute("allIssuers", documentRepository.findDistinctIssuers());
-        model.addAttribute("allTags",   documentRepository.findDistinctTagValues());
+        model.addAttribute("allTags",    documentRepository.findDistinctTagValues());
+        model.addAttribute("customFieldDefs",  customFieldDefs);
+        model.addAttribute("cfSuggestions",    cfSuggestions);
         model.addAttribute("page", "archive");
 
         boolean htmx = "true".equals(request.getHeader("HX-Request"));
