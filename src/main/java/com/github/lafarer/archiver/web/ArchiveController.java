@@ -1,10 +1,12 @@
 package com.github.lafarer.archiver.web;
 
+import com.github.lafarer.archiver.config.ArchiverProperties;
 import com.github.lafarer.archiver.model.Document;
 import com.github.lafarer.archiver.repository.CustomFieldDefRepository;
 import com.github.lafarer.archiver.repository.DocumentRepository;
 import com.github.lafarer.archiver.repository.DocumentSpecs;
 import com.github.lafarer.archiver.repository.DocumentTypeDefRepository;
+import com.github.lafarer.archiver.service.ArchiveService;
 import com.github.lafarer.archiver.service.DocumentPipelineService;
 import org.springframework.data.jpa.domain.Specification;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +34,8 @@ public class ArchiveController {
     private final CustomFieldDefRepository customFieldDefRepository;
     private final DocumentTypeDefRepository documentTypeDefRepository;
     private final DocumentPipelineService pipelineService;
+    private final ArchiveService archiveService;
+    private final ArchiverProperties props;
 
     private static final int PAGE_SIZE = 25;
 
@@ -107,6 +111,18 @@ public class ArchiveController {
             result.put(def.getSlug(), documentRepository.findDistinctCustomFieldValues("$." + def.getSlug()));
         }
         return result;
+    }
+
+    @PostMapping("/{id}/delete")
+    public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) throws IOException {
+        Document doc = documentRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Document not found: " + id));
+        if (doc.getResolvedPath() != null) {
+            archiveService.delete(props.getArchivePath().resolve(doc.getResolvedPath()));
+        }
+        documentRepository.deleteById(id);
+        redirectAttributes.addFlashAttribute("message", "Document supprimé.");
+        return "redirect:/archive";
     }
 
     @PostMapping("/{id}/reclassify")

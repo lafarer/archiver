@@ -17,6 +17,7 @@ public class ArchiveService {
 
     private final ArchiverProperties props;
     private final SettingService settingService;
+    private final SidecarService sidecarService;
 
     public enum SourceType { INBOX, MANUAL }
 
@@ -31,7 +32,7 @@ public class ArchiveService {
         if (move) {
             Files.move(sourceFile, target, StandardCopyOption.ATOMIC_MOVE);
             log.info("Moved {} → {}", sourceFile.getFileName(), target);
-            cleanupEmptyInboxDirs(sourceFile.getParent());
+            cleanupEmptyDirs(sourceFile.getParent(), props.getInboxPath());
         } else {
             Files.copy(sourceFile, target, StandardCopyOption.REPLACE_EXISTING);
             log.info("Copied {} → {}", sourceFile.getFileName(), target);
@@ -49,9 +50,18 @@ public class ArchiveService {
         return target;
     }
 
-    private void cleanupEmptyInboxDirs(Path dir) {
-        Path inbox = props.getInboxPath();
-        while (dir != null && dir.startsWith(inbox) && !dir.equals(inbox)) {
+    public void delete(Path filePath) throws IOException {
+        Files.deleteIfExists(filePath);
+        log.info("Deleted: {}", filePath.getFileName());
+        Path sidecar = sidecarService.sidecarPathFor(filePath);
+        if (Files.deleteIfExists(sidecar)) {
+            log.info("Deleted sidecar: {}", sidecar.getFileName());
+        }
+        cleanupEmptyDirs(filePath.getParent(), props.getArchivePath());
+    }
+
+    private void cleanupEmptyDirs(Path dir, Path baseDir) {
+        while (dir != null && dir.startsWith(baseDir) && !dir.equals(baseDir)) {
             try {
                 boolean isEmpty;
                 try (var stream = Files.list(dir)) {
@@ -59,10 +69,10 @@ public class ArchiveService {
                 }
                 if (!isEmpty) break;
                 Files.delete(dir);
-                log.info("Removed empty inbox folder: {}", dir.getFileName());
+                log.info("Removed empty folder: {}", dir.getFileName());
                 dir = dir.getParent();
             } catch (IOException e) {
-                log.warn("Could not remove inbox folder {}: {}", dir, e.getMessage());
+                log.warn("Could not remove folder {}: {}", dir, e.getMessage());
                 break;
             }
         }

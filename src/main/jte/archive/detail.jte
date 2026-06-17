@@ -162,6 +162,15 @@
 
     </form>
 
+    <hr class="my-4" style="max-width: 700px">
+
+    <div style="max-width: 700px">
+        <form method="post" action="/archive/${document.getId()}/delete"
+              onsubmit="return confirm('Supprimer définitivement ce document et son fichier ?')">
+            <button type="submit" class="btn btn-outline-danger btn-sm">Supprimer le document</button>
+        </form>
+    </div>
+
 </div>
 
 @if(previewable)
