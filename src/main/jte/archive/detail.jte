@@ -11,6 +11,7 @@
 @param List<CustomFieldDef> customFieldDefs
 @param List<DocumentTypeDef> documentTypeDefs
 @param Map<String, List<String>> fieldSuggestions
+@param Map<String, String> cfProvenance
 @param ProposedPathParts proposedPath
 @param List<ClassificationHistory> history
 @param String page
@@ -119,14 +120,24 @@
                         </div>
 
                         <div>
-                            <label class="form-label" for="title">Titre</label>
+                            !{Double titleConf = document.getTitleConfidence();}
+                            <label class="form-label d-flex justify-content-between" for="title">
+                                <span>Titre</span>
+                                @if(titleConf != null)
+                                    <span class="text-muted small">confiance : ${String.format("%.0f%%", titleConf * 100)}</span>
+                                @endif
+                            </label>
                             <input type="text" id="title" name="title" class="form-control"
                                    value="${document.getTitle() != null ? document.getTitle() : ""}">
                         </div>
 
                         <div>
-                            <label class="form-label" for="documentDate">
-                                Date <span class="text-muted small">(AAAA, AAAA-MM ou AAAA-MM-JJ)</span>
+                            !{Double dateConf = document.getDocumentDateConfidence();}
+                            <label class="form-label d-flex justify-content-between" for="documentDate">
+                                <span>Date <span class="text-muted small">(AAAA, AAAA-MM ou AAAA-MM-JJ)</span></span>
+                                @if(dateConf != null)
+                                    <span class="text-muted small">confiance : ${String.format("%.0f%%", dateConf * 100)}</span>
+                                @endif
                             </label>
                             <input type="text" id="documentDate" name="documentDate" class="form-control"
                                    value="${document.getDocumentDate() != null ? document.getDocumentDate() : ""}"
@@ -134,7 +145,13 @@
                         </div>
 
                         <div>
-                            <label class="form-label" for="issuer">Émetteur</label>
+                            !{Double issuerConf = document.getIssuerConfidence();}
+                            <label class="form-label d-flex justify-content-between" for="issuer">
+                                <span>Émetteur</span>
+                                @if(issuerConf != null)
+                                    <span class="text-muted small">confiance : ${String.format("%.0f%%", issuerConf * 100)}</span>
+                                @endif
+                            </label>
                             <input type="text" id="issuer" name="issuer" class="form-control"
                                    value="${document.getIssuer() != null ? document.getIssuer() : ""}">
                         </div>
@@ -175,6 +192,9 @@
                                             @endfor
                                         </datalist>
                                     @endif
+                                    @if(cfProvenance.containsKey(cf.getSlug()))
+                                        <div class="form-text text-muted">${cfProvenance.get(cf.getSlug())}</div>
+                                    @endif
                                     @if(cf.getDescription() != null && !cf.getDescription().isEmpty())
                                         <details class="cf-help">
                                             <summary>Instructions</summary>
@@ -205,6 +225,9 @@
                                                 @endfor
                                             </datalist>
                                         @endif
+                                        @if(cfProvenance.containsKey(cf.getSlug()))
+                                            <div class="form-text text-muted">${cfProvenance.get(cf.getSlug())}</div>
+                                        @endif
                                         @if(cf.getDescription() != null && !cf.getDescription().isEmpty())
                                             <details class="cf-help">
                                                 <summary>Instructions</summary>
@@ -226,6 +249,15 @@
 
                     </div>
                 </form>
+                @if(document.getAiReasoning() != null)
+                <details class="mt-3">
+                    <summary class="text-muted small fw-semibold" style="cursor: pointer">Raisonnement IA</summary>
+                    <div class="mt-2 p-2 bg-light rounded small text-muted" style="white-space: pre-wrap">${document.getAiReasoning()}</div>
+                    @if(document.getAiModel() != null)
+                        <div class="text-muted small mt-1 fst-italic">Modèle : ${document.getAiModel()}</div>
+                    @endif
+                </details>
+                @endif
             </div>
 
             <div class="tab-pane fade" id="tab-history">

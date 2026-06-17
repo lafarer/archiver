@@ -1,5 +1,7 @@
 package com.github.lafarer.archiver.web;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.lafarer.archiver.config.ArchiverProperties;
 import com.github.lafarer.archiver.model.Document;
 import com.github.lafarer.archiver.repository.CustomFieldDefRepository;
@@ -36,6 +38,7 @@ public class InboxController {
     private final CustomFieldDefRepository customFieldDefRepository;
     private final DocumentTypeDefRepository documentTypeDefRepository;
     private final InboxEventService inboxEventService;
+    private final ObjectMapper objectMapper;
 
     @GetMapping
     public String index(Model model, @RequestParam(required = false) String uploadError) {
@@ -114,6 +117,7 @@ public class InboxController {
         model.addAttribute("fieldSuggestions", buildFieldSuggestions(defs));
         model.addAttribute("documentTypeDefs", documentTypeDefRepository.findByEnabledTrueOrderByLabelAsc());
         model.addAttribute("proposedPath", pipelineService.proposedPath(doc));
+        model.addAttribute("cfProvenance", buildCfProvenance(doc));
         model.addAttribute("page", "inbox");
         if (!model.containsAttribute("message")) model.addAttribute("message", null);
         return "inbox/edit";
@@ -125,6 +129,37 @@ public class InboxController {
             result.put(def.getSlug(), documentRepository.findDistinctCustomFieldValues("$." + def.getSlug()));
         }
         return result;
+    }
+
+    private Map<String, String> buildCfProvenance(Document doc) {
+        Map<String, String> result = new LinkedHashMap<>();
+        String json = doc.getCustomFieldsProvenance();
+        if (json == null || json.isBlank() || "{}".equals(json)) return result;
+        try {
+            Map<String, Map<String, Object>> prov = objectMapper.readValue(json, new TypeReference<>() {});
+            prov.forEach((slug, info) -> {
+                String src = info.get("source") instanceof String s ? s : null;
+                Double conf = info.get("confidence") instanceof Number n ? n.doubleValue() : null;
+                String label = cfSourceLabel(src);
+                String confStr = conf != null && conf > 0 ? String.format("%.0f%%", conf * 100) : null;
+                if (label != null && confStr != null) result.put(slug, label + " · " + confStr);
+                else if (label != null) result.put(slug, label);
+                else if (confStr != null) result.put(slug, confStr);
+            });
+        } catch (Exception ignored) {}
+        return result;
+    }
+
+    private static String cfSourceLabel(String source) {
+        if (source == null) return "IA";
+        return switch (source.toLowerCase()) {
+            case "ai"           -> "IA";
+            case "pdf_metadata" -> "PDF";
+            case "filename"     -> "Nom du fichier";
+            case "filesystem"   -> "Système";
+            case "manual"       -> "Manuel";
+            default             -> source;
+        };
     }
 
     @PostMapping("/{id}")

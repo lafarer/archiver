@@ -9,6 +9,7 @@
 @param List<CustomFieldDef> customFieldDefs
 @param List<DocumentTypeDef> documentTypeDefs
 @param Map<String, List<String>> fieldSuggestions
+@param Map<String, String> cfProvenance
 @param ProposedPathParts proposedPath
 @param String page
 @param String message = null
@@ -175,6 +176,9 @@
                                 @endfor
                             </datalist>
                         @endif
+                        @if(cfProvenance.containsKey(cf.getSlug()))
+                            <div class="form-text text-muted">${cfProvenance.get(cf.getSlug())}</div>
+                        @endif
                         @if(cf.getDescription() != null && !cf.getDescription().isEmpty())
                             <details class="cf-help">
                                 <summary>Instructions</summary>
@@ -205,6 +209,9 @@
                                     @endfor
                                 </datalist>
                             @endif
+                            @if(cfProvenance.containsKey(cf.getSlug()))
+                                <div class="form-text text-muted">${cfProvenance.get(cf.getSlug())}</div>
+                            @endif
                             @if(cf.getDescription() != null && !cf.getDescription().isEmpty())
                                 <details class="cf-help">
                                     <summary>Instructions</summary>
@@ -227,6 +234,16 @@
         </div>
 
     </form>
+
+    @if(document.getAiReasoning() != null)
+    <details class="mt-3" style="max-width: 700px">
+        <summary class="text-muted small fw-semibold" style="cursor: pointer">Raisonnement IA</summary>
+        <div class="mt-2 p-2 bg-light rounded small text-muted" style="white-space: pre-wrap">${document.getAiReasoning()}</div>
+        @if(document.getAiModel() != null)
+            <div class="text-muted small mt-1 fst-italic">Modèle : ${document.getAiModel()}</div>
+        @endif
+    </details>
+    @endif
 
     <hr class="my-4" style="max-width: 700px">
 
