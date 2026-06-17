@@ -58,51 +58,39 @@
     <div class="text-center text-muted py-5">Aucun document trouvé.</div>
 @else
     <div class="text-muted small mb-2">${documents.getTotalElements()} document${documents.getTotalElements() > 1 ? "s" : ""}</div>
-    <table class="table table-hover bg-white rounded">
-        <thead class="table-light">
-            <tr>
-                <th>Date</th>
-                <th>Type</th>
-                <th>Titre</th>
-                <th>Émetteur</th>
-                <th>Tags</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @for(Document doc : documents.getContent())
-                <tr class="align-middle">
-                    <td class="text-nowrap">${doc.getDocumentDate() != null ? doc.getDocumentDate() : "-"}</td>
-                    <td><span class="badge bg-light text-dark">${doc.getDocumentType() != null ? doc.getDocumentType() : "-"}</span></td>
-                    <td>
-                        <div>${doc.getTitle() != null ? doc.getTitle() : doc.getOriginalFilename()}</div>
-                        @if(doc.getResolvedPath() != null)
-                            <div class="text-truncate text-muted font-monospace" style="font-size:0.72rem" title="${doc.getResolvedPath()}">${doc.getResolvedPath()}</div>
-                        @endif
-                    </td>
-                    <td>${doc.getIssuer() != null ? doc.getIssuer() : "-"}</td>
-                    <td>
-                        @for(String tag : doc.getTags())
-                            <span class="tag">${tag}</span>
-                        @endfor
-                    </td>
-                    <td class="text-end">
-                        <div class="d-flex gap-1 justify-content-end">
-                        @if(doc.getMimeType() != null && (doc.getMimeType().startsWith("image/") || doc.getMimeType().equals("application/pdf")))
-                            !{String docTitle = doc.getTitle() != null ? doc.getTitle() : doc.getOriginalFilename();}
-                            <button class="btn btn-sm btn-outline-primary"
-                                    data-bs-toggle="modal" data-bs-target="#previewModal"
-                                    data-preview-url="/documents/${doc.getId()}/file"
-                                    data-mime-type="${doc.getMimeType()}"
-                                    data-title="${docTitle}">Aperçu</button>
-                        @endif
-                        <a href="/archive/${doc.getId()}" class="btn btn-sm btn-outline-secondary">Détail</a>
-                        </div>
-                    </td>
-                </tr>
-            @endfor
-        </tbody>
-    </table>
+    @for(Document doc : documents.getContent())
+        <div class="doc-card">
+            <div class="doc-card-header">
+                <span class="badge bg-light text-dark">${doc.getDocumentType() != null ? doc.getDocumentType() : "-"}</span>
+                <span class="doc-card-date">${doc.getDocumentDate() != null ? doc.getDocumentDate() : "-"}</span>
+            </div>
+            <div class="doc-card-title">${doc.getTitle() != null ? doc.getTitle() : doc.getOriginalFilename()}</div>
+            @if(doc.getIssuer() != null)
+                <div class="doc-card-issuer">${doc.getIssuer()}</div>
+            @endif
+            @if(doc.getResolvedPath() != null)
+                <div class="doc-card-path" title="${doc.getResolvedPath()}">${doc.getResolvedPath()}</div>
+            @endif
+            <div class="doc-card-footer">
+                <div class="doc-card-tags">
+                    @for(String tag : doc.getTags())
+                        <span class="tag">${tag}</span>
+                    @endfor
+                </div>
+                <div class="doc-card-actions">
+                    @if(doc.getMimeType() != null && (doc.getMimeType().startsWith("image/") || doc.getMimeType().equals("application/pdf")))
+                        !{String docTitle = doc.getTitle() != null ? doc.getTitle() : doc.getOriginalFilename();}
+                        <button class="btn btn-sm btn-outline-primary"
+                                data-bs-toggle="modal" data-bs-target="#previewModal"
+                                data-preview-url="/documents/${doc.getId()}/file"
+                                data-mime-type="${doc.getMimeType()}"
+                                data-title="${docTitle}">Aperçu</button>
+                    @endif
+                    <a href="/archive/${doc.getId()}" class="btn btn-sm btn-outline-secondary">Détail</a>
+                </div>
+            </div>
+        </div>
+    @endfor
 
     @if(documents.getTotalPages() > 1)
         <nav class="d-flex justify-content-between align-items-center mt-3">

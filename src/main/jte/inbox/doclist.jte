@@ -11,69 +11,53 @@
         <p class="small">Déposez des fichiers dans le dossier inbox ou utilisez le bouton Importer.</p>
     </div>
 @else
-    <table class="table table-hover bg-white rounded">
-        <thead class="table-light">
-            <tr>
-                <th>Date</th>
-                <th>Type</th>
-                <th>Titre</th>
-                <th>Émetteur</th>
-                <th>Tags</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @for(Document doc : documents)
-                @if(doc.getAnalysisStatus() == AnalysisStatus.ANALYZING)
-                    <tr class="align-middle opacity-75">
-                        <td colspan="5" class="text-muted">
-                            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-                            ${doc.getOriginalFilename()}
-                        </td>
-                        <td></td>
-                    </tr>
-                @else
-                    !{boolean incomplete = doc.getTitle() == null || doc.getDocumentDate() == null;}
-                    <tr class="align-middle ${incomplete ? "table-warning" : ""}">
-                        <td class="text-nowrap">${doc.getDocumentDate() != null ? doc.getDocumentDate() : "-"}</td>
-                        <td>
-                            <span class="badge bg-light text-dark">${doc.getDocumentType() != null ? doc.getDocumentType() : "?"}</span>
-                            @if(incomplete)
-                                <span class="badge bg-warning text-dark ms-1">⚠</span>
-                            @endif
-                        </td>
-                        <td>
-                            <div>${doc.getTitle() != null ? doc.getTitle() : doc.getOriginalFilename()}</div>
-                            @if(doc.getResolvedPath() != null)
-                                <div class="text-truncate text-muted font-monospace" style="font-size:0.72rem"
-                                     title="${doc.getResolvedPath()}">${doc.getResolvedPath()}</div>
-                            @endif
-                        </td>
-                        <td>${doc.getIssuer() != null ? doc.getIssuer() : "-"}</td>
-                        <td>
-                            @for(String tag : doc.getTags())
-                                <span class="tag">${tag}</span>
-                            @endfor
-                        </td>
-                        <td class="text-end">
-                            <div class="d-flex gap-1 justify-content-end">
-                                @if(doc.getMimeType() != null && (doc.getMimeType().startsWith("image/") || doc.getMimeType().equals("application/pdf")))
-                                    !{String docTitle = doc.getTitle() != null ? doc.getTitle() : doc.getOriginalFilename();}
-                                    <button class="btn btn-sm btn-outline-primary"
-                                            data-bs-toggle="modal" data-bs-target="#previewModal"
-                                            data-preview-url="/documents/${doc.getId()}/file"
-                                            data-mime-type="${doc.getMimeType()}"
-                                            data-title="${docTitle}">Aperçu</button>
-                                @endif
-                                <a href="/inbox/${doc.getId()}/edit" class="btn btn-sm btn-outline-secondary">Éditer</a>
-                                <form method="post" action="/inbox/${doc.getId()}/validate" class="d-inline">
-                                    <button type="submit" class="btn btn-sm btn-success">Valider ✓</button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
+    @for(Document doc : documents)
+        @if(doc.getAnalysisStatus() == AnalysisStatus.ANALYZING)
+            <div class="doc-card opacity-75">
+                <div class="d-flex align-items-center gap-2 text-muted">
+                    <span class="spinner-border spinner-border-sm" role="status"></span>
+                    <span>Analyse en cours — ${doc.getOriginalFilename()}</span>
+                </div>
+            </div>
+        @else
+            !{boolean incomplete = doc.getTitle() == null || doc.getDocumentDate() == null;}
+            <div class="doc-card ${incomplete ? "doc-card-incomplete" : ""}">
+                <div class="doc-card-header">
+                    <span class="badge bg-light text-dark">${doc.getDocumentType() != null ? doc.getDocumentType() : "?"}</span>
+                    @if(incomplete)
+                        <span class="badge bg-warning text-dark">⚠ Incomplet</span>
+                    @endif
+                    <span class="doc-card-date">${doc.getDocumentDate() != null ? doc.getDocumentDate() : "date inconnue"}</span>
+                </div>
+                <div class="doc-card-title">${doc.getTitle() != null ? doc.getTitle() : doc.getOriginalFilename()}</div>
+                @if(doc.getIssuer() != null)
+                    <div class="doc-card-issuer">${doc.getIssuer()}</div>
                 @endif
-            @endfor
-        </tbody>
-    </table>
+                @if(doc.getResolvedPath() != null)
+                    <div class="doc-card-path" title="${doc.getResolvedPath()}">${doc.getResolvedPath()}</div>
+                @endif
+                <div class="doc-card-footer">
+                    <div class="doc-card-tags">
+                        @for(String tag : doc.getTags())
+                            <span class="tag">${tag}</span>
+                        @endfor
+                    </div>
+                    <div class="doc-card-actions">
+                        @if(doc.getMimeType() != null && (doc.getMimeType().startsWith("image/") || doc.getMimeType().equals("application/pdf")))
+                            !{String docTitle = doc.getTitle() != null ? doc.getTitle() : doc.getOriginalFilename();}
+                            <button class="btn btn-sm btn-outline-primary"
+                                    data-bs-toggle="modal" data-bs-target="#previewModal"
+                                    data-preview-url="/documents/${doc.getId()}/file"
+                                    data-mime-type="${doc.getMimeType()}"
+                                    data-title="${docTitle}">Aperçu</button>
+                        @endif
+                        <a href="/inbox/${doc.getId()}/edit" class="btn btn-sm btn-outline-secondary">Éditer</a>
+                        <form method="post" action="/inbox/${doc.getId()}/validate" class="d-inline">
+                            <button type="submit" class="btn btn-sm btn-success">Valider ✓</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        @endif
+    @endfor
 @endif
