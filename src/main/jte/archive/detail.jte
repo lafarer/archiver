@@ -156,10 +156,13 @@
                         @if(!customFieldDefs.isEmpty())
                             <hr class="my-1">
                             <div class="text-muted small fw-semibold mb-1">Champs personnalisés</div>
+                            !{long cfEmptyCount = customFieldDefs.stream().filter(cf -> document.getCustomFields().getOrDefault(cf.getSlug(), "").isBlank()).count();}
+                            !{boolean cfCollapse = cfEmptyCount > 0 && cfEmptyCount < customFieldDefs.size();}
                             @for(CustomFieldDef cf : customFieldDefs)
                                 !{String cfValue = document.getCustomFields().getOrDefault(cf.getSlug(), "");}
                                 !{List<String> suggestions = fieldSuggestions.getOrDefault(cf.getSlug(), List.of());}
                                 !{String listId = "cf-list-" + cf.getSlug();}
+                                @if(!cfValue.isBlank() || !cfCollapse)
                                 <div>
                                     <label class="form-label" for="cf_${cf.getSlug()}">${cf.getLabel()}</label>
                                     <input type="text" id="cf_${cf.getSlug()}" name="cf_${cf.getSlug()}"
@@ -179,7 +182,41 @@
                                         </details>
                                     @endif
                                 </div>
+                                @endif
                             @endfor
+                            @if(cfCollapse)
+                            <details class="mt-2">
+                                <summary class="text-muted small" style="cursor: pointer">Autres champs (${cfEmptyCount})</summary>
+                                <div class="d-flex flex-column gap-3 mt-2">
+                                @for(CustomFieldDef cf : customFieldDefs)
+                                    !{String cfValue2 = document.getCustomFields().getOrDefault(cf.getSlug(), "");}
+                                    !{List<String> suggestions2 = fieldSuggestions.getOrDefault(cf.getSlug(), List.of());}
+                                    !{String listId2 = "cf-list2-" + cf.getSlug();}
+                                    @if(cfValue2.isBlank())
+                                    <div>
+                                        <label class="form-label" for="cf_${cf.getSlug()}">${cf.getLabel()}</label>
+                                        <input type="text" id="cf_${cf.getSlug()}" name="cf_${cf.getSlug()}"
+                                               class="form-control" value=""
+                                               list="${listId2}" autocomplete="off">
+                                        @if(!suggestions2.isEmpty())
+                                            <datalist id="${listId2}">
+                                                @for(String s : suggestions2)
+                                                    <option value="${s}"></option>
+                                                @endfor
+                                            </datalist>
+                                        @endif
+                                        @if(cf.getDescription() != null && !cf.getDescription().isEmpty())
+                                            <details class="cf-help">
+                                                <summary>Instructions</summary>
+                                                <div>${cf.getDescription()}</div>
+                                            </details>
+                                        @endif
+                                    </div>
+                                    @endif
+                                @endfor
+                                </div>
+                            </details>
+                            @endif
                         @endif
 
                         <div class="d-flex gap-2 mt-2">
