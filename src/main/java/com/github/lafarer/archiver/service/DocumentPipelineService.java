@@ -448,7 +448,7 @@ public class DocumentPipelineService {
         return moved;
     }
 
-    public record ProposedPathParts(String full, String existing, String newPart) {}
+    public record ProposedPathParts(String full, String existing, String newPart, String ruleLabel, String pathTemplate) {}
 
     public ProposedPathParts proposedPath(Document doc) {
         ResolvedPath resolved = pathResolverService.resolve(
@@ -457,10 +457,12 @@ public class DocumentPipelineService {
             doc.getTitle(), doc.getIssuer(), doc.getCustomFields()
         );
         String full = resolved.relativePath() + extension(Path.of(doc.getOriginalFilename()));
-        return splitProposedPath(full);
+        String ruleLabel = resolved.appliedRule() != null ? resolved.appliedRule().getLabel() : null;
+        String pathTemplate = resolved.appliedRule() != null ? resolved.appliedRule().getPathTemplate() : null;
+        return splitProposedPath(full, ruleLabel, pathTemplate);
     }
 
-    private ProposedPathParts splitProposedPath(String relPath) {
+    private ProposedPathParts splitProposedPath(String relPath, String ruleLabel, String pathTemplate) {
         String[] segments = relPath.split("/");
         Path current = props.getArchivePath();
         int existingCount = 0;
@@ -478,7 +480,7 @@ public class DocumentPipelineService {
             ? String.join("/", java.util.Arrays.copyOfRange(segments, 0, existingCount)) + "/"
             : "";
         String newPart = relPath.substring(existing.length());
-        return new ProposedPathParts(relPath, existing, newPart);
+        return new ProposedPathParts(relPath, existing, newPart, ruleLabel, pathTemplate);
     }
 
     private void applyAnalysis(Document doc, AnalysisResult a) {

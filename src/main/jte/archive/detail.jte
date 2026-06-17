@@ -50,6 +50,13 @@
         Fichier : <strong>${document.getOriginalFilename()}</strong>
         &nbsp;·&nbsp;
         <code>${document.getResolvedPath() != null ? document.getResolvedPath() : proposedPath.full()}</code>
+        @if(proposedPath.pathTemplate() != null)
+            <div class="mt-1">
+                Règle : <span class="text-body-secondary">${proposedPath.ruleLabel()}</span>
+                &nbsp;·&nbsp;
+                <code class="opacity-75">${proposedPath.pathTemplate()}</code>
+            </div>
+        @endif
         @if(pathChanged)
             <div class="mt-1 text-warning">
                 ⚠ La règle a changé. Nouveau chemin :

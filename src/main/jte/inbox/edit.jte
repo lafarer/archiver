@@ -59,6 +59,13 @@
         Fichier : <strong>${document.getOriginalFilename()}</strong>
         &nbsp;·&nbsp; →
         <code><span class="opacity-50">${proposedPath.existing()}</span><strong>${proposedPath.newPart()}</strong></code>
+        @if(proposedPath.pathTemplate() != null)
+            <div class="mt-1">
+                Règle : <span class="text-body-secondary">${proposedPath.ruleLabel()}</span>
+                &nbsp;·&nbsp;
+                <code class="opacity-75">${proposedPath.pathTemplate()}</code>
+            </div>
+        @endif
     </div>
 
     <form id="editForm" method="post" action="/inbox/${document.getId()}">
