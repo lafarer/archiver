@@ -64,6 +64,8 @@ public class RulesController {
         model.addAttribute("docPage", Page.empty());
         model.addAttribute("results", List.of());
         model.addAttribute("pathTemplate", "");
+        model.addAttribute("outOfSyncCount", 0L);
+        if (!model.containsAttribute("message")) model.addAttribute("message", null);
         model.addAttribute("page", "rules");
         return "rules/form";
     }
