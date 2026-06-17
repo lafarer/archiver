@@ -127,7 +127,18 @@ public class RulesController {
         if (form.isDefault()) ensureSingleDefault(form);
         rule.setDefault(form.isDefault());
         ruleRepository.save(rule);
-        ra.addFlashAttribute("message", "Règle mise à jour.");
+
+        List<Document> pending = documentRepository.findByClassifiedFalseOrderByCreatedAtDesc()
+            .stream()
+            .filter(d -> d.getAppliedRule() != null && d.getAppliedRule().getId().equals(id))
+            .collect(Collectors.toList());
+        pending.forEach(pipelineService::refreshResolvedPath);
+
+        String msg = "Règle mise à jour.";
+        if (!pending.isEmpty()) {
+            msg += " " + pending.size() + " document(s) inbox recalculé(s).";
+        }
+        ra.addFlashAttribute("message", msg);
         return "redirect:/rules/" + id + "/edit";
     }
 
