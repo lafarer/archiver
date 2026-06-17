@@ -1,12 +1,17 @@
 @import com.github.lafarer.archiver.model.Document
 @import org.springframework.data.domain.Page
+@import java.util.List
 
 @param Page<Document> documents
 @param String q
+@param String selectedType
+@param String selectedIssuer
+@param List<String> selectedTags
 
 @if(documents.isEmpty())
-    <div class="text-center text-muted py-5">Aucun document archivé.</div>
+    <div class="text-center text-muted py-5">Aucun document trouvé.</div>
 @else
+    <div class="text-muted small mb-2">${documents.getTotalElements()} document${documents.getTotalElements() > 1 ? "s" : ""}</div>
     <table class="table table-hover bg-white rounded">
         <thead class="table-light">
             <tr>
@@ -50,21 +55,29 @@
         <nav class="d-flex justify-content-between align-items-center mt-3">
             <span class="text-muted small">
                 Page ${documents.getNumber() + 1} / ${documents.getTotalPages()}
-                &nbsp;·&nbsp; ${documents.getTotalElements()} documents
             </span>
             <ul class="pagination pagination-sm mb-0">
                 <li class="page-item ${documents.isFirst() ? "disabled" : ""}">
-                    <a class="page-link" href="/archive?page=${documents.getNumber() - 1}&q=${q}">‹</a>
+                    <a class="page-link" href="#"
+                       hx-get="/archive" hx-include="#archive-filters"
+                       hx-vals='{"page":"${documents.getNumber() - 1}"}'
+                       hx-target="#doc-list" hx-swap="innerHTML">‹</a>
                 </li>
                 @for(int p = 0; p < documents.getTotalPages(); p++)
                     @if(Math.abs(p - documents.getNumber()) <= 2)
                         <li class="page-item ${p == documents.getNumber() ? "active" : ""}">
-                            <a class="page-link" href="/archive?page=${p}&q=${q}">${p + 1}</a>
+                            <a class="page-link" href="#"
+                               hx-get="/archive" hx-include="#archive-filters"
+                               hx-vals='{"page":"${p}"}'
+                               hx-target="#doc-list" hx-swap="innerHTML">${p + 1}</a>
                         </li>
                     @endif
                 @endfor
                 <li class="page-item ${documents.isLast() ? "disabled" : ""}">
-                    <a class="page-link" href="/archive?page=${documents.getNumber() + 1}&q=${q}">›</a>
+                    <a class="page-link" href="#"
+                       hx-get="/archive" hx-include="#archive-filters"
+                       hx-vals='{"page":"${documents.getNumber() + 1}"}'
+                       hx-target="#doc-list" hx-swap="innerHTML">›</a>
                 </li>
             </ul>
         </nav>

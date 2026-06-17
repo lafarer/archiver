@@ -5,13 +5,14 @@ import com.github.lafarer.archiver.model.enums.AnalysisStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface DocumentRepository extends JpaRepository<Document, Long> {
+public interface DocumentRepository extends JpaRepository<Document, Long>, JpaSpecificationExecutor<Document> {
 
     Optional<Document> findBySha256Hash(String sha256Hash);
 
@@ -21,17 +22,20 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
 
     Page<Document> findByClassifiedTrue(Pageable pageable);
 
-    @Query("SELECT d FROM Document d WHERE d.classified = true AND (" +
-           "LOWER(d.title) LIKE LOWER(CONCAT('%', :q, '%')) OR " +
-           "LOWER(d.issuer) LIKE LOWER(CONCAT('%', :q, '%')) OR " +
-           "LOWER(d.documentType) LIKE LOWER(CONCAT('%', :q, '%')))")
-    Page<Document> searchClassified(@Param("q") String q, Pageable pageable);
-
     @Query("SELECT d FROM Document d WHERE d.appliedRule.id = :ruleId AND d.classified = true ORDER BY d.classifiedAt DESC")
     Page<Document> findByAppliedRuleId(@Param("ruleId") Long ruleId, Pageable pageable);
 
     @Query("SELECT d.appliedRule.id, COUNT(d) FROM Document d WHERE d.appliedRule IS NOT NULL AND d.classified = true GROUP BY d.appliedRule.id")
     List<Object[]> countGroupedByAppliedRule();
+
+    @Query("SELECT DISTINCT d.documentType FROM Document d WHERE d.classified = true AND d.documentType IS NOT NULL ORDER BY d.documentType")
+    List<String> findDistinctDocumentTypes();
+
+    @Query("SELECT DISTINCT d.issuer FROM Document d WHERE d.classified = true AND d.issuer IS NOT NULL ORDER BY d.issuer")
+    List<String> findDistinctIssuers();
+
+    @Query(value = "SELECT DISTINCT jt.value FROM document d, json_each(d.tags) jt WHERE d.is_classified = 1 ORDER BY jt.value", nativeQuery = true)
+    List<String> findDistinctTagValues();
 
     @Query(value = """
             SELECT DISTINCT json_extract(custom_fields, :jsonPath)

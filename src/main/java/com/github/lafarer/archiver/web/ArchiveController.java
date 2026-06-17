@@ -3,7 +3,9 @@ package com.github.lafarer.archiver.web;
 import com.github.lafarer.archiver.model.Document;
 import com.github.lafarer.archiver.repository.CustomFieldDefRepository;
 import com.github.lafarer.archiver.repository.DocumentRepository;
+import com.github.lafarer.archiver.repository.DocumentSpecs;
 import com.github.lafarer.archiver.service.DocumentPipelineService;
+import org.springframework.data.jpa.domain.Specification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -31,20 +33,34 @@ public class ArchiveController {
     private static final int PAGE_SIZE = 25;
 
     @GetMapping
-    public String index(@RequestParam(required = false) String type,
-                        @RequestParam(required = false) String tag,
-                        @RequestParam(required = false) String q,
+    public String index(@RequestParam(required = false) String q,
+                        @RequestParam(required = false) String type,
+                        @RequestParam(required = false) String issuer,
+                        @RequestParam(name = "tag", required = false) List<String> selectedTags,
                         @RequestParam(defaultValue = "0") int page,
                         HttpServletRequest request,
                         Model model) {
         PageRequest pageable = PageRequest.of(page, PAGE_SIZE,
             Sort.by(Sort.Direction.DESC, "documentDate", "createdAt"));
-        Page<Document> documents = (q != null && !q.isBlank())
-            ? documentRepository.searchClassified(q, pageable)
-            : documentRepository.findByClassifiedTrue(pageable);
+
+        Specification<Document> spec = DocumentSpecs.classified();
+        if (q != null && !q.isBlank())           spec = spec.and(DocumentSpecs.queryMatches(q));
+        if (type != null && !type.isBlank())     spec = spec.and(DocumentSpecs.hasType(type));
+        if (issuer != null && !issuer.isBlank()) spec = spec.and(DocumentSpecs.issuerContains(issuer));
+        if (selectedTags != null && !selectedTags.isEmpty()) spec = spec.and(DocumentSpecs.hasAnyTag(selectedTags));
+
+        Page<Document> documents = documentRepository.findAll(spec, pageable);
+
         model.addAttribute("documents", documents);
-        model.addAttribute("q", q != null ? q : "");
+        model.addAttribute("q",            q != null ? q : "");
+        model.addAttribute("selectedType",   type != null ? type : "");
+        model.addAttribute("selectedIssuer", issuer != null ? issuer : "");
+        model.addAttribute("selectedTags",   selectedTags != null ? selectedTags : List.of());
+        model.addAttribute("allTypes",  documentRepository.findDistinctDocumentTypes());
+        model.addAttribute("allIssuers", documentRepository.findDistinctIssuers());
+        model.addAttribute("allTags",   documentRepository.findDistinctTagValues());
         model.addAttribute("page", "archive");
+
         boolean htmx = "true".equals(request.getHeader("HX-Request"));
         return htmx ? "archive/list_fragment" : "archive/index";
     }
