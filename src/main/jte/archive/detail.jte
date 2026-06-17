@@ -1,11 +1,13 @@
 @import com.github.lafarer.archiver.model.Document
 @import com.github.lafarer.archiver.model.CustomFieldDef
+@import com.github.lafarer.archiver.model.DocumentTypeDef
 @import com.github.lafarer.archiver.service.DocumentPipelineService.ProposedPathParts
 @import java.util.List
 @import java.util.Map
 
 @param Document document
 @param List<CustomFieldDef> customFieldDefs
+@param List<DocumentTypeDef> documentTypeDefs
 @param Map<String, List<String>> fieldSuggestions
 @param ProposedPathParts proposedPath
 @param String page
@@ -52,8 +54,13 @@
 
             <div>
                 <label class="form-label" for="documentType">Type de document</label>
-                <input type="text" id="documentType" name="documentType" class="form-control"
-                       value="${document.getDocumentType() != null ? document.getDocumentType() : ""}">
+                <select id="documentType" name="documentType" class="form-select">
+                    <option value="">-- Choisir un type --</option>
+                    @for(DocumentTypeDef dt : documentTypeDefs)
+                        <option value="${dt.getSlug()}"
+                                selected="${dt.getSlug().equals(document.getDocumentType())}">${dt.getLabel()} (${dt.getSlug()})</option>
+                    @endfor
+                </select>
             </div>
 
             <div>

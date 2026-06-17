@@ -4,6 +4,7 @@ import com.github.lafarer.archiver.config.ArchiverProperties;
 import com.github.lafarer.archiver.model.Document;
 import com.github.lafarer.archiver.repository.CustomFieldDefRepository;
 import com.github.lafarer.archiver.repository.DocumentRepository;
+import com.github.lafarer.archiver.repository.DocumentTypeDefRepository;
 import com.github.lafarer.archiver.service.ArchiveService;
 import com.github.lafarer.archiver.service.DocumentPipelineService;
 import com.github.lafarer.archiver.service.InboxEventService;
@@ -33,6 +34,7 @@ public class InboxController {
     private final DocumentPipelineService pipelineService;
     private final ArchiverProperties props;
     private final CustomFieldDefRepository customFieldDefRepository;
+    private final DocumentTypeDefRepository documentTypeDefRepository;
     private final InboxEventService inboxEventService;
 
     @GetMapping
@@ -110,6 +112,7 @@ public class InboxController {
         model.addAttribute("document", doc);
         model.addAttribute("customFieldDefs", defs);
         model.addAttribute("fieldSuggestions", buildFieldSuggestions(defs));
+        model.addAttribute("documentTypeDefs", documentTypeDefRepository.findByEnabledTrueOrderByLabelAsc());
         model.addAttribute("proposedPath", pipelineService.proposedPath(doc));
         model.addAttribute("page", "inbox");
         if (!model.containsAttribute("message")) model.addAttribute("message", null);
