@@ -87,7 +87,7 @@ public class AnthropicAiAnalysisService implements AiAnalysisService {
         log.debug("User content blocks: {}", userContent.size());
         Message response = client.messages().create(params);
         String json = stripMarkdown(extractText(response));
-        log.info("AI raw response: {}", json);
+        log.debug("AI raw response: {}", json);
 
         return parseResponse(json);
     }
