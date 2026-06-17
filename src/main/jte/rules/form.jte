@@ -11,8 +11,9 @@
 @param long outOfSyncCount = 0
 @param String page
 @param String message = null
+@param boolean watchdogRunning = false
 
-@template.layout.base(page = page, title = "Règle", content = @`
+@template.layout.base(page = page, title = "Règle", watchdogRunning = watchdogRunning, content = @`
 
 <div class="page-header">
     <h1>${rule.getId() == null ? "Nouvelle règle" : "Modifier la règle"}</h1>

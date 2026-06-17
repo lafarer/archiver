@@ -4,6 +4,7 @@
 @param Content content
 @param String title = "Archiver"
 @param long inboxCount = 0
+@param boolean watchdogRunning = false
 
 <!doctype html>
 <html lang="fr">
@@ -29,6 +30,9 @@
                         <span class="badge bg-warning text-dark">${inboxCount}</span>
                     @endif
                 </span>
+                <span class="${watchdogRunning ? "text-success" : "text-secondary"} ms-1"
+                      style="font-size: 0.6em"
+                      title="${watchdogRunning ? "Watchdog actif" : "Watchdog inactif"}">●</span>
             </a>
         </li>
         <li class="nav-item">

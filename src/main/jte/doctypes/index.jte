@@ -3,8 +3,9 @@
 
 @param List<DocumentTypeDef> types
 @param String page
+@param boolean watchdogRunning = false
 
-@template.layout.base(page = page, title = "Types de document", content = @`
+@template.layout.base(page = page, title = "Types de document", watchdogRunning = watchdogRunning, content = @`
 
 <div class="page-header">
     <h1>Types de document</h1>

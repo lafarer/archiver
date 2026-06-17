@@ -16,8 +16,9 @@
 @param List<CustomFieldDef> customFieldDefs
 @param Map<String, List<String>> cfSuggestions
 @param String page
+@param boolean watchdogRunning = false
 
-@template.layout.base(page = page, title = "Archive", content = @`
+@template.layout.base(page = page, title = "Archive", watchdogRunning = watchdogRunning, content = @`
 
 <div class="page-header">
     <h1>Archive</h1>

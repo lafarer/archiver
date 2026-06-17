@@ -2,9 +2,10 @@
 
 @param DocumentTypeDef type
 @param String page
+@param boolean watchdogRunning = false
 
 !{String pageTitle = type.getId() == null ? "Nouveau type de document" : "Éditer " + type.getLabel();}
-@template.layout.base(page = page, title = pageTitle, content = @`
+@template.layout.base(page = page, title = pageTitle, watchdogRunning = watchdogRunning, content = @`
 
 <div class="page-header">
     <h1>${pageTitle}</h1>

@@ -12,9 +12,10 @@
 @param ProposedPathParts proposedPath
 @param String page
 @param String message = null
+@param boolean watchdogRunning = false
 
 !{String pageTitle = "Éditer - " + (document.getTitle() != null ? document.getTitle() : document.getOriginalFilename());}
-@template.layout.base(page = page, title = pageTitle, content = @`
+@template.layout.base(page = page, title = pageTitle, watchdogRunning = watchdogRunning, content = @`
 
 !{boolean previewable = document.getMimeType() != null && (document.getMimeType().startsWith("image/") || document.getMimeType().equals("application/pdf"));}
 !{String previewTitle = document.getTitle() != null ? document.getTitle() : document.getOriginalFilename();}

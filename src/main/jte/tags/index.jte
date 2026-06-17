@@ -3,8 +3,9 @@
 
 @param List<TagDef> tags
 @param String page
+@param boolean watchdogRunning = false
 
-@template.layout.base(page = page, title = "Tags", content = @`
+@template.layout.base(page = page, title = "Tags", watchdogRunning = watchdogRunning, content = @`
 
 <div class="page-header">
     <h1>Tags</h1>

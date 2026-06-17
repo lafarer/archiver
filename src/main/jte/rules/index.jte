@@ -6,8 +6,9 @@
 @param Map<Long, Long> docCounts
 @param Map<Long, Long> outOfSyncCounts
 @param String page
+@param boolean watchdogRunning = false
 
-@template.layout.base(page = page, title = "Règles", content = @`
+@template.layout.base(page = page, title = "Règles", watchdogRunning = watchdogRunning, content = @`
 
 <div class="page-header">
     <h1>Règles de stockage</h1>

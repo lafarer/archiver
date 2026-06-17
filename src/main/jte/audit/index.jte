@@ -7,8 +7,9 @@
 @param AuditReport report = null
 @param String page
 @param String message = null
+@param boolean watchdogRunning = false
 
-@template.layout.base(page = page, title = "Audit", content = @`
+@template.layout.base(page = page, title = "Audit", watchdogRunning = watchdogRunning, content = @`
 
 <div class="page-header">
     <h1>Audit de stockage</h1>

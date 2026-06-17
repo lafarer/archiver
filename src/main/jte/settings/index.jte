@@ -6,7 +6,7 @@
 @param boolean watchdogRunning
 @param String page
 
-@template.layout.base(page = page, title = "Réglages", content = @`
+@template.layout.base(page = page, title = "Réglages", watchdogRunning = watchdogRunning, content = @`
 
 <div class="page-header">
     <h1>Réglages</h1>

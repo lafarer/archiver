@@ -2,9 +2,10 @@
 
 @param TagDef tag
 @param String page
+@param boolean watchdogRunning = false
 
 !{String pageTitle = tag.getId() == null ? "Nouveau tag" : "Éditer " + tag.getLabel();}
-@template.layout.base(page = page, title = pageTitle, content = @`
+@template.layout.base(page = page, title = pageTitle, watchdogRunning = watchdogRunning, content = @`
 
 <div class="page-header">
     <h1>${pageTitle}</h1>
