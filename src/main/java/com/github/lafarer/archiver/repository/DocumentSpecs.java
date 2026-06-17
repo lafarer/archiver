@@ -14,10 +14,13 @@ public class DocumentSpecs {
     public static Specification<Document> queryMatches(String q) {
         return (root, query, cb) -> {
             String pattern = "%" + q.toLowerCase() + "%";
+            var customFieldsLower = cb.lower(root.<String>get("customFields"));
             return cb.or(
                 cb.like(cb.lower(root.get("title")), pattern),
                 cb.like(cb.lower(root.get("issuer")), pattern),
-                cb.like(cb.lower(root.get("documentType")), pattern)
+                cb.like(cb.lower(root.get("documentType")), pattern),
+                cb.like(cb.lower(root.get("description")), pattern),
+                cb.like(customFieldsLower, pattern)
             );
         };
     }
