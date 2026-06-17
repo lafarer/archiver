@@ -132,6 +132,15 @@ public class ArchiveController {
         return "redirect:/archive/" + id;
     }
 
+    @PostMapping("/{id}/reanalyze")
+    public String reanalyze(@PathVariable Long id,
+                            @RequestParam(required = false) String hint,
+                            RedirectAttributes redirectAttributes) throws IOException {
+        pipelineService.reanalyzeArchived(id, hint);
+        redirectAttributes.addFlashAttribute("message", "Document ré-analysé par l'IA.");
+        return "redirect:/archive/" + id;
+    }
+
     @PostMapping("/{id}")
     public String update(@PathVariable Long id,
                          @ModelAttribute DocumentForm form,

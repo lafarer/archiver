@@ -11,6 +11,7 @@
 @param Map<String, List<String>> fieldSuggestions
 @param ProposedPathParts proposedPath
 @param String page
+@param String message = null
 
 !{String pageTitle = document.getTitle() != null ? document.getTitle() : document.getOriginalFilename();}
 !{boolean previewable = document.getMimeType() != null && (document.getMimeType().startsWith("image/") || document.getMimeType().equals("application/pdf"));}
@@ -31,6 +32,13 @@
 </div>
 
 <div class="page-body">
+
+    @if(message != null)
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    @endif
 
     !{boolean pathChanged = document.getResolvedPath() != null && !document.getResolvedPath().equals(proposedPath.full());}
     <div class="mb-3 text-muted small">
@@ -161,6 +169,19 @@
         </div>
 
     </form>
+
+    <hr class="my-4" style="max-width: 700px">
+
+    <div style="max-width: 700px">
+        <div class="text-muted small fw-semibold mb-2">Ré-analyse IA</div>
+        <form method="post" action="/archive/${document.getId()}/reanalyze">
+            <div class="mb-2">
+                <textarea name="hint" class="form-control form-control-sm" rows="2"
+                          placeholder="Indice optionnel (ex : c'est une facture EDF, l'émetteur est EDF…)"></textarea>
+            </div>
+            <button type="submit" class="btn btn-outline-primary btn-sm">Ré-analyser avec l'IA</button>
+        </form>
+    </div>
 
     <hr class="my-4" style="max-width: 700px">
 
