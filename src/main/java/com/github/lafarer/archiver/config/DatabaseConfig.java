@@ -19,6 +19,8 @@ public class DatabaseConfig {
 
     private final ArchiverProperties props;
 
+    private final DatabaseInitState initState;
+
     @Bean
     @Primary
     DataSource dataSource() throws IOException {
@@ -28,6 +30,12 @@ public class DatabaseConfig {
         log.info("Archive root : {}", props.getRoot());
         log.info("Inbox        : {}", props.getInboxPath());
         log.info("Archive      : {}", props.getArchivePath());
+
+        boolean isNewDb = !Files.exists(props.getDbPath());
+        if (isNewDb) {
+            log.info("No existing database found - will be created fresh");
+            initState.markFreshlyCreated();
+        }
 
         SQLiteDataSource ds = new SQLiteDataSource();
         ds.setUrl("jdbc:sqlite:" + props.getDbPath().toAbsolutePath());

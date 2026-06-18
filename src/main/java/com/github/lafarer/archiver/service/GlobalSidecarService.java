@@ -1,12 +1,15 @@
 package com.github.lafarer.archiver.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.github.lafarer.archiver.config.ArchiverProperties;
+import com.github.lafarer.archiver.config.DatabaseInitState;
 import com.github.lafarer.archiver.model.CustomFieldDef;
 import com.github.lafarer.archiver.model.DocumentTypeDef;
 import com.github.lafarer.archiver.model.StoragePathRule;
 import com.github.lafarer.archiver.model.TagDef;
+import com.github.lafarer.archiver.model.enums.FieldType;
 import com.github.lafarer.archiver.repository.CustomFieldDefRepository;
 import com.github.lafarer.archiver.repository.DocumentTypeDefRepository;
 import com.github.lafarer.archiver.repository.StoragePathRuleRepository;
@@ -16,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -23,6 +27,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -31,6 +36,7 @@ import java.util.Map;
 public class GlobalSidecarService {
 
     private final ArchiverProperties props;
+    private final DatabaseInitState initState;
     private final StoragePathRuleRepository ruleRepository;
     private final CustomFieldDefRepository customFieldDefRepository;
     private final DocumentTypeDefRepository documentTypeDefRepository;
@@ -40,11 +46,16 @@ public class GlobalSidecarService {
             .enable(SerializationFeature.INDENT_OUTPUT);
 
     @EventListener(ApplicationReadyEvent.class)
-    public void initIfMissing() {
-        if (!Files.exists(sidecarPath())) {
+    public void onStartup() {
+        Path sidecar = sidecarPath();
+        if (initState.isFreshlyCreated() && Files.exists(sidecar)) {
+            log.info("Fresh DB with existing global sidecar - restoring reference data automatically");
+            restoreFromSidecar();
+        } else if (!Files.exists(sidecar)) {
             log.info("Global reference sidecar not found, creating from current DB state");
             refresh();
         }
+        // DB exists and sidecar exists → nothing to do
     }
 
     public void refresh() {
@@ -61,6 +72,71 @@ public class GlobalSidecarService {
         data.put("tag_defs", tagDefRepository.findAll().stream()
                 .map(this::tagToMap).toList());
         writeAtomic(data);
+    }
+
+    @Transactional
+    @SuppressWarnings("unchecked")
+    public void restoreFromSidecar() {
+        try {
+            Map<String, Object> data = mapper.readValue(sidecarPath().toFile(), new TypeReference<>() {});
+
+            ruleRepository.deleteAll();
+            customFieldDefRepository.deleteAll();
+            documentTypeDefRepository.deleteAll();
+            tagDefRepository.deleteAll();
+
+            List<Map<String, Object>> rules = (List<Map<String, Object>>) data.getOrDefault("storage_path_rules", List.of());
+            List<StoragePathRule> ruleEntities = rules.stream().map(m -> {
+                StoragePathRule r = new StoragePathRule();
+                r.setPriority(((Number) m.get("priority")).shortValue());
+                r.setLabel((String) m.get("label"));
+                r.setConditionNl((String) m.get("condition_nl"));
+                r.setPathTemplate((String) m.get("path_template"));
+                r.setDefault(Boolean.TRUE.equals(m.get("is_default")));
+                r.setActive(Boolean.TRUE.equals(m.get("active")));
+                return r;
+            }).toList();
+            ruleRepository.saveAll(ruleEntities);
+
+            List<Map<String, Object>> fields = (List<Map<String, Object>>) data.getOrDefault("custom_field_defs", List.of());
+            List<CustomFieldDef> fieldEntities = fields.stream().map(m -> {
+                CustomFieldDef f = new CustomFieldDef();
+                f.setSlug((String) m.get("slug"));
+                f.setLabel((String) m.get("label"));
+                f.setDescription((String) m.get("description"));
+                f.setFieldType(FieldType.valueOf((String) m.get("field_type")));
+                return f;
+            }).toList();
+            customFieldDefRepository.saveAll(fieldEntities);
+
+            List<Map<String, Object>> types = (List<Map<String, Object>>) data.getOrDefault("document_type_defs", List.of());
+            List<DocumentTypeDef> typeEntities = types.stream().map(m -> {
+                DocumentTypeDef t = new DocumentTypeDef();
+                t.setSlug((String) m.get("slug"));
+                t.setLabel((String) m.get("label"));
+                t.setDescription((String) m.get("description"));
+                t.setEnabled(Boolean.TRUE.equals(m.get("enabled")));
+                return t;
+            }).toList();
+            documentTypeDefRepository.saveAll(typeEntities);
+
+            List<Map<String, Object>> tags = (List<Map<String, Object>>) data.getOrDefault("tag_defs", List.of());
+            List<TagDef> tagEntities = tags.stream().map(m -> {
+                TagDef t = new TagDef();
+                t.setSlug((String) m.get("slug"));
+                t.setLabel((String) m.get("label"));
+                t.setDescription((String) m.get("description"));
+                t.setEnabled(Boolean.TRUE.equals(m.get("enabled")));
+                return t;
+            }).toList();
+            tagDefRepository.saveAll(tagEntities);
+
+            log.info("Reference data restored: {} rules, {} fields, {} types, {} tags",
+                    ruleEntities.size(), fieldEntities.size(), typeEntities.size(), tagEntities.size());
+
+        } catch (IOException e) {
+            log.error("Failed to restore from global sidecar: {}", e.getMessage());
+        }
     }
 
     private Path sidecarPath() {
