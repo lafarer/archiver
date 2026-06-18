@@ -3,6 +3,7 @@ package com.github.lafarer.archiver.config;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.flywaydb.core.Flyway;
+import org.sqlite.SQLiteConfig;
 import org.sqlite.SQLiteDataSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -37,9 +38,12 @@ public class DatabaseConfig {
             initState.markFreshlyCreated();
         }
 
-        SQLiteDataSource ds = new SQLiteDataSource();
+        SQLiteConfig config = new SQLiteConfig();
+        config.setBusyTimeout(10_000);           // retry for up to 10 s before giving up
+        config.setJournalMode(SQLiteConfig.JournalMode.WAL); // WAL reduces write contention
+
+        SQLiteDataSource ds = new SQLiteDataSource(config);
         ds.setUrl("jdbc:sqlite:" + props.getDbPath().toAbsolutePath());
-        // SQLite is single-writer - pool size 1 avoids SQLITE_BUSY errors
         ds.setDatabaseName(props.getDbPath().toAbsolutePath().toString());
 
         // Run migrations before JPA initialises - auto-configuration cannot pick up
