@@ -2,7 +2,7 @@
 
 Outil personnel de classification et d'archivage de documents.
 
-## Stack technique
+## Stack technique   
 
 - **Backend** : Java 21, Spring Boot 3.x, Gradle (Kotlin DSL)
 - **Frontend** : jte (Java Template Engine) + HTMX + Bootstrap SCSS (servi par Spring Boot)
