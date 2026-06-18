@@ -365,6 +365,8 @@ public class DocumentPipelineService {
         doc.setAppliedRule(resolved.appliedRule());
         documentRepository.save(doc);
 
+        sidecarService.write(newFile, doc);
+
         log.info("Reclassified document {}: {} → {}", documentId, oldRelPath, actualNewRelPath);
     }
 

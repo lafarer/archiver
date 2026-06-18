@@ -271,15 +271,35 @@ public class AuditController {
         doc.setFileSizeBytes(Files.size(docFile));
         doc.setFilesystemMtime(Files.getLastModifiedTime(docFile).toInstant());
 
-        sidecarService.readAppliedRuleRef(sidecarFile).ifPresent(ref -> {
-            ruleRepository.findAll().stream()
-                .filter(r -> ref.conditionNl() != null && ref.pathTemplate() != null
-                    ? Objects.equals(r.getConditionNl(), ref.conditionNl())
-                        && Objects.equals(r.getPathTemplate(), ref.pathTemplate())
-                    : Objects.equals(r.getLabel(), ref.label()))
+        var ruleRef = sidecarService.readAppliedRuleRef(sidecarFile);
+        if (ruleRef.isEmpty()) {
+            log.warn("No applied_rule found in sidecar for {} - document will use default rule", relPath);
+        } else {
+            var ref = ruleRef.get();
+            log.info("Sidecar applied_rule for {}: label='{}', conditionNl='{}'", relPath, ref.label(), ref.conditionNl());
+            List<com.github.lafarer.archiver.model.StoragePathRule> allRules = ruleRepository.findAll();
+            com.github.lafarer.archiver.model.StoragePathRule matched = allRules.stream()
+                .filter(r -> ref.conditionNl() != null
+                        && r.getConditionNl() != null
+                        && ref.conditionNl().strip().equals(r.getConditionNl().strip()))
                 .findFirst()
-                .ifPresent(doc::setAppliedRule);
-        });
+                .or(() -> allRules.stream()
+                        .filter(r -> ref.label() != null
+                                && r.getLabel() != null
+                                && ref.label().strip().equals(r.getLabel().strip()))
+                        .findFirst())
+                .orElse(null);
+            if (matched != null) {
+                doc.setAppliedRule(matched);
+                log.info("Matched rule '{}' (id={}) for {}", matched.getLabel(), matched.getId(), relPath);
+            } else {
+                log.warn("Could not match applied rule (label='{}', conditionNl='{}') for {} - rule may have been renamed or deleted",
+                        ref.label(), ref.conditionNl(), relPath);
+                log.warn("Available rules: {}", allRules.stream()
+                        .map(r -> "'" + r.getLabel() + "'/" + r.getConditionNl())
+                        .toList());
+            }
+        }
 
         documentRepository.save(doc);
         log.info("Imported from sidecar: {}", relPath);
