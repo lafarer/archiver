@@ -65,11 +65,11 @@ public class WatchdogService {
         return running.get();
     }
 
-    private void scanExisting() {
+    public void rescanInbox() {
         try (var stream = Files.walk(props.getInboxPath())) {
             stream.filter(f -> Files.isRegularFile(f) && !f.getFileName().toString().startsWith("."))
                   .forEach(f -> {
-                      log.info("Scanning existing inbox file: {}", f);
+                      log.info("Rescanning inbox file: {}", f);
                       pipelineService.processAsync(f, ArchiveService.SourceType.INBOX);
                   });
         } catch (IOException e) {
@@ -79,7 +79,7 @@ public class WatchdogService {
 
     private void watch() {
         try {
-            scanExisting();
+            rescanInbox();
 
             watchService = FileSystems.getDefault().newWatchService();
             props.getInboxPath().register(watchService,

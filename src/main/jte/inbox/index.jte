@@ -11,9 +11,14 @@
 
 <div class="page-header">
     <h1 id="inbox-header-title">Inbox <span class="badge bg-secondary">${documents.size()}</span></h1>
-    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadModal">
-        + Importer
-    </button>
+    <div class="d-flex gap-2">
+        <form method="post" action="/inbox/rescan">
+            <button type="submit" class="btn btn-outline-secondary btn-sm">Rescanner</button>
+        </form>
+        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadModal">
+            + Importer
+        </button>
+    </div>
 </div>
 
 @if(uploadError != null)

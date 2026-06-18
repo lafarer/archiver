@@ -10,6 +10,7 @@ import com.github.lafarer.archiver.repository.DocumentTypeDefRepository;
 import com.github.lafarer.archiver.service.ArchiveService;
 import com.github.lafarer.archiver.service.DocumentPipelineService;
 import com.github.lafarer.archiver.service.InboxEventService;
+import com.github.lafarer.archiver.service.WatchdogService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -38,6 +39,7 @@ public class InboxController {
     private final CustomFieldDefRepository customFieldDefRepository;
     private final DocumentTypeDefRepository documentTypeDefRepository;
     private final InboxEventService inboxEventService;
+    private final WatchdogService watchdogService;
     private final ObjectMapper objectMapper;
 
     @GetMapping
@@ -205,6 +207,12 @@ public class InboxController {
         pipelineService.validateAndArchive(id, sourcePath);
         inboxEventService.notifyInboxChanged();
         redirectAttributes.addFlashAttribute("message", "Document archivé.");
+        return "redirect:/inbox";
+    }
+
+    @PostMapping("/rescan")
+    public String rescan() {
+        watchdogService.rescanInbox();
         return "redirect:/inbox";
     }
 
