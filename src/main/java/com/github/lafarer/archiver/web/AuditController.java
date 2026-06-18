@@ -3,9 +3,9 @@ package com.github.lafarer.archiver.web;
 import com.github.lafarer.archiver.config.ArchiverProperties;
 import com.github.lafarer.archiver.model.Document;
 import com.github.lafarer.archiver.repository.DocumentRepository;
-import com.github.lafarer.archiver.repository.StoragePathRuleRepository;
 import com.github.lafarer.archiver.service.ArchiveService;
 import com.github.lafarer.archiver.service.DocumentPipelineService;
+import com.github.lafarer.archiver.service.SidecarImportService;
 import com.github.lafarer.archiver.service.SidecarService;
 import com.github.lafarer.archiver.service.StorageAuditService;
 import com.github.lafarer.archiver.service.StorageAuditService.AnomalyType;
@@ -19,17 +19,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.security.DigestInputStream;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.HexFormat;
 import java.util.List;
-import java.util.Objects;
 
 @Controller
 @RequestMapping("/audit")
@@ -39,9 +32,9 @@ public class AuditController {
 
     private final StorageAuditService auditService;
     private final DocumentRepository documentRepository;
-    private final StoragePathRuleRepository ruleRepository;
     private final ArchiveService archiveService;
     private final SidecarService sidecarService;
+    private final SidecarImportService sidecarImportService;
     private final DocumentPipelineService pipelineService;
     private final ArchiverProperties props;
 
@@ -98,7 +91,7 @@ public class AuditController {
     @PostMapping("/repair/delete-all-ghosts")
     public String deleteAllGhosts(RedirectAttributes ra) throws IOException {
         AuditReport report = auditService.scan();
-        var entries = report.byType().getOrDefault(AnomalyType.GHOST_RECORD, java.util.List.of());
+        var entries = report.byType().getOrDefault(AnomalyType.GHOST_RECORD, List.of());
         int count = 0;
         for (var entry : entries) {
             documentRepository.deleteById(entry.dbRecord().getId());
@@ -111,7 +104,7 @@ public class AuditController {
     @PostMapping("/repair/delete-all-missing")
     public String deleteAllMissing(RedirectAttributes ra) throws IOException {
         AuditReport report = auditService.scan();
-        var entries = report.byType().getOrDefault(AnomalyType.MISSING_FILE, java.util.List.of());
+        var entries = report.byType().getOrDefault(AnomalyType.MISSING_FILE, List.of());
         int count = 0;
         for (var entry : entries) {
             if (entry.dbRecord().getResolvedPath() != null) {
@@ -127,7 +120,7 @@ public class AuditController {
     @PostMapping("/repair/delete-all-orphan-sidecars")
     public String deleteAllOrphanSidecars(RedirectAttributes ra) throws IOException {
         AuditReport report = auditService.scan();
-        var entries = report.byType().getOrDefault(AnomalyType.ORPHAN_SIDECAR, java.util.List.of());
+        var entries = report.byType().getOrDefault(AnomalyType.ORPHAN_SIDECAR, List.of());
         int count = 0;
         for (var entry : entries) {
             Path sidecar = sidecarService.sidecarPathFor(props.getArchivePath().resolve(entry.relPath()));
@@ -140,7 +133,7 @@ public class AuditController {
     @PostMapping("/repair/regenerate-all-sidecars")
     public String regenerateAllSidecars(RedirectAttributes ra) throws IOException {
         AuditReport report = auditService.scan();
-        var entries = report.byType().getOrDefault(AnomalyType.FILE_WITHOUT_SIDECAR, java.util.List.of());
+        var entries = report.byType().getOrDefault(AnomalyType.FILE_WITHOUT_SIDECAR, List.of());
         int count = 0;
         for (var entry : entries) {
             Path filePath = props.getArchivePath().resolve(entry.relPath());
@@ -151,7 +144,7 @@ public class AuditController {
         return "redirect:/audit?run=true";
     }
 
-    // --- Re-analyze untracked archive files (step 5a) ---
+    // --- Re-analyze untracked archive files ---
 
     @PostMapping("/repair/reanalyze-archive-file")
     public String reanalyzeArchiveFile(@RequestParam String relPath,
@@ -193,7 +186,7 @@ public class AuditController {
         return "redirect:/audit?run=true";
     }
 
-    // --- Analyze inbox orphans (step 5b) ---
+    // --- Analyze inbox orphans ---
 
     @PostMapping("/repair/analyze-inbox-orphan")
     public String analyzeInboxOrphan(@RequestParam String relPath,
@@ -229,81 +222,21 @@ public class AuditController {
         return "redirect:/audit?run=true";
     }
 
-    // --- Import from sidecar (step 4) ---
+    // --- Import from sidecar ---
 
     @PostMapping("/repair/import-sidecar")
     public String importSidecar(@RequestParam String relPath,
                                 RedirectAttributes ra) throws IOException {
-        int imported = importEntry(relPath);
+        int imported = sidecarImportService.importFromSidecar(relPath);
         ra.addFlashAttribute("message", imported == 1 ? "Document importé." : "Document déjà présent (doublon ignoré).");
         return "redirect:/audit?run=true";
     }
 
     @PostMapping("/repair/import-all-sidecars")
     public String importAllSidecars(RedirectAttributes ra) throws IOException {
-        AuditReport report = auditService.scan();
-        List<AuditEntry> entries = report.byType().getOrDefault(AnomalyType.UNTRACKED_WITH_SIDECAR, List.of());
-        int imported = 0;
-        for (AuditEntry entry : entries) {
-            imported += importEntry(entry.relPath());
-        }
+        int imported = sidecarImportService.importAllUntracked();
         ra.addFlashAttribute("message", imported + " document(s) importé(s).");
         return "redirect:/audit?run=true";
-    }
-
-    private int importEntry(String relPath) throws IOException {
-        Path docFile = props.getArchivePath().resolve(relPath);
-        Path sidecarFile = sidecarService.sidecarPathFor(docFile);
-        if (!Files.exists(docFile) || !Files.exists(sidecarFile)) return 0;
-
-        String hash = sha256(docFile);
-        if (documentRepository.findBySha256Hash(hash).isPresent()) {
-            log.info("Skipping duplicate during import: {}", relPath);
-            return 0;
-        }
-
-        Document doc = sidecarService.importDocument(sidecarFile);
-        doc.setOriginalFilename(docFile.getFileName().toString());
-        doc.setResolvedPath(relPath);
-        doc.setSidecarPath(props.getArchivePath().relativize(sidecarFile).toString());
-        doc.setSha256Hash(hash);
-        doc.setMimeType(probeType(docFile));
-        doc.setFileSizeBytes(Files.size(docFile));
-        doc.setFilesystemMtime(Files.getLastModifiedTime(docFile).toInstant());
-
-        var ruleRef = sidecarService.readAppliedRuleRef(sidecarFile);
-        if (ruleRef.isEmpty()) {
-            log.warn("No applied_rule found in sidecar for {} - document will use default rule", relPath);
-        } else {
-            var ref = ruleRef.get();
-            log.info("Sidecar applied_rule for {}: label='{}', conditionNl='{}'", relPath, ref.label(), ref.conditionNl());
-            List<com.github.lafarer.archiver.model.StoragePathRule> allRules = ruleRepository.findAll();
-            com.github.lafarer.archiver.model.StoragePathRule matched = allRules.stream()
-                .filter(r -> ref.conditionNl() != null
-                        && r.getConditionNl() != null
-                        && ref.conditionNl().strip().equals(r.getConditionNl().strip()))
-                .findFirst()
-                .or(() -> allRules.stream()
-                        .filter(r -> ref.label() != null
-                                && r.getLabel() != null
-                                && ref.label().strip().equals(r.getLabel().strip()))
-                        .findFirst())
-                .orElse(null);
-            if (matched != null) {
-                doc.setAppliedRule(matched);
-                log.info("Matched rule '{}' (id={}) for {}", matched.getLabel(), matched.getId(), relPath);
-            } else {
-                log.warn("Could not match applied rule (label='{}', conditionNl='{}') for {} - rule may have been renamed or deleted",
-                        ref.label(), ref.conditionNl(), relPath);
-                log.warn("Available rules: {}", allRules.stream()
-                        .map(r -> "'" + r.getLabel() + "'/" + r.getConditionNl())
-                        .toList());
-            }
-        }
-
-        documentRepository.save(doc);
-        log.info("Imported from sidecar: {}", relPath);
-        return 1;
     }
 
     private Path resolveInboxConflict(Path target) {
@@ -319,22 +252,5 @@ public class AuditController {
             i++;
         } while (Files.exists(candidate));
         return candidate;
-    }
-
-    private String sha256(Path file) throws IOException {
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            try (InputStream is = new DigestInputStream(Files.newInputStream(file), md)) {
-                is.transferTo(OutputStream.nullOutputStream());
-            }
-            return HexFormat.of().formatHex(md.digest());
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private String probeType(Path file) throws IOException {
-        String type = Files.probeContentType(file);
-        return type != null ? type : "application/octet-stream";
     }
 }

@@ -41,6 +41,7 @@ public class GlobalSidecarService {
     private final CustomFieldDefRepository customFieldDefRepository;
     private final DocumentTypeDefRepository documentTypeDefRepository;
     private final TagDefRepository tagDefRepository;
+    private final SidecarImportService sidecarImportService;
 
     private final ObjectMapper mapper = new ObjectMapper()
             .enable(SerializationFeature.INDENT_OUTPUT);
@@ -51,11 +52,22 @@ public class GlobalSidecarService {
         if (initState.isFreshlyCreated() && Files.exists(sidecar)) {
             log.info("Fresh DB with existing global sidecar - restoring reference data automatically");
             restoreFromSidecar();
+            autoImportDocuments();
         } else if (!Files.exists(sidecar)) {
             log.info("Global reference sidecar not found, creating from current DB state");
             refresh();
         }
         // DB exists and sidecar exists → nothing to do
+    }
+
+    private void autoImportDocuments() {
+        try {
+            log.info("Auto-importing archived documents from sidecars...");
+            int imported = sidecarImportService.importAllUntracked();
+            log.info("Auto-import complete: {} document(s) restored from sidecars", imported);
+        } catch (Exception e) {
+            log.error("Auto-import of documents failed: {}", e.getMessage(), e);
+        }
     }
 
     public void refresh() {
