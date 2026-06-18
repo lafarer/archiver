@@ -3,6 +3,7 @@ package com.github.lafarer.archiver.web;
 import com.github.lafarer.archiver.config.ArchiverProperties;
 import com.github.lafarer.archiver.model.Document;
 import com.github.lafarer.archiver.repository.DocumentRepository;
+import com.github.lafarer.archiver.repository.StoragePathRuleRepository;
 import com.github.lafarer.archiver.service.ArchiveService;
 import com.github.lafarer.archiver.service.DocumentPipelineService;
 import com.github.lafarer.archiver.service.SidecarService;
@@ -28,6 +29,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Objects;
 
 @Controller
 @RequestMapping("/audit")
@@ -37,6 +39,7 @@ public class AuditController {
 
     private final StorageAuditService auditService;
     private final DocumentRepository documentRepository;
+    private final StoragePathRuleRepository ruleRepository;
     private final ArchiveService archiveService;
     private final SidecarService sidecarService;
     private final DocumentPipelineService pipelineService;
@@ -267,6 +270,17 @@ public class AuditController {
         doc.setMimeType(probeType(docFile));
         doc.setFileSizeBytes(Files.size(docFile));
         doc.setFilesystemMtime(Files.getLastModifiedTime(docFile).toInstant());
+
+        sidecarService.readAppliedRuleRef(sidecarFile).ifPresent(ref -> {
+            ruleRepository.findAll().stream()
+                .filter(r -> ref.conditionNl() != null && ref.pathTemplate() != null
+                    ? Objects.equals(r.getConditionNl(), ref.conditionNl())
+                        && Objects.equals(r.getPathTemplate(), ref.pathTemplate())
+                    : Objects.equals(r.getLabel(), ref.label()))
+                .findFirst()
+                .ifPresent(doc::setAppliedRule);
+        });
+
         documentRepository.save(doc);
         log.info("Imported from sidecar: {}", relPath);
         return 1;

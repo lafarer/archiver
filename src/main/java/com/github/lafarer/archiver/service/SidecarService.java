@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.github.lafarer.archiver.model.Document;
+import com.github.lafarer.archiver.model.enums.AnalysisStatus;
 import com.github.lafarer.archiver.model.enums.DatePrecision;
 import com.github.lafarer.archiver.model.enums.FieldSource;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +17,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -45,8 +47,15 @@ public class SidecarService {
         data.put("tags", document.getTags());
         data.put("custom_fields", document.getCustomFields());
         data.put("resolved_path", document.getResolvedPath());
-        data.put("applied_rule", document.getAppliedRule() != null
-            ? document.getAppliedRule().getLabel() : null);
+        if (document.getAppliedRule() != null) {
+            Map<String, Object> ruleRef = new LinkedHashMap<>();
+            ruleRef.put("label", document.getAppliedRule().getLabel());
+            ruleRef.put("condition_nl", document.getAppliedRule().getConditionNl());
+            ruleRef.put("path_template", document.getAppliedRule().getPathTemplate());
+            data.put("applied_rule", ruleRef);
+        } else {
+            data.put("applied_rule", null);
+        }
         data.put("provenance", buildProvenance(document));
 
         try {
@@ -104,8 +113,36 @@ public class SidecarService {
         }
 
         doc.setClassified(true);
+        doc.setAnalysisStatus(AnalysisStatus.COMPLETE);
         return doc;
     }
+
+    /**
+     * Reads the applied_rule block from a sidecar and returns condition_nl + path_template
+     * for rule matching. Handles both the old string format (label only) and the new object format.
+     */
+    @SuppressWarnings("unchecked")
+    public Optional<AppliedRuleRef> readAppliedRuleRef(Path sidecarPath) {
+        try {
+            Map<String, Object> data = mapper.readValue(sidecarPath.toFile(), new TypeReference<>() {});
+            Object raw = data.get("applied_rule");
+            if (raw instanceof Map<?, ?> m) {
+                return Optional.of(new AppliedRuleRef(
+                    (String) m.get("label"),
+                    (String) m.get("condition_nl"),
+                    (String) m.get("path_template")
+                ));
+            }
+            if (raw instanceof String label) {
+                return Optional.of(new AppliedRuleRef(label, null, null));
+            }
+        } catch (IOException e) {
+            log.warn("Could not read applied_rule ref from {}: {}", sidecarPath, e.getMessage());
+        }
+        return Optional.empty();
+    }
+
+    public record AppliedRuleRef(String label, String conditionNl, String pathTemplate) {}
 
     @SuppressWarnings("unchecked")
     private void applyProvenance(Document doc, Map<String, Object> provenance) {
