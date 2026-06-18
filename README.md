@@ -53,6 +53,10 @@ The app will be available at http://localhost:8080. Archived documents and the d
 - SQLite, Flyway
 - Apache PDFBox, Anthropic Java SDK
 
+## Documentation
+
+Full documentation is available in the [Wiki](https://github.com/lafarer/archiver/wiki).
+
 ## License
 
 [MIT](LICENSE)
