@@ -1,5 +1,7 @@
 # Archiver
 
+Archiver started as a personal tool for document classification - and as a test of how much of a real application Claude could generate from scratch.
+
 A self-hosted document management tool that watches an inbox folder, extracts metadata from PDFs and images, and uses Claude AI to classify and file documents automatically. Storage paths are driven by configurable rules with template variables.
 
 ## Features
