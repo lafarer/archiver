@@ -2,6 +2,7 @@ package com.github.lafarer.archiver.web;
 
 import com.github.lafarer.archiver.model.CustomFieldDef;
 import com.github.lafarer.archiver.repository.CustomFieldDefRepository;
+import com.github.lafarer.archiver.service.GlobalSidecarService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,6 +15,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class CustomFieldsController {
 
     private final CustomFieldDefRepository repository;
+    private final GlobalSidecarService globalSidecarService;
 
     @GetMapping
     public String index(Model model) {
@@ -44,6 +46,7 @@ public class CustomFieldsController {
             return "redirect:/fields/new";
         }
         repository.save(field);
+        globalSidecarService.refresh();
         ra.addFlashAttribute("message", "Champ créé.");
         return "redirect:/fields";
     }
@@ -56,6 +59,7 @@ public class CustomFieldsController {
         field.setDescription(form.getDescription());
         field.setFieldType(form.getFieldType());
         repository.save(field);
+        globalSidecarService.refresh();
         ra.addFlashAttribute("message", "Champ mis à jour.");
         return "redirect:/fields";
     }
@@ -63,6 +67,7 @@ public class CustomFieldsController {
     @PostMapping("/{id}/delete")
     public String delete(@PathVariable Long id, RedirectAttributes ra) {
         repository.deleteById(id);
+        globalSidecarService.refresh();
         ra.addFlashAttribute("message", "Champ supprimé.");
         return "redirect:/fields";
     }

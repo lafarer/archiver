@@ -5,6 +5,7 @@ import com.github.lafarer.archiver.model.StoragePathRule;
 import com.github.lafarer.archiver.repository.DocumentRepository;
 import com.github.lafarer.archiver.repository.StoragePathRuleRepository;
 import com.github.lafarer.archiver.service.DocumentPipelineService;
+import com.github.lafarer.archiver.service.GlobalSidecarService;
 import com.github.lafarer.archiver.service.PathResolverService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -29,6 +30,7 @@ public class RulesController {
     private final DocumentRepository documentRepository;
     private final PathResolverService pathResolverService;
     private final DocumentPipelineService pipelineService;
+    private final GlobalSidecarService globalSidecarService;
 
     public record SimulateResult(Document document, String newPath, boolean changed) {}
 
@@ -112,6 +114,7 @@ public class RulesController {
     public String create(@ModelAttribute StoragePathRule rule, RedirectAttributes ra) {
         ensureSingleDefault(rule);
         ruleRepository.save(rule);
+        globalSidecarService.refresh();
         ra.addFlashAttribute("message", "Règle créée.");
         return "redirect:/rules";
     }
@@ -129,6 +132,7 @@ public class RulesController {
         if (form.isDefault()) ensureSingleDefault(form);
         rule.setDefault(form.isDefault());
         ruleRepository.save(rule);
+        globalSidecarService.refresh();
 
         List<Document> pending = documentRepository.findByClassifiedFalseOrderByCreatedAtDesc()
             .stream()
@@ -157,6 +161,7 @@ public class RulesController {
     @PostMapping("/{id}/delete")
     public String delete(@PathVariable Long id, RedirectAttributes ra) {
         ruleRepository.deleteById(id);
+        globalSidecarService.refresh();
         ra.addFlashAttribute("message", "Règle supprimée.");
         return "redirect:/rules";
     }
@@ -171,6 +176,7 @@ public class RulesController {
                 ruleRepository.save(r);
             });
         }
+        globalSidecarService.refresh();
     }
 
     private long countOutOfSync(Long ruleId, String pathTemplate) {

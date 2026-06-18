@@ -3,6 +3,7 @@ package com.github.lafarer.archiver.web;
 import com.github.lafarer.archiver.model.DocumentTypeDef;
 import com.github.lafarer.archiver.repository.DocumentTypeDefRepository;
 import com.github.lafarer.archiver.service.DocumentTypeService;
+import com.github.lafarer.archiver.service.GlobalSidecarService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,6 +17,7 @@ public class DocumentTypesController {
 
     private final DocumentTypeService documentTypeService;
     private final DocumentTypeDefRepository repository;
+    private final GlobalSidecarService globalSidecarService;
 
     @GetMapping
     public String index(Model model) {
@@ -47,6 +49,7 @@ public class DocumentTypesController {
             return "redirect:/doctypes/new";
         }
         repository.save(new DocumentTypeDef(form.slug(), form.label(), form.description()));
+        globalSidecarService.refresh();
         ra.addFlashAttribute("message", "Type créé.");
         return "redirect:/doctypes";
     }
@@ -58,6 +61,7 @@ public class DocumentTypesController {
         type.setLabel(form.label());
         type.setDescription(form.description());
         repository.save(type);
+        globalSidecarService.refresh();
         ra.addFlashAttribute("message", "Type mis à jour.");
         return "redirect:/doctypes";
     }
@@ -68,12 +72,14 @@ public class DocumentTypesController {
             .orElseThrow(() -> new IllegalArgumentException("Type not found: " + id));
         type.setEnabled(!type.isEnabled());
         repository.save(type);
+        globalSidecarService.refresh();
         return "redirect:/doctypes";
     }
 
     @PostMapping("/{id}/delete")
     public String delete(@PathVariable Long id, RedirectAttributes ra) {
         repository.deleteById(id);
+        globalSidecarService.refresh();
         ra.addFlashAttribute("message", "Type supprimé.");
         return "redirect:/doctypes";
     }

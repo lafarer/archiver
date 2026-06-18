@@ -2,6 +2,7 @@ package com.github.lafarer.archiver.web;
 
 import com.github.lafarer.archiver.model.TagDef;
 import com.github.lafarer.archiver.repository.TagDefRepository;
+import com.github.lafarer.archiver.service.GlobalSidecarService;
 import com.github.lafarer.archiver.service.TagService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -16,6 +17,7 @@ public class TagsController {
 
     private final TagService tagService;
     private final TagDefRepository repository;
+    private final GlobalSidecarService globalSidecarService;
 
     @GetMapping
     public String index(Model model) {
@@ -47,6 +49,7 @@ public class TagsController {
             return "redirect:/tags/new";
         }
         repository.save(new TagDef(form.slug(), form.label(), form.description()));
+        globalSidecarService.refresh();
         ra.addFlashAttribute("message", "Tag créé.");
         return "redirect:/tags";
     }
@@ -58,6 +61,7 @@ public class TagsController {
         tag.setLabel(form.label());
         tag.setDescription(form.description());
         repository.save(tag);
+        globalSidecarService.refresh();
         ra.addFlashAttribute("message", "Tag mis à jour.");
         return "redirect:/tags";
     }
@@ -68,12 +72,14 @@ public class TagsController {
             .orElseThrow(() -> new IllegalArgumentException("Tag not found: " + id));
         tag.setEnabled(!tag.isEnabled());
         repository.save(tag);
+        globalSidecarService.refresh();
         return "redirect:/tags";
     }
 
     @PostMapping("/{id}/delete")
     public String delete(@PathVariable Long id, RedirectAttributes ra) {
         repository.deleteById(id);
+        globalSidecarService.refresh();
         ra.addFlashAttribute("message", "Tag supprimé.");
         return "redirect:/tags";
     }
