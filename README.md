@@ -8,11 +8,13 @@ A self-hosted document management tool that watches an inbox folder, extracts me
 
 - AI-powered classification using Claude (Anthropic)
 - Automatic and manual inbox processing with drag-and-drop
-- Configurable storage rules with path templates (`{year}`, `{issuer}`, `[month?]`...)
+- Configurable storage rules with path templates (`[year]`, `[issuer]`, `[month?]`...)
 - Custom fields for domain-specific metadata
 - Full-text and faceted search across archived documents
 - Document preview for PDFs and images
 - Sidecar JSON files for DB-independent archiving
+- Automatic database recovery from sidecars on restart after data loss
+- Storage audit page with targeted repair actions
 
 ## Prerequisites
 
