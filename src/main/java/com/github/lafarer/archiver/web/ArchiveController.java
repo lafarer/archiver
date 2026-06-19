@@ -9,6 +9,7 @@ import com.github.lafarer.archiver.repository.CustomFieldDefRepository;
 import com.github.lafarer.archiver.repository.DocumentRepository;
 import com.github.lafarer.archiver.repository.DocumentSpecs;
 import com.github.lafarer.archiver.repository.DocumentTypeDefRepository;
+import com.github.lafarer.archiver.repository.TagDefRepository;
 import com.github.lafarer.archiver.service.ArchiveService;
 import com.github.lafarer.archiver.service.DocumentPipelineService;
 import org.springframework.data.jpa.domain.Specification;
@@ -40,6 +41,7 @@ public class ArchiveController {
     private final ClassificationHistoryRepository historyRepository;
     private final CustomFieldDefRepository customFieldDefRepository;
     private final DocumentTypeDefRepository documentTypeDefRepository;
+    private final TagDefRepository tagDefRepository;
     private final DocumentPipelineService pipelineService;
     private final ArchiveService archiveService;
     private final ArchiverProperties props;
@@ -160,8 +162,10 @@ public class ArchiveController {
 
         model.addAttribute("document", doc);
         model.addAttribute("customFieldDefs", defs);
+        model.addAttribute("issuerSuggestions", documentRepository.findDistinctIssuers());
         model.addAttribute("fieldSuggestions", buildFieldSuggestions(defs));
         model.addAttribute("documentTypeDefs", documentTypeDefRepository.findByEnabledTrueOrderByLabelAsc());
+        model.addAttribute("allTagDefs", tagDefRepository.findByEnabledTrueOrderByLabelAsc());
         model.addAttribute("proposedPath", pipelineService.proposedPath(doc));
         model.addAttribute("history", historyRepository.findByDocumentIdOrderByCreatedAtDesc(id));
         model.addAttribute("cfProvenance", buildCfProvenance(doc));
@@ -319,7 +323,7 @@ public class ArchiveController {
             if (documentDate != null) doc.setDocumentDate(documentDate);
             if (issuer      != null) doc.setIssuer(issuer);
             if (description != null) doc.setDescription(description);
-            if (tags        != null) doc.setTags(java.util.List.of(tags.split(",\\s*")));
+            if (tags        != null) doc.setTags(java.util.Arrays.stream(tags.split(",\\s*")).filter(t -> !t.isBlank()).toList());
         }
     }
 }

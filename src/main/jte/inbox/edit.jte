@@ -1,6 +1,7 @@
 @import com.github.lafarer.archiver.model.Document
 @import com.github.lafarer.archiver.model.CustomFieldDef
 @import com.github.lafarer.archiver.model.DocumentTypeDef
+@import com.github.lafarer.archiver.model.TagDef
 @import com.github.lafarer.archiver.service.DocumentPipelineService.ProposedPathParts
 @import com.github.lafarer.archiver.web.ArchiveController
 @import java.time.ZoneId
@@ -11,6 +12,8 @@
 @param Document document
 @param List<CustomFieldDef> customFieldDefs
 @param List<DocumentTypeDef> documentTypeDefs
+@param List<TagDef> allTagDefs
+@param List<String> issuerSuggestions
 @param Map<String, List<String>> fieldSuggestions
 @param Map<String, String> cfProvenance
 @param ProposedPathParts proposedPath
@@ -152,7 +155,13 @@
                     @endif
                 </label>
                 <input type="text" id="issuer" name="issuer" class="form-control"
-                       value="${document.getIssuer() != null ? document.getIssuer() : ""}">
+                       value="${document.getIssuer() != null ? document.getIssuer() : ""}"
+                       list="issuer-list" autocomplete="off">
+                <datalist id="issuer-list">
+                    @for(String s : issuerSuggestions)
+                        <option value="${s}"></option>
+                    @endfor
+                </datalist>
             </div>
 
             <div>
@@ -160,15 +169,7 @@
                 <textarea id="description" name="description" class="form-control" rows="2">${document.getDescription() != null ? document.getDescription() : ""}</textarea>
             </div>
 
-            <div>
-                <label class="form-label" for="tags">
-                    Tags <span class="text-muted small">(séparés par des virgules)</span>
-                </label>
-                !{String tagsValue = document.getTags().isEmpty() ? "" : String.join(", ", document.getTags());}
-                <input type="text" id="tags" name="tags" class="form-control"
-                       value="${tagsValue}"
-                       placeholder="ex: assurance, logement">
-            </div>
+            @template.tags.picker(allTagDefs = allTagDefs, selectedTags = document.getTags(), returnTo = "/inbox/" + document.getId() + "/edit")
 
             @if(!customFieldDefs.isEmpty())
                 <hr class="my-1">
@@ -185,13 +186,11 @@
                         <input type="text" id="cf_${cf.getSlug()}" name="cf_${cf.getSlug()}"
                                class="form-control" value="${cfValue}"
                                list="${listId}" autocomplete="off">
-                        @if(!suggestions.isEmpty())
-                            <datalist id="${listId}">
-                                @for(String s : suggestions)
-                                    <option value="${s}"></option>
-                                @endfor
-                            </datalist>
-                        @endif
+                        <datalist id="${listId}">
+                            @for(String s : suggestions)
+                                <option value="${s}"></option>
+                            @endfor
+                        </datalist>
                         @if(cfProvenance.containsKey(cf.getSlug()))
                             <div class="form-text text-muted">${cfProvenance.get(cf.getSlug())}</div>
                         @endif
@@ -218,13 +217,11 @@
                             <input type="text" id="cf_${cf.getSlug()}" name="cf_${cf.getSlug()}"
                                    class="form-control" value=""
                                    list="${listId2}" autocomplete="off">
-                            @if(!suggestions2.isEmpty())
-                                <datalist id="${listId2}">
-                                    @for(String s : suggestions2)
-                                        <option value="${s}"></option>
-                                    @endfor
-                                </datalist>
-                            @endif
+                            <datalist id="${listId2}">
+                                @for(String s : suggestions2)
+                                    <option value="${s}"></option>
+                                @endfor
+                            </datalist>
                             @if(cfProvenance.containsKey(cf.getSlug()))
                                 <div class="form-text text-muted">${cfProvenance.get(cf.getSlug())}</div>
                             @endif

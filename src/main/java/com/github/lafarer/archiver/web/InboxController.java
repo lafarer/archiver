@@ -7,6 +7,7 @@ import com.github.lafarer.archiver.model.Document;
 import com.github.lafarer.archiver.repository.CustomFieldDefRepository;
 import com.github.lafarer.archiver.repository.DocumentRepository;
 import com.github.lafarer.archiver.repository.DocumentTypeDefRepository;
+import com.github.lafarer.archiver.repository.TagDefRepository;
 import com.github.lafarer.archiver.service.ArchiveService;
 import com.github.lafarer.archiver.service.DocumentPipelineService;
 import com.github.lafarer.archiver.service.InboxEventService;
@@ -38,6 +39,7 @@ public class InboxController {
     private final ArchiverProperties props;
     private final CustomFieldDefRepository customFieldDefRepository;
     private final DocumentTypeDefRepository documentTypeDefRepository;
+    private final TagDefRepository tagDefRepository;
     private final InboxEventService inboxEventService;
     private final WatchdogService watchdogService;
     private final ObjectMapper objectMapper;
@@ -116,8 +118,10 @@ public class InboxController {
         var defs = customFieldDefRepository.findAll();
         model.addAttribute("document", doc);
         model.addAttribute("customFieldDefs", defs);
+        model.addAttribute("issuerSuggestions", documentRepository.findDistinctIssuers());
         model.addAttribute("fieldSuggestions", buildFieldSuggestions(defs));
         model.addAttribute("documentTypeDefs", documentTypeDefRepository.findByEnabledTrueOrderByLabelAsc());
+        model.addAttribute("allTagDefs", tagDefRepository.findByEnabledTrueOrderByLabelAsc());
         model.addAttribute("proposedPath", pipelineService.proposedPath(doc));
         model.addAttribute("cfProvenance", buildCfProvenance(doc));
         model.addAttribute("page", "inbox");
@@ -234,7 +238,7 @@ public class InboxController {
             if (documentDate != null) doc.setDocumentDate(documentDate);
             if (issuer      != null) doc.setIssuer(issuer);
             if (description != null) doc.setDescription(description);
-            if (tags        != null) doc.setTags(List.of(tags.split(",\\s*")));
+            if (tags        != null) doc.setTags(java.util.Arrays.stream(tags.split(",\\s*")).filter(t -> !t.isBlank()).toList());
         }
     }
 }

@@ -43,15 +43,17 @@ public class TagsController {
     }
 
     @PostMapping
-    public String create(@ModelAttribute TagForm form, RedirectAttributes ra) {
+    public String create(@ModelAttribute TagForm form,
+                         @RequestParam(required = false) String returnTo,
+                         RedirectAttributes ra) {
         if (repository.existsBySlug(form.slug())) {
             ra.addFlashAttribute("error", "Un tag avec ce slug existe déjà.");
             return "redirect:/tags/new";
         }
         repository.save(new TagDef(form.slug(), form.label(), form.description()));
         globalSidecarService.refresh();
-        ra.addFlashAttribute("message", "Tag créé.");
-        return "redirect:/tags";
+        ra.addFlashAttribute("message", "Tag \"" + form.label() + "\" créé.");
+        return returnTo != null && !returnTo.isBlank() ? "redirect:" + returnTo : "redirect:/tags";
     }
 
     @PostMapping("/{id}")
