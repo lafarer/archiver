@@ -37,6 +37,9 @@ public interface DocumentRepository extends JpaRepository<Document, Long>, JpaSp
     @Query("SELECT DISTINCT d.issuer FROM Document d WHERE d.classified = true AND d.issuer IS NOT NULL ORDER BY d.issuer")
     List<String> findDistinctIssuers();
 
+    @Query("SELECT DISTINCT d.issuer FROM Document d WHERE d.issuer IS NOT NULL ORDER BY d.issuer")
+    List<String> findAllDistinctIssuers();
+
     @Query(value = "SELECT DISTINCT jt.value FROM document d, json_each(d.tags) jt WHERE d.is_classified = 1 ORDER BY jt.value", nativeQuery = true)
     List<String> findDistinctTagValues();
 
@@ -49,6 +52,15 @@ public interface DocumentRepository extends JpaRepository<Document, Long>, JpaSp
             ORDER BY 1
             """, nativeQuery = true)
     List<String> findDistinctCustomFieldValues(@Param("jsonPath") String jsonPath);
+
+    @Query(value = """
+            SELECT DISTINCT json_extract(custom_fields, :jsonPath)
+            FROM document
+            WHERE json_extract(custom_fields, :jsonPath) IS NOT NULL
+              AND json_extract(custom_fields, :jsonPath) != ''
+            ORDER BY 1
+            """, nativeQuery = true)
+    List<String> findAllDistinctCustomFieldValues(@Param("jsonPath") String jsonPath);
 
     @Query("SELECT SUM(d.fileSizeBytes) FROM Document d WHERE d.classified = true")
     Long sumFileSizeBytesClassified();

@@ -118,7 +118,7 @@ public class InboxController {
         var defs = customFieldDefRepository.findAll();
         model.addAttribute("document", doc);
         model.addAttribute("customFieldDefs", defs);
-        model.addAttribute("issuerSuggestions", documentRepository.findDistinctIssuers());
+        model.addAttribute("issuerSuggestions", documentRepository.findAllDistinctIssuers());
         model.addAttribute("fieldSuggestions", buildFieldSuggestions(defs));
         model.addAttribute("documentTypeDefs", documentTypeDefRepository.findByEnabledTrueOrderByLabelAsc());
         model.addAttribute("allTagDefs", tagDefRepository.findByEnabledTrueOrderByLabelAsc());
@@ -132,7 +132,7 @@ public class InboxController {
     private Map<String, List<String>> buildFieldSuggestions(List<com.github.lafarer.archiver.model.CustomFieldDef> defs) {
         Map<String, List<String>> result = new LinkedHashMap<>();
         for (var def : defs) {
-            result.put(def.getSlug(), documentRepository.findDistinctCustomFieldValues("$." + def.getSlug()));
+            result.put(def.getSlug(), documentRepository.findAllDistinctCustomFieldValues("$." + def.getSlug()));
         }
         return result;
     }
