@@ -109,28 +109,46 @@
             </div>
 
             @if(!customFieldDefs.isEmpty())
-            <div>
-                <div class="fw-semibold small border-top pt-3 mb-3">Champs personnalisés</div>
-                <div class="d-flex flex-column gap-3">
+            <div class="border-top pt-3">
+                <div class="fw-semibold small mb-2">Champs personnalisés</div>
+
+                <div id="cf-filters" class="d-flex flex-column gap-2">
                     @for(CustomFieldDef def : customFieldDefs)
-                        !{String cfKey = "cf_" + def.getSlug();}
                         !{String cfVal = selectedCustomFields.getOrDefault(def.getSlug(), "");}
-                        !{List<String> suggestions = cfSuggestions.getOrDefault(def.getSlug(), List.of());}
-                        <div>
-                            <label class="form-label form-label-sm small">${def.getLabel()}</label>
-                            <input type="text" name="${cfKey}" class="form-control form-control-sm"
-                                   placeholder="${def.getLabel()}…" value="${cfVal}"
-                                   list="cf-list-${def.getSlug()}" autocomplete="off">
-                            @if(!suggestions.isEmpty())
-                                <datalist id="cf-list-${def.getSlug()}">
-                                    @for(String v : suggestions)
-                                        <option value="${v}">${v}</option>
-                                    @endfor
-                                </datalist>
-                            @endif
+                        @if(!cfVal.isBlank())
+                        <div class="cf-filter-row d-flex align-items-center gap-2" data-slug="${def.getSlug()}">
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="small fw-medium text-muted">${def.getLabel()}</span>
+                                    <button type="button" class="btn-close" style="font-size:.6rem"
+                                            data-cf-remove="${def.getSlug()}"></button>
+                                </div>
+                                <input type="text" name="cf_${def.getSlug()}" class="form-control form-control-sm"
+                                       value="${cfVal}" list="cf-list-${def.getSlug()}" autocomplete="off">
+                            </div>
                         </div>
+                        @endif
                     @endfor
                 </div>
+
+                <select id="cf-add-select" class="form-select form-select-sm mt-2">
+                    <option value="">+ Ajouter un filtre…</option>
+                    @for(CustomFieldDef def : customFieldDefs)
+                        !{boolean active = !selectedCustomFields.getOrDefault(def.getSlug(), "").isBlank();}
+                        @if(!active)
+                            <option value="${def.getSlug()}">${def.getLabel()}</option>
+                        @endif
+                    @endfor
+                </select>
+
+                <%-- Datalists pré-rendus pour tous les champs --%>
+                @for(CustomFieldDef def : customFieldDefs)
+                    <datalist id="cf-list-${def.getSlug()}">
+                        @for(String v : cfSuggestions.getOrDefault(def.getSlug(), List.of()))
+                            <option value="${v}"></option>
+                        @endfor
+                    </datalist>
+                @endfor
             </div>
             @endif
 
@@ -153,10 +171,71 @@
 (function() {
     var panel = document.getElementById('filtersPanel');
     var main  = document.getElementById('mainContent');
-    if (!panel || !main) return;
-    panel.addEventListener('show.bs.offcanvas',  function() { main.classList.add('filter-panel-open'); });
-    panel.addEventListener('hidden.bs.offcanvas', function() { main.classList.remove('filter-panel-open'); });
-})();
+    if (panel && main) {
+        panel.addEventListener('show.bs.offcanvas',  function() { main.classList.add('filter-panel-open'); });
+        panel.addEventListener('hidden.bs.offcanvas', function() { main.classList.remove('filter-panel-open'); });
+    }
+
+    var addSelect = document.getElementById('cf-add-select');
+    var cfFilters = document.getElementById('cf-filters');
+    if (!addSelect || !cfFilters) return;
+
+    addSelect.addEventListener('change', function(e) {
+        e.stopPropagation();
+        var slug = this.value;
+        if (!slug) return;
+        var label = this.options[this.selectedIndex].text;
+
+        var row = document.createElement('div');
+        row.className = 'cf-filter-row';
+        row.dataset.slug = slug;
+        row.innerHTML =
+            '<div class="d-flex justify-content-between align-items-center mb-1">' +
+                '<span class="small fw-medium text-muted">' + label + '</span>' +
+                '<button type="button" class="btn-close" style="font-size:.6rem" data-cf-remove="' + slug + '"></button>' +
+            '</div>' +
+            '<input type="text" name="cf_' + slug + '" class="form-control form-control-sm"' +
+                   ' list="cf-list-' + slug + '" autocomplete="off">';
+        cfFilters.appendChild(row);
+
+        this.options[this.selectedIndex].remove();
+        this.value = '';
+
+        // HTMX does not track value changes on dynamically added inputs (no stored
+        // initial value for the "changed" filter). Wire up the trigger explicitly.
+        var input = row.querySelector('input');
+        var form  = document.getElementById('archive-filters');
+        var timer;
+        input.addEventListener('input', function() {
+            clearTimeout(timer);
+            timer = setTimeout(function() { htmx.trigger(form, 'change'); }, 400);
+        });
+
+        input.focus();
+    });
+
+    cfFilters.addEventListener('click', function(e) {
+        var btn = e.target.closest('[data-cf-remove]');
+        if (!btn) return;
+        var slug = btn.dataset.cfRemove;
+        var row = cfFilters.querySelector('[data-slug="' + slug + '"]');
+        if (!row) return;
+
+        var input = row.querySelector('input');
+        if (input && input.value !== '') {
+            input.value = '';
+            input.dispatchEvent(new Event('change', {bubbles: true}));
+        }
+
+        var label = row.querySelector('span').textContent;
+        var opt = document.createElement('option');
+        opt.value = slug;
+        opt.textContent = label;
+        addSelect.appendChild(opt);
+
+        row.remove();
+    });
+}());
 </script>
 
 `)
