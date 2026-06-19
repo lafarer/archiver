@@ -74,6 +74,10 @@
 
 <script>
 (function () {
+    // Move modal out of any parent form to avoid invalid nested-form HTML
+    var modal = document.getElementById('newTagModal');
+    if (modal) document.body.appendChild(modal);
+
     document.querySelectorAll('.tag-picker-btn').forEach(function (btn) {
         btn.addEventListener('click', function () {
             this.classList.toggle('btn-secondary');

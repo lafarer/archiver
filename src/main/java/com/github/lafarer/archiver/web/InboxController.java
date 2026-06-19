@@ -176,16 +176,18 @@ public class InboxController {
         Document doc = documentRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Document not found: " + id));
         form.applyTo(doc);
+        Map<String, String> updatedCf = new java.util.HashMap<>(doc.getCustomFields());
         allParams.forEach((key, value) -> {
             if (key.startsWith("cf_")) {
                 String slug = key.substring(3);
                 if (value != null && !value.isBlank()) {
-                    doc.getCustomFields().put(slug, value.trim());
+                    updatedCf.put(slug, value.trim());
                 } else {
-                    doc.getCustomFields().remove(slug);
+                    updatedCf.remove(slug);
                 }
             }
         });
+        doc.setCustomFields(updatedCf);
         pipelineService.refreshResolvedPath(doc);
         redirectAttributes.addFlashAttribute("message", "Document mis à jour.");
         return "redirect:/inbox/" + id + "/edit";
