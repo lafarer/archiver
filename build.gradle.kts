@@ -53,6 +53,9 @@ dependencies {
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
 
+    // Actuator (health endpoint only)
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+
     // Dev tools
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 
