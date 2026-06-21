@@ -114,7 +114,10 @@ public class RulesController {
     }
 
     @PostMapping
-    public String create(@ModelAttribute StoragePathRule rule, RedirectAttributes ra) {
+    public String create(@ModelAttribute StoragePathRule rule,
+                         @RequestParam(value = "isDefault", defaultValue = "false") boolean isDefault,
+                         RedirectAttributes ra) {
+        rule.setDefault(isDefault);
         ensureSingleDefault(rule);
         ruleRepository.save(rule);
         globalSidecarService.refresh();
@@ -125,6 +128,7 @@ public class RulesController {
     @PostMapping("/{id}")
     public String update(@PathVariable Long id,
                          @ModelAttribute StoragePathRule form,
+                         @RequestParam(value = "isDefault", defaultValue = "false") boolean isDefault,
                          RedirectAttributes ra) {
         StoragePathRule rule = ruleRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Rule not found: " + id));
@@ -132,8 +136,8 @@ public class RulesController {
         rule.setConditionNl(form.getConditionNl());
         rule.setPathTemplate(form.getPathTemplate());
         rule.setPriority(form.getPriority());
-        if (form.isDefault()) ensureSingleDefault(form);
-        rule.setDefault(form.isDefault());
+        if (isDefault) ensureSingleDefault(rule);
+        rule.setDefault(isDefault);
         ruleRepository.save(rule);
         globalSidecarService.refresh();
 
