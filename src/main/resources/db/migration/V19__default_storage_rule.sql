@@ -3,7 +3,7 @@
 -- is_default = 1 ensures it is used as the fallback when no other rule matches.
 
 INSERT INTO storage_path_rule (priority, label, condition_nl, path_template, is_default, is_active) VALUES
-    (99, 'Documents divers (règle par défaut)',
+    (99, 'Documents divers',
      'Document ne correspondant à aucune règle plus spécifique.',
      'Documents/[yyyy]/[mm?]/[document_type]-[title]',
      1, 1);
