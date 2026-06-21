@@ -9,6 +9,7 @@
 @param List<SimulateResult> results
 @param String pathTemplate
 @param long outOfSyncCount = 0
+@param StoragePathRule existingDefault = null
 @param String page
 @param String message = null
 @param boolean watchdogRunning = false
@@ -67,6 +68,20 @@
                                value="true" id="isDefault" checked="${rule.isDefault()}">
                         <label class="form-check-label" for="isDefault">Règle par défaut</label>
                     </div>
+                    @if(existingDefault != null)
+                    <div id="defaultWarning" class="form-text text-warning mt-1" style="display:none">
+                        ⚠ Remplacera <strong>${existingDefault.getLabel()}</strong> comme règle par défaut.
+                    </div>
+                    <script>
+                    (function() {
+                        var cb = document.getElementById('isDefault');
+                        var warn = document.getElementById('defaultWarning');
+                        function update() { warn.style.display = cb.checked ? '' : 'none'; }
+                        cb.addEventListener('change', update);
+                        update();
+                    })();
+                    </script>
+                    @endif
                 </div>
 
                 <div class="d-flex gap-2">

@@ -70,6 +70,7 @@ public class RulesController {
         model.addAttribute("results", List.of());
         model.addAttribute("pathTemplate", "");
         model.addAttribute("outOfSyncCount", 0L);
+        model.addAttribute("existingDefault", ruleRepository.findByIsDefaultTrue().orElse(null));
         if (!model.containsAttribute("message")) model.addAttribute("message", null);
         model.addAttribute("page", "rules");
         return "rules/form";
@@ -80,11 +81,15 @@ public class RulesController {
         StoragePathRule rule = ruleRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Rule not found: " + id));
         Page<Document> docPage = documentRepository.findByAppliedRuleId(id, PageRequest.of(0, PAGE_SIZE));
+        StoragePathRule existingDefault = ruleRepository.findByIsDefaultTrue()
+            .filter(d -> !d.getId().equals(id))
+            .orElse(null);
         model.addAttribute("rule", rule);
         model.addAttribute("docPage", docPage);
         model.addAttribute("results", List.of());
         model.addAttribute("pathTemplate", "");
         model.addAttribute("outOfSyncCount", countOutOfSync(id, rule.getPathTemplate()));
+        model.addAttribute("existingDefault", existingDefault);
         if (!model.containsAttribute("message")) model.addAttribute("message", null);
         model.addAttribute("page", "rules");
         return "rules/form";
@@ -117,8 +122,8 @@ public class RulesController {
     public String create(@ModelAttribute StoragePathRule rule,
                          @RequestParam(value = "isDefault", defaultValue = "false") boolean isDefault,
                          RedirectAttributes ra) {
+        if (isDefault) clearExistingDefault(null);
         rule.setDefault(isDefault);
-        ensureSingleDefault(rule);
         ruleRepository.save(rule);
         globalSidecarService.refresh();
         ra.addFlashAttribute("message", "Règle créée.");
@@ -136,7 +141,7 @@ public class RulesController {
         rule.setConditionNl(form.getConditionNl());
         rule.setPathTemplate(form.getPathTemplate());
         rule.setPriority(form.getPriority());
-        if (isDefault) ensureSingleDefault(rule);
+        if (isDefault) clearExistingDefault(id);
         rule.setDefault(isDefault);
         ruleRepository.save(rule);
         globalSidecarService.refresh();
@@ -196,12 +201,12 @@ public class RulesController {
             .count();
     }
 
-    private void ensureSingleDefault(StoragePathRule incoming) {
-        if (incoming.isDefault()) {
-            ruleRepository.findByIsDefaultTrue().ifPresent(existing -> {
+    private void clearExistingDefault(Long excludeId) {
+        ruleRepository.findByIsDefaultTrue().ifPresent(existing -> {
+            if (excludeId == null || !existing.getId().equals(excludeId)) {
                 existing.setDefault(false);
                 ruleRepository.save(existing);
-            });
-        }
+            }
+        });
     }
 }
