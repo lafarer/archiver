@@ -58,6 +58,7 @@ public class RulesController {
         model.addAttribute("docCounts", docCounts);
         model.addAttribute("outOfSyncCounts", outOfSyncCounts);
         model.addAttribute("hasDefaultRule", hasDefaultRule);
+        if (!model.containsAttribute("message")) model.addAttribute("message", null);
         model.addAttribute("page", "rules");
         return "rules/index";
     }
@@ -147,7 +148,7 @@ public class RulesController {
             msg += " " + pending.size() + " document(s) inbox recalculé(s).";
         }
         ra.addFlashAttribute("message", msg);
-        return "redirect:/rules/" + id + "/edit";
+        return "redirect:/rules";
     }
 
     @PostMapping("/{id}/apply")

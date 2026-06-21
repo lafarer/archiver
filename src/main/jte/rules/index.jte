@@ -7,6 +7,7 @@
 @param Map<Long, Long> outOfSyncCounts
 @param boolean hasDefaultRule
 @param String page
+@param String message = null
 @param boolean watchdogRunning = false
 
 @template.layout.base(page = page, title = "Règles", watchdogRunning = watchdogRunning, content = @`
@@ -17,6 +18,12 @@
 </div>
 
 <div class="page-body">
+    @if(message != null)
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    @endif
     @if(!hasDefaultRule)
     <div class="alert alert-warning">
         Aucune règle par défaut définie. Les documents qui ne correspondent à aucune règle ne pourront pas être archivés. <a href="/rules/new">Créez une règle par défaut</a>.
