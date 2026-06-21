@@ -1,26 +1,2 @@
-# Git
-.git/
-.gitignore
-
-# Gradle cache and build output
-.gradle/
-build/
-
-# Node
-src/main/frontend/node_modules/
-src/main/frontend/node/
-
-# Local config with secrets
-src/main/resources/application-user.properties
-src/main/resources/application-local.properties
-
-# Compiled SCSS (rebuilt during Docker build)
-src/main/resources/static/css/app.css
-
-# jte compiled templates (rebuilt during Docker build)
-jte-classes/
-
-# IDE and OS
-.idea/
-*.iml
-.DS_Store
+**
+!build/libs/*.jar

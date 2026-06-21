@@ -82,6 +82,10 @@ tasks.processResources {
     dependsOn(compileSass)
 }
 
+tasks.jar {
+    enabled = false
+}
+
 tasks.bootRun {
     jvmArgs("--enable-native-access=ALL-UNNAMED")
 }
