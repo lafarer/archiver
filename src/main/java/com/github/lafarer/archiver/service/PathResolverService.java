@@ -30,8 +30,6 @@ public class PathResolverService {
                 doc.getTitle(), doc.getIssuer(), doc.getCustomFields());
     }
 
-    private static final String FALLBACK_TEMPLATE = "Documents/[yyyy]/[mm]/[document_type]-[title]";
-
     public ResolvedPath resolve(
         Long aiSelectedRuleId,
         String documentType,
@@ -41,9 +39,9 @@ public class PathResolverService {
         Map<String, String> customFields
     ) {
         StoragePathRule rule = selectRule(aiSelectedRuleId);
-        String template = rule != null ? rule.getPathTemplate() : FALLBACK_TEMPLATE;
-        String path = renderTemplate(template, documentType, documentDate, title, issuer, customFields);
-        return new ResolvedPath(path, rule);  // relative to archivePath; rule may be null
+        if (rule == null) return new ResolvedPath(null, null);
+        String path = renderTemplate(rule.getPathTemplate(), documentType, documentDate, title, issuer, customFields);
+        return new ResolvedPath(path, rule);
     }
 
     private StoragePathRule selectRule(Long aiSelectedRuleId) {

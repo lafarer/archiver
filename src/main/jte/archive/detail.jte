@@ -66,7 +66,7 @@
     </div>
     @endif
 
-    !{boolean pathChanged = document.getResolvedPath() != null && !document.getResolvedPath().equals(proposedPath.full());}
+    !{boolean pathChanged = proposedPath.full() != null && document.getResolvedPath() != null && !document.getResolvedPath().equals(proposedPath.full());}
     !{String docSize = ArchiveController.formatSize(document.getFileSizeBytes());}
     !{DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").withZone(ZoneId.systemDefault());}
     <div class="mb-3 text-muted small">
@@ -76,15 +76,19 @@
             &nbsp;·&nbsp; ${dtf.format(document.getFilesystemMtime())}
         @endif
         <br>
-        <code>${document.getResolvedPath() != null ? document.getResolvedPath() : proposedPath.full()}</code>
-        @if(proposedPath.pathTemplate() != null)
+        <code>${document.getResolvedPath()}</code>
+        @if(proposedPath.full() != null && proposedPath.pathTemplate() != null)
             <div class="mt-1">
                 Règle : <span class="text-body-secondary">${proposedPath.ruleLabel()}</span>
                 &nbsp;·&nbsp;
                 <code class="opacity-75">${proposedPath.pathTemplate()}</code>
             </div>
         @endif
-        @if(pathChanged)
+        @if(proposedPath.full() == null)
+            <div class="mt-1 text-warning">
+                ⚠ Aucune règle de stockage disponible. <a href="/rules">Configurez une règle par défaut</a>.
+            </div>
+        @elseif(pathChanged)
             <div class="mt-1 text-warning">
                 ⚠ La règle a changé. Nouveau chemin :
                 <code><span class="opacity-50">${proposedPath.existing()}</span><strong>${proposedPath.newPart()}</strong></code>

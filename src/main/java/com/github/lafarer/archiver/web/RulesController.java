@@ -53,9 +53,11 @@ public class RulesController {
                 StoragePathRule::getId,
                 r -> countOutOfSync(r.getId(), r.getPathTemplate())
             ));
+        boolean hasDefaultRule = rules.stream().anyMatch(StoragePathRule::isDefault);
         model.addAttribute("rules", rules);
         model.addAttribute("docCounts", docCounts);
         model.addAttribute("outOfSyncCounts", outOfSyncCounts);
+        model.addAttribute("hasDefaultRule", hasDefaultRule);
         model.addAttribute("page", "rules");
         return "rules/index";
     }

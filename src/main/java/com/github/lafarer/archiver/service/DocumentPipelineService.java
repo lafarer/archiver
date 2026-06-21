@@ -207,7 +207,7 @@ public class DocumentPipelineService {
             cfValues
         );
 
-        boolean autoArchive = isAboveThreshold(analysis);
+        boolean autoArchive = isAboveThreshold(analysis) && resolved.relativePath() != null;
         doc.setResolvedPath(resolved.relativePath());
         doc.setAppliedRule(resolved.appliedRule());
 
@@ -289,6 +289,9 @@ public class DocumentPipelineService {
             doc.getDocumentType(), doc.getDocumentDate(),
             doc.getTitle(), doc.getIssuer(), doc.getCustomFields()
         );
+        if (resolved.relativePath() == null) {
+            throw new IllegalStateException("Aucune règle de stockage disponible pour ce document");
+        }
         doc.setResolvedPath(resolved.relativePath());
         doc.setAppliedRule(resolved.appliedRule());
 
@@ -334,6 +337,12 @@ public class DocumentPipelineService {
             doc.getDocumentType(), doc.getDocumentDate(),
             doc.getTitle(), doc.getIssuer(), doc.getCustomFields()
         );
+        if (resolved.relativePath() == null) {
+            log.warn("No storage rule available for document {}, skipping reclassification", documentId);
+            doc.setAppliedRule(null);
+            documentRepository.save(doc);
+            return;
+        }
         String newRelPath = resolved.relativePath() + extension(oldFile);
 
         if (newRelPath.equals(oldRelPath)) {
@@ -458,6 +467,9 @@ public class DocumentPipelineService {
             doc.getDocumentType(), doc.getDocumentDate(),
             doc.getTitle(), doc.getIssuer(), doc.getCustomFields()
         );
+        if (resolved.relativePath() == null) {
+            return new ProposedPathParts(null, null, null, null, null);
+        }
         String full = resolved.relativePath() + extension(Path.of(doc.getOriginalFilename()));
         String ruleLabel = resolved.appliedRule() != null ? resolved.appliedRule().getLabel() : null;
         String pathTemplate = resolved.appliedRule() != null ? resolved.appliedRule().getPathTemplate() : null;

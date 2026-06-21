@@ -5,6 +5,7 @@
 @param List<StoragePathRule> rules
 @param Map<Long, Long> docCounts
 @param Map<Long, Long> outOfSyncCounts
+@param boolean hasDefaultRule
 @param String page
 @param boolean watchdogRunning = false
 
@@ -16,6 +17,11 @@
 </div>
 
 <div class="page-body">
+    @if(!hasDefaultRule)
+    <div class="alert alert-warning">
+        Aucune règle par défaut définie. Les documents qui ne correspondent à aucune règle ne pourront pas être archivés. <a href="/rules/new">Créez une règle par défaut</a>.
+    </div>
+    @endif
     <div id="rules-list">
         @for(StoragePathRule rule : rules)
             <div class="rule-item" data-id="${rule.getId()}">

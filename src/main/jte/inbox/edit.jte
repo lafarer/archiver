@@ -70,12 +70,18 @@
             &nbsp;·&nbsp; ${dtf.format(document.getFilesystemMtime())}
         @endif
         <br>
-        → <code><span class="opacity-50">${proposedPath.existing()}</span><strong>${proposedPath.newPart()}</strong></code>
-        @if(proposedPath.pathTemplate() != null)
-            <div class="mt-1">
-                Règle : <span class="text-body-secondary">${proposedPath.ruleLabel()}</span>
-                &nbsp;·&nbsp;
-                <code class="opacity-75">${proposedPath.pathTemplate()}</code>
+        @if(proposedPath.full() != null)
+            → <code><span class="opacity-50">${proposedPath.existing()}</span><strong>${proposedPath.newPart()}</strong></code>
+            @if(proposedPath.pathTemplate() != null)
+                <div class="mt-1">
+                    Règle : <span class="text-body-secondary">${proposedPath.ruleLabel()}</span>
+                    &nbsp;·&nbsp;
+                    <code class="opacity-75">${proposedPath.pathTemplate()}</code>
+                </div>
+            @endif
+        @else
+            <div class="alert alert-warning mt-2 mb-0 py-2">
+                Aucune règle de stockage disponible. <a href="/rules">Configurez une règle par défaut</a> pour archiver ce document.
             </div>
         @endif
     </div>
@@ -295,7 +301,7 @@
 
     <div style="max-width: 700px">
         <form method="post" action="/inbox/${document.getId()}/validate">
-            <button type="submit" class="btn btn-success">Valider et archiver ✓</button>
+            <button type="submit" class="btn btn-success" disabled="${proposedPath.full() == null}">Valider et archiver ✓</button>
         </form>
     </div>
 
