@@ -69,9 +69,9 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const source = new EventSource('/inbox/events');
+    const source = new EventSource('${contextPath}/inbox/events');
     source.addEventListener('inbox-updated', () => {
-        htmx.ajax('GET', '/inbox/fragment', { target: '#inbox-list', swap: 'innerHTML' });
+        htmx.ajax('GET', '${contextPath}/inbox/fragment', { target: '#inbox-list', swap: 'innerHTML' });
     });
     window.addEventListener('beforeunload', () => source.close());
 });
@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function uploadFiles(files) {
         const fd = new FormData();
         for (const f of files) fd.append('files', f);
-        const response = await fetch('/inbox/upload', { method: 'POST', body: fd });
+        const response = await fetch('${contextPath}/inbox/upload', { method: 'POST', body: fd });
         if (response.url && response.url.includes('uploadError=')) {
             showUploadError('Fichier trop volumineux. La taille maximale autorisée est de 200 Mo.');
         } else {

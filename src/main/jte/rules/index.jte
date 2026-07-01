@@ -76,7 +76,7 @@
         animation: 150,
         onEnd: function() {
             const ids = [...document.querySelectorAll('.rule-item')].map(el => el.dataset.id);
-            fetch('/rules/reorder', {
+            fetch('${contextPath}/rules/reorder', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(ids.map(Number))
