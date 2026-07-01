@@ -32,7 +32,7 @@
 
     <div class="card" style="max-width: 640px">
         <div class="card-body">
-            <form method="post" action="${rule.getId() == null ? "/rules" : "/rules/" + rule.getId()}">
+            <form method="post" action="${rule.getId() == null ? "rules" : "rules/" + rule.getId()}">
 
                 <div class="mb-3">
                     <label class="form-label fw-semibold">Label</label>

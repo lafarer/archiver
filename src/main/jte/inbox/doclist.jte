@@ -47,7 +47,7 @@
                             !{String docTitle = doc.getTitle() != null ? doc.getTitle() : doc.getOriginalFilename();}
                             <button class="btn btn-sm btn-outline-primary"
                                     data-bs-toggle="modal" data-bs-target="#previewModal"
-                                    data-preview-url="/documents/${doc.getId()}/file"
+                                    data-preview-url="documents/${doc.getId()}/file"
                                     data-mime-type="${doc.getMimeType()}"
                                     data-title="${docTitle}">Aperçu</button>
                         @endif

@@ -35,7 +35,7 @@
 !{String previewTitle = document.getTitle() != null ? document.getTitle() : document.getOriginalFilename();}
 <div class="page-header">
     <h1>
-        <a href="${backUrl != null ? backUrl : "/archive"}" class="text-decoration-none text-muted me-2">←</a>
+        <a href="${backUrl != null ? backUrl : "archive"}" class="text-decoration-none text-muted me-2">←</a>
         ${pageTitle}
     </h1>
     <div class="d-flex gap-2 align-items-center">

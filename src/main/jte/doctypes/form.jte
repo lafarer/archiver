@@ -13,7 +13,7 @@
 </div>
 
 <div class="page-body" style="max-width: 600px">
-    <form method="post" action="${type.getId() == null ? "/doctypes" : "/doctypes/" + type.getId()}">
+    <form method="post" action="${type.getId() == null ? "doctypes" : "doctypes/" + type.getId()}">
         <div class="d-flex flex-column gap-3">
 
             <div>

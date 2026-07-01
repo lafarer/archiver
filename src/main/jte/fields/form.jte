@@ -14,7 +14,7 @@
 </div>
 
 <div class="page-body" style="max-width: 600px">
-    <form method="post" action="${field.getId() == null ? "/fields" : "/fields/" + field.getId()}">
+    <form method="post" action="${field.getId() == null ? "fields" : "fields/" + field.getId()}">
         <div class="d-flex flex-column gap-3">
 
             <div>
