@@ -32,7 +32,7 @@
 !{int activeFilterCount = (selectedType.isBlank() ? 0 : 1) + (selectedIssuer.isBlank() ? 0 : 1) + selectedTags.size() + selectedCustomFields.size();}
 
 <form id="archive-filters"
-      hx-get="/archive"
+      hx-get="archive"
       hx-trigger="change, keyup changed delay:400ms"
       hx-target="#doc-list"
       hx-swap="innerHTML">
@@ -59,7 +59,7 @@
         </button>
 
         @if(activeFilterCount > 0)
-            <a href="/archive" class="btn btn-sm btn-link text-muted p-0">Effacer</a>
+            <a href="archive" class="btn btn-sm btn-link text-muted p-0">Effacer</a>
         @endif
     </div>
 
@@ -155,7 +155,7 @@
         </div>
 
         <div class="p-3 border-top">
-            <a href="/archive" class="btn btn-outline-secondary btn-sm w-100">Effacer tout</a>
+            <a href="archive" class="btn btn-outline-secondary btn-sm w-100">Effacer tout</a>
         </div>
     </div>
 

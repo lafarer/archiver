@@ -14,7 +14,7 @@
 
 <div class="page-header">
     <h1>Règles de stockage</h1>
-    <a href="/rules/new" class="btn btn-primary btn-sm">+ Nouvelle règle</a>
+    <a href="rules/new" class="btn btn-primary btn-sm">+ Nouvelle règle</a>
 </div>
 
 <div class="page-body">
@@ -26,7 +26,7 @@
     @endif
     @if(!hasDefaultRule)
     <div class="alert alert-warning">
-        Aucune règle par défaut définie. Les documents qui ne correspondent à aucune règle ne pourront pas être archivés. <a href="/rules/new">Créez une règle par défaut</a>.
+        Aucune règle par défaut définie. Les documents qui ne correspondent à aucune règle ne pourront pas être archivés. <a href="rules/new">Créez une règle par défaut</a>.
     </div>
     @endif
     <div id="rules-list">
@@ -58,8 +58,8 @@
                     <div class="rule-template">${rule.getPathTemplate()}</div>
                 </div>
                 <div class="d-flex gap-1">
-                    <a href="/rules/${rule.getId()}/edit" class="btn btn-sm btn-outline-secondary">Éditer</a>
-                    <form method="post" action="/rules/${rule.getId()}/delete"
+                    <a href="rules/${rule.getId()}/edit" class="btn btn-sm btn-outline-secondary">Éditer</a>
+                    <form method="post" action="rules/${rule.getId()}/delete"
                           onsubmit="return confirm('Supprimer cette règle ?')">
                         <button class="btn btn-sm btn-outline-danger">×</button>
                     </form>

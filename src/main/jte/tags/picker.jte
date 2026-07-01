@@ -38,7 +38,7 @@
 <div class="modal fade" id="newTagModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="post" action="/tags">
+            <form method="post" action="tags">
                 <div class="modal-header">
                     <h5 class="modal-title">Nouveau tag</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>

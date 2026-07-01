@@ -28,7 +28,7 @@
 !{String previewTitle = document.getTitle() != null ? document.getTitle() : document.getOriginalFilename();}
 <div class="page-header">
     <h1>
-        <a href="/inbox" class="text-decoration-none text-muted me-2">←</a>
+        <a href="inbox" class="text-decoration-none text-muted me-2">←</a>
         Vérification du document
     </h1>
     @if(previewable)
@@ -81,12 +81,12 @@
             @endif
         @else
             <div class="alert alert-warning mt-2 mb-0 py-2">
-                Aucune règle de stockage disponible. <a href="/rules">Configurez une règle par défaut</a> pour archiver ce document.
+                Aucune règle de stockage disponible. <a href="rules">Configurez une règle par défaut</a> pour archiver ce document.
             </div>
         @endif
     </div>
 
-    <form id="editForm" method="post" action="/inbox/${document.getId()}">
+    <form id="editForm" method="post" action="inbox/${document.getId()}">
 
         <div class="d-flex flex-column gap-3" style="max-width: 700px">
 
@@ -247,7 +247,7 @@
 
             <div class="d-flex gap-2 mt-2">
                 <button type="submit" class="btn btn-outline-secondary">Enregistrer</button>
-                <a href="/inbox" class="btn btn-link text-muted">Annuler</a>
+                <a href="inbox" class="btn btn-link text-muted">Annuler</a>
             </div>
 
         </div>
@@ -272,7 +272,7 @@
             Ré-analyser avec un hint…
         </button>
         <div class="collapse mt-3 ${message != null ? "show" : ""}" id="reanalyzePanel">
-            <form method="post" action="/inbox/${document.getId()}/reanalyze" id="reanalyzeForm">
+            <form method="post" action="inbox/${document.getId()}/reanalyze" id="reanalyzeForm">
                 <div class="mb-2">
                     <label class="form-label small fw-semibold" for="hint">Hint pour l'IA</label>
                     <textarea id="hint" name="hint" class="form-control form-control-sm" rows="3"
@@ -300,7 +300,7 @@
     </script>
 
     <div style="max-width: 700px">
-        <form method="post" action="/inbox/${document.getId()}/validate">
+        <form method="post" action="inbox/${document.getId()}/validate">
             <button type="submit" class="btn btn-success" disabled="${proposedPath.full() == null}">Valider et archiver ✓</button>
         </form>
     </div>

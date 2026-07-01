@@ -5,14 +5,16 @@
 @param String title = "Archiver"
 @param long inboxCount = 0
 @param boolean watchdogRunning = false
+@param String contextPath = ""
 
 <!doctype html>
 <html lang="fr">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <base href="${contextPath}/">
     <title>${title} - Archiver</title>
-    <link rel="stylesheet" href="/css/app.css">
+    <link rel="stylesheet" href="css/app.css">
     <script src="https://unpkg.com/htmx.org@2.0.3" defer></script>
     <script src="https://unpkg.com/sortablejs@1.15.3/Sortable.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
@@ -23,7 +25,7 @@
     <div class="sidebar-brand">Archiver</div>
     <ul class="nav flex-column mt-2">
         <li class="nav-item">
-            <a class="nav-link ${page.equals("inbox") ? "active" : ""}" href="/inbox">
+            <a class="nav-link ${page.equals("inbox") ? "active" : ""}" href="inbox">
                 Inbox
                 <span id="inbox-sidebar-badge">
                     @if(inboxCount > 0)
@@ -36,25 +38,25 @@
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link ${page.equals("archive") ? "active" : ""}" href="/archive">Archive</a>
+            <a class="nav-link ${page.equals("archive") ? "active" : ""}" href="archive">Archive</a>
         </li>
         <li class="nav-item mt-3">
-            <a class="nav-link ${page.equals("rules") ? "active" : ""}" href="/rules">Règles</a>
+            <a class="nav-link ${page.equals("rules") ? "active" : ""}" href="rules">Règles</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link ${page.equals("fields") ? "active" : ""}" href="/fields">Champs</a>
+            <a class="nav-link ${page.equals("fields") ? "active" : ""}" href="fields">Champs</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link ${page.equals("doctypes") ? "active" : ""}" href="/doctypes">Types</a>
+            <a class="nav-link ${page.equals("doctypes") ? "active" : ""}" href="doctypes">Types</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link ${page.equals("tags") ? "active" : ""}" href="/tags">Tags</a>
+            <a class="nav-link ${page.equals("tags") ? "active" : ""}" href="tags">Tags</a>
         </li>
         <li class="nav-item mt-auto">
-            <a class="nav-link ${page.equals("audit") ? "active" : ""}" href="/audit">Audit</a>
+            <a class="nav-link ${page.equals("audit") ? "active" : ""}" href="audit">Audit</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link ${page.equals("settings") ? "active" : ""}" href="/settings">Réglages</a>
+            <a class="nav-link ${page.equals("settings") ? "active" : ""}" href="settings">Réglages</a>
         </li>
     </ul>
 </nav>

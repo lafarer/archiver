@@ -48,7 +48,7 @@
 
             <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-primary">Enregistrer</button>
-                <a href="/fields" class="btn btn-outline-secondary">Annuler</a>
+                <a href="fields" class="btn btn-outline-secondary">Annuler</a>
             </div>
         </div>
     </form>

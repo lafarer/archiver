@@ -43,12 +43,12 @@
     <span class="text-muted small">Page ${docPage.getNumber() + 1} / ${docPage.getTotalPages()}</span>
     <div class="btn-group btn-group-sm">
         <button class="btn btn-outline-secondary ${docPage.hasPrevious() ? "" : "disabled"}"
-                hx-get="/rules/${ruleId}/documents?page=${docPage.getNumber() - 1}"
+                hx-get="rules/${ruleId}/documents?page=${docPage.getNumber() - 1}"
                 hx-include="#docFragTemplate"
                 hx-target="#docs-body"
                 hx-swap="innerHTML">‹</button>
         <button class="btn btn-outline-secondary ${docPage.hasNext() ? "" : "disabled"}"
-                hx-get="/rules/${ruleId}/documents?page=${docPage.getNumber() + 1}"
+                hx-get="rules/${ruleId}/documents?page=${docPage.getNumber() + 1}"
                 hx-include="#docFragTemplate"
                 hx-target="#docs-body"
                 hx-swap="innerHTML">›</button>

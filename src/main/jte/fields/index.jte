@@ -9,7 +9,7 @@
 
 <div class="page-header">
     <h1>Champs personnalisés</h1>
-    <a href="/fields/new" class="btn btn-primary btn-sm">+ Nouveau champ</a>
+    <a href="fields/new" class="btn btn-primary btn-sm">+ Nouveau champ</a>
 </div>
 
 <div class="page-body">
@@ -28,8 +28,8 @@
                         <div class="text-muted small mt-1">${field.getDescription()}</div>
                     </div>
                     <div class="d-flex gap-1">
-                        <a href="/fields/${field.getId()}/edit" class="btn btn-sm btn-outline-secondary">Éditer</a>
-                        <form method="post" action="/fields/${field.getId()}/delete"
+                        <a href="fields/${field.getId()}/edit" class="btn btn-sm btn-outline-secondary">Éditer</a>
+                        <form method="post" action="fields/${field.getId()}/delete"
                               onsubmit="return confirm('Supprimer ce champ ?')">
                             <button class="btn btn-sm btn-outline-danger">×</button>
                         </form>

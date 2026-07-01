@@ -9,7 +9,7 @@
 
 <div class="page-header">
     <h1>Types de document</h1>
-    <a href="/doctypes/new" class="btn btn-primary btn-sm">+ Nouveau type</a>
+    <a href="doctypes/new" class="btn btn-primary btn-sm">+ Nouveau type</a>
 </div>
 
 <div class="page-body">
@@ -33,14 +33,14 @@
                         @endif
                     </div>
                     <div class="d-flex gap-1 flex-shrink-0">
-                        <form method="post" action="/doctypes/${type.getId()}/toggle">
+                        <form method="post" action="doctypes/${type.getId()}/toggle">
                             <button class="btn btn-sm ${type.isEnabled() ? "btn-outline-secondary" : "btn-outline-success"}"
                                     title="${type.isEnabled() ? "Désactiver" : "Activer"}">
                                 ${type.isEnabled() ? "✕" : "✓"}
                             </button>
                         </form>
-                        <a href="/doctypes/${type.getId()}/edit" class="btn btn-sm btn-outline-secondary">Éditer</a>
-                        <form method="post" action="/doctypes/${type.getId()}/delete"
+                        <a href="doctypes/${type.getId()}/edit" class="btn btn-sm btn-outline-secondary">Éditer</a>
+                        <form method="post" action="doctypes/${type.getId()}/delete"
                               onsubmit="return confirm('Supprimer ce type ?')">
                             <button class="btn btn-sm btn-outline-danger">×</button>
                         </form>

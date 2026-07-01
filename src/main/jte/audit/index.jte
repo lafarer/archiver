@@ -13,7 +13,7 @@
 
 <div class="page-header">
     <h1>Audit de stockage</h1>
-    <a href="/audit?run=true" class="btn btn-outline-primary btn-sm">
+    <a href="audit?run=true" class="btn btn-outline-primary btn-sm">
         ${report == null ? "Lancer l'audit" : "Rafraîchir"}
     </a>
 </div>
@@ -50,7 +50,7 @@
             <span class="fw-semibold">Non indexés avec sidecar <span class="badge bg-warning text-dark ms-1">${entries.size()}</span></span>
             <div class="d-flex align-items-center gap-2">
                 <span class="text-muted small">Fichier ✓ · Sidecar ✓ · DB ✗</span>
-                <form method="post" action="/audit/repair/import-all-sidecars">
+                <form method="post" action="audit/repair/import-all-sidecars">
                     <button type="submit" class="btn btn-warning btn-sm">Tout importer</button>
                 </form>
             </div>
@@ -59,7 +59,7 @@
             @for(AuditEntry e : entries)
             <div class="list-group-item d-flex justify-content-between align-items-center">
                 <code class="text-truncate me-2">${e.relPath()}</code>
-                <form method="post" action="/audit/repair/import-sidecar" class="flex-shrink-0">
+                <form method="post" action="audit/repair/import-sidecar" class="flex-shrink-0">
                     <input type="hidden" name="relPath" value="${e.relPath()}">
                     <button type="submit" class="btn btn-outline-warning btn-sm">Importer</button>
                 </form>
@@ -77,7 +77,7 @@
             <span class="fw-semibold">Enregistrements fantômes <span class="badge bg-danger ms-1">${entries.size()}</span></span>
             <div class="d-flex align-items-center gap-2">
                 <span class="text-muted small">DB ✓ · Fichier ✗ · Sidecar ✗</span>
-                <form method="post" action="/audit/repair/delete-all-ghosts"
+                <form method="post" action="audit/repair/delete-all-ghosts"
                       onsubmit="return confirm('Supprimer les ${entries.size()} enregistrement(s) fantôme(s) ?')">
                     <button type="submit" class="btn btn-danger btn-sm">Tout supprimer</button>
                 </form>
@@ -90,7 +90,7 @@
                     <div>${e.dbRecord().getTitle() != null ? e.dbRecord().getTitle() : e.dbRecord().getOriginalFilename()}</div>
                     <code class="text-muted">${e.relPath()}</code>
                 </div>
-                <form method="post" action="/audit/repair/delete-record/${e.dbRecord().getId()}" class="flex-shrink-0">
+                <form method="post" action="audit/repair/delete-record/${e.dbRecord().getId()}" class="flex-shrink-0">
                     <button type="submit" class="btn btn-outline-danger btn-sm">Supprimer</button>
                 </form>
             </div>
@@ -107,7 +107,7 @@
             <span class="fw-semibold">Fichiers manquants <span class="badge bg-danger ms-1">${entries.size()}</span></span>
             <div class="d-flex align-items-center gap-2">
                 <span class="text-muted small">DB ✓ · Sidecar ✓ · Fichier ✗</span>
-                <form method="post" action="/audit/repair/delete-all-missing"
+                <form method="post" action="audit/repair/delete-all-missing"
                       onsubmit="return confirm('Supprimer les ${entries.size()} enregistrement(s) et sidecar(s) ?')">
                     <button type="submit" class="btn btn-danger btn-sm">Tout supprimer</button>
                 </form>
@@ -120,7 +120,7 @@
                     <div>${e.dbRecord().getTitle() != null ? e.dbRecord().getTitle() : e.dbRecord().getOriginalFilename()}</div>
                     <code class="text-muted">${e.relPath()}</code>
                 </div>
-                <form method="post" action="/audit/repair/delete-record/${e.dbRecord().getId()}" class="flex-shrink-0">
+                <form method="post" action="audit/repair/delete-record/${e.dbRecord().getId()}" class="flex-shrink-0">
                     <button type="submit" class="btn btn-outline-danger btn-sm">Supprimer</button>
                 </form>
             </div>
@@ -137,7 +137,7 @@
             <span class="fw-semibold">Sidecars manquants <span class="badge bg-secondary ms-1">${entries.size()}</span></span>
             <div class="d-flex align-items-center gap-2">
                 <span class="text-muted small">Fichier ✓ · DB ✓ · Sidecar ✗</span>
-                <form method="post" action="/audit/repair/regenerate-all-sidecars">
+                <form method="post" action="audit/repair/regenerate-all-sidecars">
                     <button type="submit" class="btn btn-outline-secondary btn-sm">Tout régénérer</button>
                 </form>
             </div>
@@ -149,7 +149,7 @@
                     <div>${e.dbRecord().getTitle() != null ? e.dbRecord().getTitle() : e.dbRecord().getOriginalFilename()}</div>
                     <code class="text-muted">${e.relPath()}</code>
                 </div>
-                <form method="post" action="/audit/repair/regenerate-sidecar/${e.dbRecord().getId()}" class="flex-shrink-0">
+                <form method="post" action="audit/repair/regenerate-sidecar/${e.dbRecord().getId()}" class="flex-shrink-0">
                     <button type="submit" class="btn btn-outline-secondary btn-sm">Régénérer</button>
                 </form>
             </div>
@@ -166,7 +166,7 @@
             <span class="fw-semibold">Non indexés sans sidecar <span class="badge bg-secondary ms-1">${entries.size()}</span></span>
             <div class="d-flex align-items-center gap-2">
                 <span class="text-muted small">Fichier ✓ · DB ✗ · Sidecar ✗</span>
-                <form method="post" action="/audit/repair/reanalyze-all-untracked">
+                <form method="post" action="audit/repair/reanalyze-all-untracked">
                     <button type="submit" class="btn btn-outline-secondary btn-sm">Tout ré-analyser</button>
                 </form>
             </div>
@@ -175,7 +175,7 @@
             @for(AuditEntry e : entries)
             <div class="list-group-item d-flex justify-content-between align-items-center">
                 <code class="text-truncate me-2">${e.relPath()}</code>
-                <form method="post" action="/audit/repair/reanalyze-archive-file" class="flex-shrink-0">
+                <form method="post" action="audit/repair/reanalyze-archive-file" class="flex-shrink-0">
                     <input type="hidden" name="relPath" value="${e.relPath()}">
                     <button type="submit" class="btn btn-outline-secondary btn-sm">Ré-analyser</button>
                 </form>
@@ -193,7 +193,7 @@
             <span class="fw-semibold">Inbox non indexés <span class="badge bg-info text-dark ms-1">${entries.size()}</span></span>
             <div class="d-flex align-items-center gap-2">
                 <span class="text-muted small">Inbox ✓ · DB ✗</span>
-                <form method="post" action="/audit/repair/analyze-all-inbox-orphans">
+                <form method="post" action="audit/repair/analyze-all-inbox-orphans">
                     <button type="submit" class="btn btn-outline-info btn-sm">Tout analyser</button>
                 </form>
             </div>
@@ -202,7 +202,7 @@
             @for(AuditEntry e : entries)
             <div class="list-group-item d-flex justify-content-between align-items-center">
                 <code class="text-truncate me-2">${e.relPath()}</code>
-                <form method="post" action="/audit/repair/analyze-inbox-orphan" class="flex-shrink-0">
+                <form method="post" action="audit/repair/analyze-inbox-orphan" class="flex-shrink-0">
                     <input type="hidden" name="relPath" value="${e.relPath()}">
                     <button type="submit" class="btn btn-outline-info btn-sm">Analyser</button>
                 </form>
@@ -220,7 +220,7 @@
             <span class="fw-semibold">Sidecars orphelins <span class="badge bg-secondary ms-1">${entries.size()}</span></span>
             <div class="d-flex align-items-center gap-2">
                 <span class="text-muted small">Sidecar ✓ · Fichier ✗ · DB ✗</span>
-                <form method="post" action="/audit/repair/delete-all-orphan-sidecars"
+                <form method="post" action="audit/repair/delete-all-orphan-sidecars"
                       onsubmit="return confirm('Supprimer les ${entries.size()} sidecar(s) orphelin(s) ?')">
                     <button type="submit" class="btn btn-outline-danger btn-sm">Tout supprimer</button>
                 </form>
@@ -230,7 +230,7 @@
             @for(AuditEntry e : entries)
             <div class="list-group-item d-flex justify-content-between align-items-center">
                 <code class="text-truncate me-2">${e.relPath()}</code>
-                <form method="post" action="/audit/repair/delete-sidecar" class="flex-shrink-0">
+                <form method="post" action="audit/repair/delete-sidecar" class="flex-shrink-0">
                     <input type="hidden" name="relPath" value="${e.relPath()}">
                     <button type="submit" class="btn btn-outline-danger btn-sm">Supprimer</button>
                 </form>

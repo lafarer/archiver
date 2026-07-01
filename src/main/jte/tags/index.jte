@@ -9,7 +9,7 @@
 
 <div class="page-header">
     <h1>Tags</h1>
-    <a href="/tags/new" class="btn btn-primary btn-sm">+ Nouveau tag</a>
+    <a href="tags/new" class="btn btn-primary btn-sm">+ Nouveau tag</a>
 </div>
 
 <div class="page-body">
@@ -33,14 +33,14 @@
                         @endif
                     </div>
                     <div class="d-flex gap-1 flex-shrink-0">
-                        <form method="post" action="/tags/${tag.getId()}/toggle">
+                        <form method="post" action="tags/${tag.getId()}/toggle">
                             <button class="btn btn-sm ${tag.isEnabled() ? "btn-outline-secondary" : "btn-outline-success"}"
                                     title="${tag.isEnabled() ? "Désactiver" : "Activer"}">
                                 ${tag.isEnabled() ? "✕" : "✓"}
                             </button>
                         </form>
-                        <a href="/tags/${tag.getId()}/edit" class="btn btn-sm btn-outline-secondary">Éditer</a>
-                        <form method="post" action="/tags/${tag.getId()}/delete"
+                        <a href="tags/${tag.getId()}/edit" class="btn btn-sm btn-outline-secondary">Éditer</a>
+                        <form method="post" action="tags/${tag.getId()}/delete"
                               onsubmit="return confirm('Supprimer ce tag ?')">
                             <button class="btn btn-sm btn-outline-danger">×</button>
                         </form>

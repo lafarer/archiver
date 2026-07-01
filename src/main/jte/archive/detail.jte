@@ -86,13 +86,13 @@
         @endif
         @if(proposedPath.full() == null)
             <div class="mt-1 text-warning">
-                ⚠ Aucune règle de stockage disponible. <a href="/rules">Configurez une règle par défaut</a>.
+                ⚠ Aucune règle de stockage disponible. <a href="rules">Configurez une règle par défaut</a>.
             </div>
         @elseif(pathChanged)
             <div class="mt-1 text-warning">
                 ⚠ La règle a changé. Nouveau chemin :
                 <code><span class="opacity-50">${proposedPath.existing()}</span><strong>${proposedPath.newPart()}</strong></code>
-                <form method="post" action="/archive/${document.getId()}/reclassify" class="d-inline ms-2">
+                <form method="post" action="archive/${document.getId()}/reclassify" class="d-inline ms-2">
                     <button type="submit" class="btn btn-warning btn-sm">Reclassifier et déplacer</button>
                 </form>
             </div>
@@ -120,7 +120,7 @@
         <div class="tab-content border border-top-0 rounded-bottom p-3 mb-3">
 
             <div class="tab-pane fade show active" id="tab-meta">
-                <form method="post" action="/archive/${document.getId()}">
+                <form method="post" action="archive/${document.getId()}">
                     <div class="d-flex flex-column gap-3">
 
                         <div>
@@ -277,7 +277,7 @@
 
                         <div class="d-flex gap-2 mt-2">
                             <button type="submit" class="btn btn-outline-secondary">Enregistrer</button>
-                            <a href="/archive" class="btn btn-link text-muted">Annuler</a>
+                            <a href="archive" class="btn btn-link text-muted">Annuler</a>
                         </div>
 
                     </div>
@@ -333,7 +333,7 @@
 
     <div style="max-width: 700px">
         <div class="text-muted small fw-semibold mb-2">Ré-analyse IA</div>
-        <form id="reanalyzeForm" method="post" action="/archive/${document.getId()}/reanalyze">
+        <form id="reanalyzeForm" method="post" action="archive/${document.getId()}/reanalyze">
             <div class="mb-2">
                 <textarea name="hint" class="form-control form-control-sm" rows="2"
                           placeholder="Indice optionnel (ex : c'est une facture EDF, l'émetteur est EDF…)"></textarea>
@@ -360,7 +360,7 @@
     <hr class="my-4" style="max-width: 700px">
 
     <div style="max-width: 700px">
-        <form method="post" action="/archive/${document.getId()}/delete"
+        <form method="post" action="archive/${document.getId()}/delete"
               onsubmit="return confirm('Supprimer définitivement ce document et son fichier ?')">
             <button type="submit" class="btn btn-outline-danger btn-sm">Supprimer le document</button>
         </form>

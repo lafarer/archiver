@@ -94,7 +94,7 @@
                                 data-mime-type="${doc.getMimeType()}"
                                 data-title="${docTitle}">Aperçu</button>
                     @endif
-                    <a href="/archive/${doc.getId()}?pos=${pos}${navBase.isEmpty() ? "" : "&" + navBase}" class="btn btn-sm btn-outline-secondary">Détail</a>
+                    <a href="archive/${doc.getId()}?pos=${pos}${navBase.isEmpty() ? "" : "&" + navBase}" class="btn btn-sm btn-outline-secondary">Détail</a>
                 </div>
             </div>
         </div>
@@ -108,7 +108,7 @@
             <ul class="pagination pagination-sm mb-0">
                 <li class="page-item ${documents.isFirst() ? "disabled" : ""}">
                     <a class="page-link" href="#"
-                       hx-get="/archive" hx-include="#archive-filters"
+                       hx-get="archive" hx-include="#archive-filters"
                        hx-vals='{"page":"${documents.getNumber() - 1}"}'
                        hx-target="#doc-list" hx-swap="innerHTML">‹</a>
                 </li>
@@ -116,7 +116,7 @@
                     @if(Math.abs(p - documents.getNumber()) <= 2)
                         <li class="page-item ${p == documents.getNumber() ? "active" : ""}">
                             <a class="page-link" href="#"
-                               hx-get="/archive" hx-include="#archive-filters"
+                               hx-get="archive" hx-include="#archive-filters"
                                hx-vals='{"page":"${p}"}'
                                hx-target="#doc-list" hx-swap="innerHTML">${p + 1}</a>
                         </li>
@@ -124,7 +124,7 @@
                 @endfor
                 <li class="page-item ${documents.isLast() ? "disabled" : ""}">
                     <a class="page-link" href="#"
-                       hx-get="/archive" hx-include="#archive-filters"
+                       hx-get="archive" hx-include="#archive-filters"
                        hx-vals='{"page":"${documents.getNumber() + 1}"}'
                        hx-target="#doc-list" hx-swap="innerHTML">›</a>
                 </li>

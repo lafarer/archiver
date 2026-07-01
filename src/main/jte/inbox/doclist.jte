@@ -51,8 +51,8 @@
                                     data-mime-type="${doc.getMimeType()}"
                                     data-title="${docTitle}">Aperçu</button>
                         @endif
-                        <a href="/inbox/${doc.getId()}/edit" class="btn btn-sm btn-outline-secondary">Éditer</a>
-                        <form method="post" action="/inbox/${doc.getId()}/validate" class="d-inline">
+                        <a href="inbox/${doc.getId()}/edit" class="btn btn-sm btn-outline-secondary">Éditer</a>
+                        <form method="post" action="inbox/${doc.getId()}/validate" class="d-inline">
                             <button type="submit" class="btn btn-sm btn-success">Valider ✓</button>
                         </form>
                     </div>

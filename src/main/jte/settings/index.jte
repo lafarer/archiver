@@ -13,7 +13,7 @@
 </div>
 
 <div class="page-body">
-<form method="post" action="/settings">
+<form method="post" action="settings">
 <div style="max-width: 560px" class="d-flex flex-column gap-4">
 
     <div class="card">

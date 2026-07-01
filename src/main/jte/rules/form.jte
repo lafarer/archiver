@@ -86,7 +86,7 @@
 
                 <div class="d-flex gap-2">
                     <button type="submit" class="btn btn-primary">Enregistrer</button>
-                    <a href="/rules" class="btn btn-outline-secondary">Annuler</a>
+                    <a href="rules" class="btn btn-outline-secondary">Annuler</a>
                 </div>
 
             </form>
@@ -110,13 +110,13 @@
                 <input type="hidden" id="docFragTemplate" name="pathTemplate" value="${pathTemplate}">
                 <button type="button" class="btn btn-sm btn-outline-secondary"
                         onclick="document.getElementById('docFragTemplate').value=document.querySelector('[name=pathTemplate]').value"
-                        hx-get="/rules/${rule.getId()}/documents"
+                        hx-get="rules/${rule.getId()}/documents"
                         hx-include="#docFragTemplate"
                         hx-vals='{"page":"0"}'
                         hx-target="#docs-body"
                         hx-swap="innerHTML">Simuler</button>
                 @if(outOfSyncCount > 0)
-                <form method="post" action="/rules/${rule.getId()}/apply" class="d-inline">
+                <form method="post" action="rules/${rule.getId()}/apply" class="d-inline">
                     <button type="submit" class="btn btn-sm btn-warning">
                         Appliquer (${outOfSyncCount})
                     </button>

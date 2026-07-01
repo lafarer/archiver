@@ -12,7 +12,7 @@
 <div class="page-header">
     <h1 id="inbox-header-title">Inbox <span class="badge bg-secondary">${documents.size()}</span></h1>
     <div class="d-flex gap-2">
-        <form method="post" action="/inbox/rescan">
+        <form method="post" action="inbox/rescan">
             <button type="submit" class="btn btn-outline-secondary btn-sm">Rescanner</button>
         </form>
         <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadModal">
@@ -40,7 +40,7 @@
                 <h5 class="modal-title">Importer</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form method="post" action="/inbox/upload" enctype="multipart/form-data">
+            <form method="post" action="inbox/upload" enctype="multipart/form-data">
                 <div class="modal-body d-flex flex-column gap-2">
                     <input type="file" name="files" class="form-control" multiple
                            accept=".pdf,.jpg,.jpeg,.png,.tiff">
