@@ -34,7 +34,7 @@
     </h1>
     @if(previewable)
         <button type="button" class="btn btn-outline-primary btn-sm"
-                onclick="openPreviewDrawer('/documents/${document.getId()}/file', '${document.getMimeType()}', '${previewTitle}')">
+                onclick="openPreviewDrawer('documents/${document.getId()}/file', '${document.getMimeType()}', '${previewTitle}')">
             Aperçu
         </button>
     @endif
@@ -44,7 +44,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             openPreviewDrawer(
-                '/documents/${document.getId()}/file',
+                'documents/${document.getId()}/file',
                 '${document.getMimeType()}',
                 '${previewTitle}'
             );
