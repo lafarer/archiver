@@ -1,6 +1,7 @@
 services:
   archiver:
     build: .
+    #image: ghcr.io/lafarer/archiver:latest
     ports:
       - "${ARCHIVER_PORT:-8081}:8080"
     environment:
