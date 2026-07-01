@@ -26,10 +26,11 @@
 @param String page
 @param String message = null
 @param boolean watchdogRunning = false
+@param String contextPath = ""
 
 !{String pageTitle = document.getTitle() != null ? document.getTitle() : document.getOriginalFilename();}
 !{boolean previewable = document.getMimeType() != null && (document.getMimeType().startsWith("image/") || document.getMimeType().equals("application/pdf"));}
-@template.layout.base(page = page, title = pageTitle, watchdogRunning = watchdogRunning, content = @`
+@template.layout.base(page = page, title = pageTitle, watchdogRunning = watchdogRunning, contextPath = contextPath, content = @`
 
 !{String previewTitle = document.getTitle() != null ? document.getTitle() : document.getOriginalFilename();}
 <div class="page-header">

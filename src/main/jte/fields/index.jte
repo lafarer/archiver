@@ -4,8 +4,9 @@
 @param List<CustomFieldDef> fields
 @param String page
 @param boolean watchdogRunning = false
+@param String contextPath = ""
 
-@template.layout.base(page = page, title = "Champs", watchdogRunning = watchdogRunning, content = @`
+@template.layout.base(page = page, title = "Champs", watchdogRunning = watchdogRunning, contextPath = contextPath, content = @`
 
 <div class="page-header">
     <h1>Champs personnalisés</h1>

@@ -3,9 +3,10 @@
 @param TagDef tag
 @param String page
 @param boolean watchdogRunning = false
+@param String contextPath = ""
 
 !{String pageTitle = tag.getId() == null ? "Nouveau tag" : "Éditer " + tag.getLabel();}
-@template.layout.base(page = page, title = pageTitle, watchdogRunning = watchdogRunning, content = @`
+@template.layout.base(page = page, title = pageTitle, watchdogRunning = watchdogRunning, contextPath = contextPath, content = @`
 
 <div class="page-header">
     <h1>${pageTitle}</h1>

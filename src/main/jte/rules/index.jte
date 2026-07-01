@@ -9,8 +9,9 @@
 @param String page
 @param String message = null
 @param boolean watchdogRunning = false
+@param String contextPath = ""
 
-@template.layout.base(page = page, title = "Règles", watchdogRunning = watchdogRunning, content = @`
+@template.layout.base(page = page, title = "Règles", watchdogRunning = watchdogRunning, contextPath = contextPath, content = @`
 
 <div class="page-header">
     <h1>Règles de stockage</h1>

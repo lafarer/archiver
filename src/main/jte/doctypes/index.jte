@@ -4,8 +4,9 @@
 @param List<DocumentTypeDef> types
 @param String page
 @param boolean watchdogRunning = false
+@param String contextPath = ""
 
-@template.layout.base(page = page, title = "Types de document", watchdogRunning = watchdogRunning, content = @`
+@template.layout.base(page = page, title = "Types de document", watchdogRunning = watchdogRunning, contextPath = contextPath, content = @`
 
 <div class="page-header">
     <h1>Types de document</h1>

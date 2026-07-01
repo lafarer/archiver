@@ -13,8 +13,9 @@
 @param String page
 @param String message = null
 @param boolean watchdogRunning = false
+@param String contextPath = ""
 
-@template.layout.base(page = page, title = "Règle", watchdogRunning = watchdogRunning, content = @`
+@template.layout.base(page = page, title = "Règle", watchdogRunning = watchdogRunning, contextPath = contextPath, content = @`
 
 <div class="page-header">
     <h1>${rule.getId() == null ? "Nouvelle règle" : "Modifier la règle"}</h1>

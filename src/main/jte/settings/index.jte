@@ -5,8 +5,9 @@
 @param ArchiverProperties props
 @param boolean watchdogRunning
 @param String page
+@param String contextPath = ""
 
-@template.layout.base(page = page, title = "Réglages", watchdogRunning = watchdogRunning, content = @`
+@template.layout.base(page = page, title = "Réglages", watchdogRunning = watchdogRunning, contextPath = contextPath, content = @`
 
 <div class="page-header">
     <h1>Réglages</h1>

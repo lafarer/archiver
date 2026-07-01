@@ -22,8 +22,9 @@
 @param String navBase = ""
 @param String page
 @param boolean watchdogRunning = false
+@param String contextPath = ""
 
-@template.layout.base(page = page, title = "Archive", watchdogRunning = watchdogRunning, content = @`
+@template.layout.base(page = page, title = "Archive", watchdogRunning = watchdogRunning, contextPath = contextPath, content = @`
 
 <div class="page-header">
     <h1>Archive @if(!totalSize.isEmpty())<span class="text-muted fw-normal small ms-2">${totalSize}</span>@endif</h1>

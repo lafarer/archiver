@@ -6,8 +6,9 @@
 @param String page
 @param String uploadError = null
 @param boolean watchdogRunning = false
+@param String contextPath = ""
 
-@template.layout.base(page = page, title = "Inbox", inboxCount = documents.size(), watchdogRunning = watchdogRunning, content = @`
+@template.layout.base(page = page, title = "Inbox", inboxCount = documents.size(), watchdogRunning = watchdogRunning, contextPath = contextPath, content = @`
 
 <div class="page-header">
     <h1 id="inbox-header-title">Inbox <span class="badge bg-secondary">${documents.size()}</span></h1>

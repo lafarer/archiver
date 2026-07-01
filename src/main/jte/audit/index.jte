@@ -8,8 +8,9 @@
 @param String page
 @param String message = null
 @param boolean watchdogRunning = false
+@param String contextPath = ""
 
-@template.layout.base(page = page, title = "Audit", watchdogRunning = watchdogRunning, content = @`
+@template.layout.base(page = page, title = "Audit", watchdogRunning = watchdogRunning, contextPath = contextPath, content = @`
 
 <div class="page-header">
     <h1>Audit de stockage</h1>
